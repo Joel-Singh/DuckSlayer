@@ -29,7 +29,7 @@ fn spawn_quacka(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.spawn((
         Sprite {
-            image: asset_server.load("princess_tower.png"),
+            image: asset_server.load("nest.png"),
             custom_size: Some(Vec2::new(50., 50.)),
             ..default()
         },
