@@ -1,5 +1,13 @@
 use bevy::prelude::*;
 
+#[derive(Component)]
+struct Quacka;
+
+#[derive(Component)]
+struct Nest;
+
+const QUACKA_SPEED: f32 = 10.0;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(bevy::log::LogPlugin {
@@ -7,6 +15,7 @@ fn main() {
             ..default()
         }))
         .add_systems(Startup, (setup_camera, spawn_quacka))
+        .add_systems(FixedUpdate, quacka_go_to_nest)
         .run();
 }
 
@@ -25,6 +34,7 @@ fn spawn_quacka(mut commands: Commands, asset_server: Res<AssetServer>) {
             translation: Vec3::new(0., 200., 0.),
             ..default()
         },
+        Quacka,
     ));
 
     commands.spawn((
@@ -37,5 +47,19 @@ fn spawn_quacka(mut commands: Commands, asset_server: Res<AssetServer>) {
             translation: Vec3::new(0., 0., 0.),
             ..default()
         },
+        Nest,
     ));
+}
+
+fn quacka_go_to_nest(
+    mut quackas: Query<&mut Transform, (With<Quacka>, Without<Nest>)>,
+    nest: Single<&Transform, (With<Nest>, Without<Quacka>)>,
+    time: Res<Time>,
+) {
+    for mut quacka in quackas.iter_mut() {
+        let mut difference = nest.translation - quacka.translation;
+        difference = difference.normalize();
+
+        quacka.translation = quacka.translation + (difference) * time.delta_secs() * QUACKA_SPEED;
+    }
 }
