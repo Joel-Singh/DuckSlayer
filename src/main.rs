@@ -49,14 +49,35 @@ fn spawn_quacka(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Nest,
     ));
+
+    commands.spawn((
+        Sprite {
+            image: asset_server.load("nest.png"),
+            custom_size: Some(Vec2::new(50., 50.)),
+            ..default()
+        },
+        Transform {
+            translation: Vec3::new(300., 0., 0.),
+            ..default()
+        },
+        Nest,
+    ));
 }
 
 fn quacka_go_to_nest(
     mut quackas: Query<&mut Transform, (With<Quacka>, Without<Nest>)>,
-    nest: Single<&Transform, (With<Nest>, Without<Quacka>)>,
+    nest: Query<&Transform, (With<Nest>, Without<Quacka>)>,
     time: Res<Time>,
 ) {
     for mut quacka in quackas.iter_mut() {
+        let nest = nest
+            .iter()
+            .max_by(|a, b| {
+                let a_distance = quacka.translation.distance(a.translation);
+                let b_distance = quacka.translation.distance(b.translation);
+                b_distance.partial_cmp(&a_distance).unwrap()
+            }).unwrap();
+
         let mut difference = nest.translation - quacka.translation;
         difference = difference.normalize();
 
