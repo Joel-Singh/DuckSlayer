@@ -76,7 +76,8 @@ fn quacka_go_to_nest(
                 let a_distance = quacka.translation.distance(a.translation);
                 let b_distance = quacka.translation.distance(b.translation);
                 b_distance.partial_cmp(&a_distance).unwrap()
-            }).unwrap();
+            })
+            .unwrap();
 
         let mut difference = nest.translation - quacka.translation;
         difference = difference.normalize();
