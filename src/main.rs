@@ -8,6 +8,8 @@ struct Quacka;
 struct Nest;
 
 const QUACKA_SPEED: f32 = 75.0;
+const QUACKA_HIT_DISTANCE: f32 = 50.0;
+
 const SCREEN_WIDTH: f32 = 1366.0;
 const SCREEN_HEIGHT: f32 = 768.0;
 
@@ -88,6 +90,10 @@ fn quacka_go_to_nest(
         let mut difference = nest.translation - quacka.translation;
         difference = difference.normalize();
 
-        quacka.translation = quacka.translation + (difference) * time.delta_secs() * QUACKA_SPEED;
+        if dbg!(quacka.translation.distance(nest.translation)) < QUACKA_HIT_DISTANCE {
+            continue;
+        } else {
+            quacka.translation = quacka.translation + (difference) * time.delta_secs() * QUACKA_SPEED;
+        }
     }
 }
