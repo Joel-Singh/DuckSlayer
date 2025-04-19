@@ -54,7 +54,11 @@ fn spawn_entities(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         },
         Transform {
-            translation: Vec3::new(0. - DECK_WIDTH - 0.15*ARENA_WIDTH, 0.0 - 0.25*SCREEN_HEIGHT, 0.),
+            translation: Vec3::new(
+                0. - DECK_WIDTH - 0.15 * ARENA_WIDTH,
+                0.0 - 0.25 * SCREEN_HEIGHT,
+                0.,
+            ),
             ..default()
         },
         Nest,
@@ -67,29 +71,35 @@ fn spawn_entities(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         },
         Transform {
-            translation: Vec3::new(0. - DECK_WIDTH + 0.15*ARENA_WIDTH, 0.0 - 0.25*SCREEN_HEIGHT, 0.),
+            translation: Vec3::new(
+                0. - DECK_WIDTH + 0.15 * ARENA_WIDTH,
+                0.0 - 0.25 * SCREEN_HEIGHT,
+                0.,
+            ),
             ..default()
         },
         Nest,
     ));
 
-    commands.spawn((
-        DeckBarRoot,
-        Node {
-            display: Display::Flex,
-            row_gap: Val::Px(10.0),
-            column_gap: Val::Px(10.0),
-            width: Val::Px(DECK_WIDTH * 0.8),
-            height: Val::Vh(100.),
-            flex_direction: FlexDirection::Column,
-            border: UiRect::all(Val::Px(5.)),
-            margin: UiRect::left(Val::Auto),
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::SpaceEvenly,
-            ..default()
-        },
-        BorderColor(RED.into())
-    )).with_children(|parent| {
+    commands
+        .spawn((
+            DeckBarRoot,
+            Node {
+                display: Display::Flex,
+                row_gap: Val::Px(10.0),
+                column_gap: Val::Px(10.0),
+                width: Val::Px(DECK_WIDTH * 0.8),
+                height: Val::Vh(100.),
+                flex_direction: FlexDirection::Column,
+                border: UiRect::all(Val::Px(5.)),
+                margin: UiRect::left(Val::Auto),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::SpaceEvenly,
+                ..default()
+            },
+            BorderColor(RED.into()),
+        ))
+        .with_children(|parent| {
             let card_node: Node = Node {
                 height: Val::Px(100.0),
                 width: Val::Px(80.0),
@@ -100,30 +110,30 @@ fn spawn_entities(mut commands: Commands, asset_server: Res<AssetServer>) {
                 Node {
                     ..card_node.clone()
                 },
-                BackgroundColor(MAROON.into())
+                BackgroundColor(MAROON.into()),
             ));
 
             parent.spawn((
                 Node {
                     ..card_node.clone()
                 },
-                BackgroundColor(MAROON.into())
+                BackgroundColor(MAROON.into()),
             ));
 
             parent.spawn((
                 Node {
                     ..card_node.clone()
                 },
-                BackgroundColor(MAROON.into())
+                BackgroundColor(MAROON.into()),
             ));
 
             parent.spawn((
                 Node {
                     ..card_node.clone()
                 },
-                BackgroundColor(MAROON.into())
+                BackgroundColor(MAROON.into()),
             ));
-    });
+        });
 }
 
 fn quacka_go_to_nest(
@@ -147,7 +157,8 @@ fn quacka_go_to_nest(
         if quacka.translation.distance(nest.translation) < QUACKA_HIT_DISTANCE {
             continue;
         } else {
-            quacka.translation = quacka.translation + (difference) * time.delta_secs() * QUACKA_SPEED;
+            quacka.translation =
+                quacka.translation + (difference) * time.delta_secs() * QUACKA_SPEED;
         }
     }
 }
