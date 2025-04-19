@@ -157,8 +157,7 @@ fn quacka_go_to_nest(
         if quacka.translation.distance(nest.translation) < QUACKA_HIT_DISTANCE {
             continue;
         } else {
-            quacka.translation =
-                quacka.translation + (difference) * time.delta_secs() * QUACKA_SPEED;
+            quacka.translation += (difference) * time.delta_secs() * QUACKA_SPEED;
         }
     }
 }
