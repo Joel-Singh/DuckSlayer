@@ -1,11 +1,13 @@
-
-use bevy::prelude::*;
+use bevy::{color::palettes::css::*, prelude::*};
 
 #[derive(Component)]
 struct Quacka;
 
 #[derive(Component)]
 struct Nest;
+
+#[derive(Component)]
+struct DeckBarRoot;
 
 const QUACKA_SPEED: f32 = 75.0;
 const QUACKA_HIT_DISTANCE: f32 = 50.0;
@@ -70,6 +72,58 @@ fn spawn_entities(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Nest,
     ));
+
+    commands.spawn((
+        DeckBarRoot,
+        Node {
+            display: Display::Flex,
+            row_gap: Val::Px(10.0),
+            column_gap: Val::Px(10.0),
+            width: Val::Px(DECK_WIDTH * 0.8),
+            height: Val::Vh(100.),
+            flex_direction: FlexDirection::Column,
+            border: UiRect::all(Val::Px(5.)),
+            margin: UiRect::left(Val::Auto),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::SpaceEvenly,
+            ..default()
+        },
+        BorderColor(RED.into())
+    )).with_children(|parent| {
+            let card_node: Node = Node {
+                height: Val::Px(100.0),
+                width: Val::Px(80.0),
+                ..default()
+            };
+
+            parent.spawn((
+                Node {
+                    ..card_node.clone()
+                },
+                BackgroundColor(MAROON.into())
+            ));
+
+            parent.spawn((
+                Node {
+                    ..card_node.clone()
+                },
+                BackgroundColor(MAROON.into())
+            ));
+
+            parent.spawn((
+                Node {
+                    ..card_node.clone()
+                },
+                BackgroundColor(MAROON.into())
+            ));
+
+            parent.spawn((
+                Node {
+                    ..card_node.clone()
+                },
+                BackgroundColor(MAROON.into())
+            ));
+    });
 }
 
 fn quacka_go_to_nest(
