@@ -90,7 +90,7 @@ fn quacka_go_to_nest(
         let mut difference = nest.translation - quacka.translation;
         difference = difference.normalize();
 
-        if dbg!(quacka.translation.distance(nest.translation)) < QUACKA_HIT_DISTANCE {
+        if quacka.translation.distance(nest.translation) < QUACKA_HIT_DISTANCE {
             continue;
         } else {
             quacka.translation = quacka.translation + (difference) * time.delta_secs() * QUACKA_SPEED;
