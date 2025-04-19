@@ -3,3 +3,4 @@
 - Program the ice golem
 - Create a slayyed screen
 - Create an uh oh screen
+- Create the deck bar
