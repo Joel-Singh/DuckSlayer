@@ -1,3 +1,4 @@
+
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -7,6 +8,11 @@ struct Quacka;
 struct Nest;
 
 const QUACKA_SPEED: f32 = 10.0;
+const SCREEN_WIDTH: f32 = 1366.0;
+const SCREEN_HEIGHT: f32 = 768.0;
+
+const ARENA_WIDTH: f32 = 0.8 * SCREEN_WIDTH;
+const DECK_WIDTH: f32 = 0.1 * SCREEN_WIDTH;
 
 fn main() {
     App::new()
@@ -14,7 +20,7 @@ fn main() {
             //level: bevy::log::Level::DEBUG,
             ..default()
         }))
-        .add_systems(Startup, (setup_camera, spawn_quacka))
+        .add_systems(Startup, (setup_camera, spawn_entities))
         .add_systems(FixedUpdate, quacka_go_to_nest)
         .run();
 }
@@ -23,7 +29,7 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
 
-fn spawn_quacka(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_entities(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Sprite {
             image: asset_server.load("quacka.png"),
@@ -44,7 +50,7 @@ fn spawn_quacka(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         },
         Transform {
-            translation: Vec3::new(0., 0., 0.),
+            translation: Vec3::new(0. - DECK_WIDTH - 0.15*ARENA_WIDTH, 0.0 - 0.25*SCREEN_HEIGHT, 0.),
             ..default()
         },
         Nest,
@@ -57,7 +63,7 @@ fn spawn_quacka(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         },
         Transform {
-            translation: Vec3::new(300., 0., 0.),
+            translation: Vec3::new(0. - DECK_WIDTH + 0.15*ARENA_WIDTH, 0.0 - 0.25*SCREEN_HEIGHT, 0.),
             ..default()
         },
         Nest,
