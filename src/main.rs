@@ -7,7 +7,7 @@ struct Quacka;
 #[derive(Component)]
 struct Nest;
 
-const QUACKA_SPEED: f32 = 10.0;
+const QUACKA_SPEED: f32 = 75.0;
 const SCREEN_WIDTH: f32 = 1366.0;
 const SCREEN_HEIGHT: f32 = 768.0;
 
