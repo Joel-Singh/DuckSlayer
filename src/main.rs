@@ -51,6 +51,76 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
 
+
+fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((
+        Sprite {
+            image: asset_server.load("farmer.png"),
+            custom_size: Some(Vec2::new(30.0, 30.0)),
+            ..default()
+        },
+        Transform {
+            translation: Vec3::new(0., 0., 0.),
+            ..default()
+        },
+        Farmer,
+        GoingToBridge,
+    ));
+}
+
+fn quacka_go_to_nest(
+    mut quackas: Query<&mut Transform, (With<Quacka>, Without<Nest>)>,
+    nest: Query<&Transform, (With<Nest>, Without<Quacka>)>,
+    time: Res<Time>,
+) {
+    for mut quacka in quackas.iter_mut() {
+        let nest = nest
+            .iter()
+            .max_by(|a, b| {
+                let a_distance = quacka.translation.distance(a.translation);
+                let b_distance = quacka.translation.distance(b.translation);
+                b_distance.partial_cmp(&a_distance).unwrap()
+            })
+            .unwrap();
+
+        let mut difference = nest.translation - quacka.translation;
+        difference = difference.normalize();
+
+        if quacka.translation.distance(nest.translation) < QUACKA_HIT_DISTANCE {
+            continue;
+        } else {
+            quacka.translation += (difference) * time.delta_secs() * QUACKA_SPEED;
+        }
+    }
+}
+
+fn farmer_go_to_bridge(
+    mut farmers: Query<&mut Transform, (With<Farmer>, With<GoingToBridge>, Without<Bridge>)>,
+    bridges: Query<&Transform, (With<Bridge>, Without<Farmer>)>,
+    time: Res<Time>,
+) {
+    for mut farmer in farmers.iter_mut() {
+        let bridge = bridges
+            .iter()
+            .max_by(|a, b| {
+                let a_distance = farmer.translation.distance(a.translation);
+                let b_distance = farmer.translation.distance(b.translation);
+                b_distance.partial_cmp(&a_distance).unwrap()
+            })
+            .unwrap();
+
+        let mut difference = dbg!(bridge.translation - farmer.translation);
+
+        difference = difference.normalize();
+
+        if farmer.translation.distance(bridge.translation) < 10.0 {
+            continue;
+        } else {
+            farmer.translation += (difference) * time.delta_secs() * FARMER_SPEED;
+        }
+    }
+}
+
 fn spawn_entities(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Sprite {
@@ -164,73 +234,4 @@ fn spawn_entities(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         },
     ));
-}
-
-fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((
-        Sprite {
-            image: asset_server.load("farmer.png"),
-            custom_size: Some(Vec2::new(30.0, 30.0)),
-            ..default()
-        },
-        Transform {
-            translation: Vec3::new(0., 0., 0.),
-            ..default()
-        },
-        Farmer,
-        GoingToBridge,
-    ));
-}
-
-fn quacka_go_to_nest(
-    mut quackas: Query<&mut Transform, (With<Quacka>, Without<Nest>)>,
-    nest: Query<&Transform, (With<Nest>, Without<Quacka>)>,
-    time: Res<Time>,
-) {
-    for mut quacka in quackas.iter_mut() {
-        let nest = nest
-            .iter()
-            .max_by(|a, b| {
-                let a_distance = quacka.translation.distance(a.translation);
-                let b_distance = quacka.translation.distance(b.translation);
-                b_distance.partial_cmp(&a_distance).unwrap()
-            })
-            .unwrap();
-
-        let mut difference = nest.translation - quacka.translation;
-        difference = difference.normalize();
-
-        if quacka.translation.distance(nest.translation) < QUACKA_HIT_DISTANCE {
-            continue;
-        } else {
-            quacka.translation += (difference) * time.delta_secs() * QUACKA_SPEED;
-        }
-    }
-}
-
-fn farmer_go_to_bridge(
-    mut farmers: Query<&mut Transform, (With<Farmer>, With<GoingToBridge>, Without<Bridge>)>,
-    bridges: Query<&Transform, (With<Bridge>, Without<Farmer>)>,
-    time: Res<Time>,
-) {
-    for mut farmer in farmers.iter_mut() {
-        let bridge = bridges
-            .iter()
-            .max_by(|a, b| {
-                let a_distance = farmer.translation.distance(a.translation);
-                let b_distance = farmer.translation.distance(b.translation);
-                b_distance.partial_cmp(&a_distance).unwrap()
-            })
-            .unwrap();
-
-        let mut difference = dbg!(bridge.translation - farmer.translation);
-
-        difference = difference.normalize();
-
-        if farmer.translation.distance(bridge.translation) < 10.0 {
-            continue;
-        } else {
-            farmer.translation += (difference) * time.delta_secs() * FARMER_SPEED;
-        }
-    }
 }
