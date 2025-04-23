@@ -9,7 +9,7 @@ struct Nest;
 #[derive(Component)]
 struct DeckBarRoot;
 
-const QUACKA_SPEED: f32 = 75.0;
+const QUACKA_SPEED: f32 = 25.0;
 const QUACKA_HIT_DISTANCE: f32 = 50.0;
 
 const SCREEN_WIDTH: f32 = 1366.0;
