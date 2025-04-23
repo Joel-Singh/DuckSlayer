@@ -109,7 +109,7 @@ fn farmer_go_to_bridge(
             })
             .unwrap();
 
-        let mut difference = dbg!(bridge.translation - farmer.translation);
+        let mut difference = bridge.translation - farmer.translation;
 
         difference = difference.normalize();
 
