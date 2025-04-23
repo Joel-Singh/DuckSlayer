@@ -4,6 +4,7 @@ use bevy::{color::palettes::css::*, input::common_conditions::*, prelude::*};
 struct Quacka;
 
 #[derive(Component)]
+#[require(Chaseable)]
 struct Farmer;
 
 #[derive(Component)]
@@ -13,7 +14,11 @@ struct GoingToBridge;
 struct Bridge;
 
 #[derive(Component)]
+#[require(Chaseable)]
 struct Nest;
+
+#[derive(Component, Default)]
+struct Chaseable;
 
 #[derive(Component)]
 struct DeckBarRoot;
@@ -39,7 +44,7 @@ fn main() {
         .add_systems(
             FixedUpdate,
             (
-                quacka_go_to_nest,
+                quacka_chase,
                 farmer_go_to_bridge,
                 farmer_go_up,
                 spawn_farmer.run_if(input_pressed(MouseButton::Left)),
@@ -69,13 +74,13 @@ fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
-fn quacka_go_to_nest(
+fn quacka_chase(
     mut quackas: Query<&mut Transform, (With<Quacka>, Without<Nest>)>,
-    nests: Query<&Transform, (With<Nest>, Without<Quacka>)>,
+    chaseables: Query<&Transform, (With<Chaseable>, Without<Quacka>)>,
     time: Res<Time>,
 ) {
     for mut quacka in quackas.iter_mut() {
-        let nest = nests
+        let closest_chaseable = chaseables
             .iter()
             .max_by(|a, b| {
                 let a_distance = quacka.translation.distance(a.translation);
@@ -84,10 +89,10 @@ fn quacka_go_to_nest(
             })
             .unwrap();
 
-        let mut difference = nest.translation - quacka.translation;
+        let mut difference = closest_chaseable.translation - quacka.translation;
         difference = difference.normalize();
 
-        if quacka.translation.distance(nest.translation) < QUACKA_HIT_DISTANCE {
+        if quacka.translation.distance(closest_chaseable.translation) < QUACKA_HIT_DISTANCE {
             continue;
         } else {
             quacka.translation += (difference) * time.delta_secs() * QUACKA_SPEED;
