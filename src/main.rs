@@ -41,6 +41,7 @@ fn main() {
             (
                 quacka_go_to_nest,
                 farmer_go_to_bridge,
+                farmer_go_up,
                 spawn_farmer.run_if(input_pressed(MouseButton::Left)),
             ),
         )
@@ -95,11 +96,13 @@ fn quacka_go_to_nest(
 }
 
 fn farmer_go_to_bridge(
-    mut farmers: Query<&mut Transform, (With<Farmer>, With<GoingToBridge>, Without<Bridge>)>,
+    mut farmers: Query<(&mut Transform, Entity), (With<Farmer>, With<GoingToBridge>, Without<Bridge>)>,
     bridges: Query<&Transform, (With<Bridge>, Without<Farmer>)>,
+    mut commands: Commands,
     time: Res<Time>,
 ) {
-    for mut farmer_transform in farmers.iter_mut() {
+    for farmer in farmers.iter_mut() {
+        let (mut farmer_transform, farmer_e) = farmer;
         let farmer_translation = farmer_transform.translation;
         let bridge = bridges
             .iter()
@@ -115,10 +118,19 @@ fn farmer_go_to_bridge(
         difference = difference.normalize();
 
         if farmer_translation.distance(bridge.translation) < 10.0 {
-            continue;
+            commands.entity(farmer_e).remove::<GoingToBridge>();
         } else {
             farmer_transform.translation += (difference) * time.delta_secs() * FARMER_SPEED;
         }
+    }
+}
+ 
+fn farmer_go_up(
+    mut farmer_transforms: Query<&mut Transform, (With<Farmer>, Without<GoingToBridge>)>,
+    time: Res<Time>
+) {
+    for mut farmer_transform in farmer_transforms.iter_mut() {
+        farmer_transform.translation.y += time.delta_secs() * FARMER_SPEED;
     }
 }
 
