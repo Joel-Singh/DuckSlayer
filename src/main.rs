@@ -99,24 +99,25 @@ fn farmer_go_to_bridge(
     bridges: Query<&Transform, (With<Bridge>, Without<Farmer>)>,
     time: Res<Time>,
 ) {
-    for mut farmer in farmers.iter_mut() {
+    for mut farmer_transform in farmers.iter_mut() {
+        let farmer_translation = farmer_transform.translation;
         let bridge = bridges
             .iter()
             .max_by(|a, b| {
-                let a_distance = farmer.translation.distance(a.translation);
-                let b_distance = farmer.translation.distance(b.translation);
+                let a_distance = farmer_translation.distance(a.translation);
+                let b_distance = farmer_translation.distance(b.translation);
                 b_distance.partial_cmp(&a_distance).unwrap()
             })
             .unwrap();
 
-        let mut difference = bridge.translation - farmer.translation;
+        let mut difference = bridge.translation - farmer_translation;
 
         difference = difference.normalize();
 
-        if farmer.translation.distance(bridge.translation) < 10.0 {
+        if farmer_translation.distance(bridge.translation) < 10.0 {
             continue;
         } else {
-            farmer.translation += (difference) * time.delta_secs() * FARMER_SPEED;
+            farmer_transform.translation += (difference) * time.delta_secs() * FARMER_SPEED;
         }
     }
 }
