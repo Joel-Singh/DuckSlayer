@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::*, prelude::*, input::common_conditions::*};
+use bevy::{color::palettes::css::*, input::common_conditions::*, prelude::*};
 
 #[derive(Component)]
 struct Quacka;
@@ -36,11 +36,14 @@ fn main() {
             ..default()
         }))
         .add_systems(Startup, (setup_camera, spawn_entities))
-        .add_systems(FixedUpdate, (
-            quacka_go_to_nest,
-            farmer_go_to_bridge,
-            spawn_farmer.run_if(input_pressed(MouseButton::Left)),
-        ))
+        .add_systems(
+            FixedUpdate,
+            (
+                quacka_go_to_nest,
+                farmer_go_to_bridge,
+                spawn_farmer.run_if(input_pressed(MouseButton::Left)),
+            ),
+        )
         .run();
 }
 
@@ -175,9 +178,8 @@ fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         },
         Farmer,
-        GoingToBridge
+        GoingToBridge,
     ));
-
 }
 
 fn quacka_go_to_nest(
