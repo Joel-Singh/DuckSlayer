@@ -204,39 +204,25 @@ fn spawn_entities(
 
     commands.entity(quakka).add_children(&[quakka_healthbar]);
 
-    commands.spawn((
-        Sprite {
-            image: asset_server.load("nest.png"),
-            custom_size: Some(Vec2::new(50., 50.)),
-            ..default()
-        },
-        Transform {
-            translation: Vec3::new(
+    spawn_nest(
+        Vec3::new(
                 0. - DECK_WIDTH - 0.15 * ARENA_WIDTH,
                 0.0 - 0.25 * SCREEN_HEIGHT,
-                0.,
-            ),
-            ..default()
-        },
-        Nest,
-    ));
+                0.
+        ),
+        &mut commands,
+        &asset_server
+    );
 
-    commands.spawn((
-        Sprite {
-            image: asset_server.load("nest.png"),
-            custom_size: Some(Vec2::new(50., 50.)),
-            ..default()
-        },
-        Transform {
-            translation: Vec3::new(
+    spawn_nest(
+        Vec3::new(
                 0. - DECK_WIDTH + 0.15 * ARENA_WIDTH,
                 0.0 - 0.25 * SCREEN_HEIGHT,
                 0.,
-            ),
-            ..default()
-        },
-        Nest,
-    ));
+        ),
+        &mut commands,
+        &asset_server
+    );
 
     commands
         .spawn((
@@ -302,5 +288,24 @@ fn spawn_entities(
             ),
             ..default()
         },
+    ));
+}
+
+fn spawn_nest(
+    translation: Vec3,
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+) {
+    commands.spawn((
+        Sprite {
+            image: asset_server.load("nest.png"),
+            custom_size: Some(Vec2::new(50., 50.)),
+            ..default()
+        },
+        Transform {
+            translation,
+            ..default()
+        },
+        Nest,
     ));
 }
