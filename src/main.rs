@@ -20,7 +20,7 @@ struct Nest;
 #[derive(Component)]
 struct Health {
     current: f32,
-    max: f32
+    max: f32,
 }
 
 #[derive(Component)]
@@ -68,7 +68,6 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
 
-
 fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Sprite {
@@ -112,7 +111,10 @@ fn quacka_chase(
 }
 
 fn farmer_go_to_bridge(
-    mut farmers: Query<(&mut Transform, Entity), (With<Farmer>, With<GoingToBridge>, Without<Bridge>)>,
+    mut farmers: Query<
+        (&mut Transform, Entity),
+        (With<Farmer>, With<GoingToBridge>, Without<Bridge>),
+    >,
     bridges: Query<&Transform, (With<Bridge>, Without<Farmer>)>,
     mut commands: Commands,
     time: Res<Time>,
@@ -140,10 +142,10 @@ fn farmer_go_to_bridge(
         }
     }
 }
- 
+
 fn farmer_go_up(
     mut farmer_transforms: Query<&mut Transform, (With<Farmer>, Without<GoingToBridge>)>,
-    time: Res<Time>
+    time: Res<Time>,
 ) {
     for mut farmer_transform in farmer_transforms.iter_mut() {
         farmer_transform.translation.y += time.delta_secs() * FARMER_SPEED;
@@ -154,13 +156,15 @@ fn update_healthbars(
     mut commands: Commands,
     mut healthbar_q: Query<(Entity, &Parent), With<HealthBar>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    health: Query<&Health>
+    health: Query<&Health>,
 ) {
     for (healthbar, troop) in healthbar_q.iter_mut() {
         let health = health.get(troop.get()).unwrap();
         let health_percentage = health.current / health.max;
 
-        commands.entity(healthbar).insert(Mesh2d(meshes.add(Rectangle::new(health_percentage * 100.0, 10.0))));
+        commands.entity(healthbar).insert(Mesh2d(
+            meshes.add(Rectangle::new(health_percentage * 100.0, 10.0)),
+        ));
     }
 }
 
@@ -169,31 +173,34 @@ fn spawn_entities(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-
 ) {
-    let quakka = commands.spawn((
-        Sprite {
-            image: asset_server.load("quacka.png"),
-            custom_size: Some(Vec2::new(100.0, 100.0)),
-            ..default()
-        },
-        Transform {
-            translation: Vec3::new(0., 200., 0.),
-            ..default()
-        },
-        Health {
-            current: 100.0,
-            max: 100.0
-        },
-        Quacka,
-    )).id();
+    let quakka = commands
+        .spawn((
+            Sprite {
+                image: asset_server.load("quacka.png"),
+                custom_size: Some(Vec2::new(100.0, 100.0)),
+                ..default()
+            },
+            Transform {
+                translation: Vec3::new(0., 200., 0.),
+                ..default()
+            },
+            Health {
+                current: 100.0,
+                max: 100.0,
+            },
+            Quacka,
+        ))
+        .id();
 
-    let quakka_healthbar = commands.spawn((
-        Mesh2d(meshes.add(Rectangle::default())),
-        MeshMaterial2d(materials.add(Color::from(RED))),
-        Transform::from_xyz(0., 60., 0.),
-        HealthBar
-    )).id();
+    let quakka_healthbar = commands
+        .spawn((
+            Mesh2d(meshes.add(Rectangle::default())),
+            MeshMaterial2d(materials.add(Color::from(RED))),
+            Transform::from_xyz(0., 60., 0.),
+            HealthBar,
+        ))
+        .id();
 
     commands.entity(quakka).add_children(&[quakka_healthbar]);
 
