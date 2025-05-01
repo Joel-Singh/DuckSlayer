@@ -24,6 +24,7 @@ struct Health {
 }
 
 #[derive(Component)]
+#[require(Transform)]
 struct HealthBar;
 
 #[derive(Component, Default)]
