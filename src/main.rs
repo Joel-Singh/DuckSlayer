@@ -27,8 +27,8 @@ struct Nest;
 
 #[derive(Component)]
 struct Health {
-    current: f32,
-    max: f32,
+    current_health: f32,
+    max_health: f32,
 }
 
 #[derive(Component)]
@@ -128,7 +128,7 @@ fn quacka_chase_and_attack(
         if dbg!(in_attack_distance) {
             if quacka.1.cooldown.finished() {
                 quacka.1.cooldown.reset();
-                closest_chaseable.2.current -= quacka.1.damage;
+                closest_chaseable.2.current_health -= quacka.1.damage;
             }
         } else {
             quacka.0.translation += (difference) * time.delta_secs() * QUACKA_SPEED;
@@ -192,7 +192,7 @@ fn update_healthbars(
         }
 
         let health = health.unwrap();
-        let health_percentage = health.current / health.max;
+        let health_percentage = health.current_health / health.max_health;
 
         commands.entity(healthbar).insert(Mesh2d(
             meshes.add(Rectangle::new(health_percentage * 100.0, 10.0)),
@@ -217,8 +217,8 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
                 ..default()
             },
             Health {
-                current: 100.0,
-                max: 100.0,
+                current_health: 100.0,
+                max_health: 100.0,
             },
             Quacka,
             Attacker {
@@ -334,8 +334,8 @@ fn spawn_nest(translation: Vec3, commands: &mut Commands, asset_server: &Res<Ass
                 ..default()
             },
             Health {
-                current: 100.0,
-                max: 100.0,
+                current_health: 100.0,
+                max_health: 100.0,
             },
             Nest,
         ))
