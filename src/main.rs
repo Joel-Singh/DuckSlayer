@@ -195,7 +195,6 @@ fn spawn_entities(
 
     let quakka_healthbar = commands
         .spawn((
-            Mesh2d(meshes.add(Rectangle::default())),
             MeshMaterial2d(materials.add(Color::from(RED))),
             Transform::from_xyz(0., 60., 0.),
             HealthBar,
