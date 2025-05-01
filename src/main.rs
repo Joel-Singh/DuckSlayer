@@ -24,7 +24,6 @@ struct Health {
 }
 
 #[derive(Component)]
-#[require(MeshMaterial2d<ColorMaterial>)]
 struct HealthBar;
 
 #[derive(Component, Default)]
@@ -156,6 +155,7 @@ fn update_healthbars(
     mut commands: Commands,
     mut healthbar_q: Query<(Entity, &Parent), With<HealthBar>>,
     mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
     health: Query<&Health>,
 ) {
     for (healthbar, troop) in healthbar_q.iter_mut() {
@@ -165,14 +165,16 @@ fn update_healthbars(
         commands.entity(healthbar).insert(Mesh2d(
             meshes.add(Rectangle::new(health_percentage * 100.0, 10.0)),
         ));
+
+        commands.entity(healthbar).insert_if_new(
+            MeshMaterial2d(materials.add(Color::from(RED)))
+        );
     }
 }
 
 fn spawn_entities(
     asset_server: Res<AssetServer>,
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let quakka = commands
         .spawn((
@@ -195,7 +197,6 @@ fn spawn_entities(
 
     let quakka_healthbar = commands
         .spawn((
-            MeshMaterial2d(materials.add(Color::from(RED))),
             Transform::from_xyz(0., 60., 0.),
             HealthBar,
         ))
