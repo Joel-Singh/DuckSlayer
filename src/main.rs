@@ -68,6 +68,7 @@ fn main() {
                 update_healthbars,
                 spawn_farmer.run_if(input_pressed(MouseButton::Left)),
                 tick_attacker_cooldowns,
+                delete_dead_entities
             ),
         )
         .run();
@@ -99,6 +100,17 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
             panic!("Attack coolodwn should be once");
         }
         attacker.cooldown.tick(time.delta());
+    }
+}
+
+fn delete_dead_entities(
+    healths: Query<(&Health, Entity)>,
+    mut commands: Commands
+) {
+    for (health, e) in healths.iter() {
+        if health.current_health < 0.0 {
+            commands.entity(e).despawn_recursive();
+        }
     }
 }
 
