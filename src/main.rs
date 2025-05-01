@@ -241,7 +241,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
         .id();
 
     let quakka_healthbar = commands
-        .spawn((Transform::from_xyz(0., 60., 0.), HealthBar))
+        .spawn((Transform::from_xyz(0., 60., 1.), HealthBar))
         .id();
 
     commands.entity(quakka).add_children(&[quakka_healthbar]);
@@ -354,7 +354,7 @@ fn spawn_nest(translation: Vec3, commands: &mut Commands, asset_server: &Res<Ass
         .id();
 
     let nest_healthbar = commands
-        .spawn((Transform::from_xyz(0., 60., 0.), HealthBar))
+        .spawn((Transform::from_xyz(0., 60., 1.), HealthBar))
         .id();
 
     commands.entity(nest).add_children(&[nest_healthbar]);
