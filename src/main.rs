@@ -8,7 +8,7 @@ struct Quacka;
 #[derive(Component)]
 struct Attacker {
     cooldown: Timer,
-    damage: f32
+    damage: f32,
 }
 
 #[derive(Component)]
@@ -67,7 +67,7 @@ fn main() {
                 farmer_go_up,
                 update_healthbars,
                 spawn_farmer.run_if(input_pressed(MouseButton::Left)),
-                tick_attacker_cooldowns
+                tick_attacker_cooldowns,
             ),
         )
         .run();
@@ -93,12 +93,8 @@ fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
-fn tick_attacker_cooldowns(
-    mut attackers: Query<&mut Attacker>,
-    time: Res<Time>
-
-) {
-    for mut attacker in attackers.iter_mut()  {
+fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>) {
+    for mut attacker in attackers.iter_mut() {
         if attacker.cooldown.mode() == TimerMode::Repeating {
             panic!("Attack coolodwn should be once");
         }
@@ -124,7 +120,11 @@ fn quacka_chase_and_attack(
         let mut difference = closest_chaseable.0.translation - quacka.0.translation;
         difference = difference.normalize();
 
-        let in_attack_distance = quacka.0.translation.distance(closest_chaseable.0.translation) < QUACKA_HIT_DISTANCE;
+        let in_attack_distance = quacka
+            .0
+            .translation
+            .distance(closest_chaseable.0.translation)
+            < QUACKA_HIT_DISTANCE;
         if dbg!(in_attack_distance) {
             if quacka.1.cooldown.finished() {
                 quacka.1.cooldown.reset();
@@ -198,16 +198,13 @@ fn update_healthbars(
             meshes.add(Rectangle::new(health_percentage * 100.0, 10.0)),
         ));
 
-        commands.entity(healthbar).insert_if_new(
-            MeshMaterial2d(materials.add(Color::from(RED)))
-        );
+        commands
+            .entity(healthbar)
+            .insert_if_new(MeshMaterial2d(materials.add(Color::from(RED))));
     }
 }
 
-fn spawn_entities(
-    asset_server: Res<AssetServer>,
-    mut commands: Commands,
-) {
+fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
     let quakka = commands
         .spawn((
             Sprite {
@@ -226,38 +223,35 @@ fn spawn_entities(
             Quacka,
             Attacker {
                 cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-                damage: 10.0
-            }
+                damage: 10.0,
+            },
         ))
         .id();
 
     let quakka_healthbar = commands
-        .spawn((
-            Transform::from_xyz(0., 60., 0.),
-            HealthBar,
-        ))
+        .spawn((Transform::from_xyz(0., 60., 0.), HealthBar))
         .id();
 
     commands.entity(quakka).add_children(&[quakka_healthbar]);
 
     spawn_nest(
         Vec3::new(
-                0. - DECK_WIDTH - 0.15 * ARENA_WIDTH,
-                0.0 - 0.25 * SCREEN_HEIGHT,
-                0.
+            0. - DECK_WIDTH - 0.15 * ARENA_WIDTH,
+            0.0 - 0.25 * SCREEN_HEIGHT,
+            0.,
         ),
         &mut commands,
-        &asset_server
+        &asset_server,
     );
 
     spawn_nest(
         Vec3::new(
-                0. - DECK_WIDTH + 0.15 * ARENA_WIDTH,
-                0.0 - 0.25 * SCREEN_HEIGHT,
-                0.,
+            0. - DECK_WIDTH + 0.15 * ARENA_WIDTH,
+            0.0 - 0.25 * SCREEN_HEIGHT,
+            0.,
         ),
         &mut commands,
-        &asset_server
+        &asset_server,
     );
 
     commands
@@ -327,35 +321,29 @@ fn spawn_entities(
     ));
 }
 
-fn spawn_nest(
-    translation: Vec3,
-    commands: &mut Commands,
-    asset_server: &Res<AssetServer>,
-) {
-    let nest = commands.spawn((
-        Sprite {
-            image: asset_server.load("nest.png"),
-            custom_size: Some(Vec2::new(50., 50.)),
-            ..default()
-        },
-        Transform {
-            translation,
-            ..default()
-        },
-        Health {
-            current: 100.0,
-            max: 100.0,
-        },
-        Nest,
-    )).id();
-
-    let nest_healthbar = commands
+fn spawn_nest(translation: Vec3, commands: &mut Commands, asset_server: &Res<AssetServer>) {
+    let nest = commands
         .spawn((
-            Transform::from_xyz(0., 60., 0.),
-            HealthBar,
+            Sprite {
+                image: asset_server.load("nest.png"),
+                custom_size: Some(Vec2::new(50., 50.)),
+                ..default()
+            },
+            Transform {
+                translation,
+                ..default()
+            },
+            Health {
+                current: 100.0,
+                max: 100.0,
+            },
+            Nest,
         ))
         .id();
 
-    commands.entity(nest).add_children(&[nest_healthbar]);
+    let nest_healthbar = commands
+        .spawn((Transform::from_xyz(0., 60., 0.), HealthBar))
+        .id();
 
+    commands.entity(nest).add_children(&[nest_healthbar]);
 }
