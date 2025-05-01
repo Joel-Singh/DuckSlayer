@@ -125,7 +125,7 @@ fn quacka_chase_and_attack(
             .translation
             .distance(closest_chaseable.0.translation)
             < QUACKA_HIT_DISTANCE;
-        if dbg!(in_attack_distance) {
+        if in_attack_distance {
             if quacka.1.cooldown.finished() {
                 quacka.1.cooldown.reset();
                 closest_chaseable.2.current_health -= quacka.1.damage;
