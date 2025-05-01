@@ -302,7 +302,7 @@ fn spawn_nest(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
 ) {
-    commands.spawn((
+    let nest = commands.spawn((
         Sprite {
             image: asset_server.load("nest.png"),
             custom_size: Some(Vec2::new(50., 50.)),
@@ -312,6 +312,20 @@ fn spawn_nest(
             translation,
             ..default()
         },
+        Health {
+            current: 100.0,
+            max: 100.0,
+        },
         Nest,
-    ));
+    )).id();
+
+    let nest_healthbar = commands
+        .spawn((
+            Transform::from_xyz(0., 60., 0.),
+            HealthBar,
+        ))
+        .id();
+
+    commands.entity(nest).add_children(&[nest_healthbar]);
+
 }
