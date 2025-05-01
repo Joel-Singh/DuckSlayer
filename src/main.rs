@@ -86,23 +86,23 @@ fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn quacka_chase_and_attack(
     mut quackas: Query<&mut Transform, (With<Quacka>, Without<Nest>)>,
-    chaseables: Query<&Transform, (With<Chaseable>, Without<Quacka>)>,
+    chaseables: Query<(&Transform, Entity), (With<Chaseable>, Without<Quacka>)>,
     time: Res<Time>,
 ) {
     for mut quacka in quackas.iter_mut() {
         let closest_chaseable = chaseables
             .iter()
             .max_by(|a, b| {
-                let a_distance = quacka.translation.distance(a.translation);
-                let b_distance = quacka.translation.distance(b.translation);
+                let a_distance = quacka.translation.distance(a.0.translation);
+                let b_distance = quacka.translation.distance(b.0.translation);
                 b_distance.partial_cmp(&a_distance).unwrap()
             })
             .unwrap();
 
-        let mut difference = closest_chaseable.translation - quacka.translation;
+        let mut difference = closest_chaseable.0.translation - quacka.translation;
         difference = difference.normalize();
 
-        if quacka.translation.distance(closest_chaseable.translation) < QUACKA_HIT_DISTANCE {
+        if quacka.translation.distance(closest_chaseable.0.translation) < QUACKA_HIT_DISTANCE {
             continue;
         } else {
             quacka.translation += (difference) * time.delta_secs() * QUACKA_SPEED;
