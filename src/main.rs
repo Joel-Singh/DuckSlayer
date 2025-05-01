@@ -160,7 +160,12 @@ fn update_healthbars(
     health: Query<&Health>,
 ) {
     for (healthbar, troop) in healthbar_q.iter_mut() {
-        let health = health.get(troop.get()).unwrap();
+        let health = health.get(troop.get());
+        if health.is_err() {
+            panic!("Health component not on troop!");
+        }
+
+        let health = health.unwrap();
         let health_percentage = health.current / health.max;
 
         commands.entity(healthbar).insert(Mesh2d(
