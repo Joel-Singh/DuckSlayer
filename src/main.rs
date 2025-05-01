@@ -54,7 +54,7 @@ fn main() {
         .add_systems(
             FixedUpdate,
             (
-                quacka_chase,
+                quacka_chase_and_attack,
                 farmer_go_to_bridge,
                 farmer_go_up,
                 update_healthbars,
@@ -84,7 +84,7 @@ fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
-fn quacka_chase(
+fn quacka_chase_and_attack(
     mut quackas: Query<&mut Transform, (With<Quacka>, Without<Nest>)>,
     chaseables: Query<&Transform, (With<Chaseable>, Without<Quacka>)>,
     time: Res<Time>,
