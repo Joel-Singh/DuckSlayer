@@ -288,39 +288,21 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
             BorderColor(RED.into()),
         ))
         .with_children(|parent| {
-            let card_node: Node = Node {
-                height: Val::Px(100.0),
-                width: Val::Px(80.0),
-                ..default()
-            };
+            fn spawn_card_node (parent: &mut ChildBuilder) {
+                parent.spawn((
+                    Node {
+                        height: Val::Px(100.0),
+                        width: Val::Px(80.0),
+                        ..default()
+                    },
+                    BackgroundColor(MAROON.into())
+                ));
+            }
 
-            parent.spawn((
-                Node {
-                    ..card_node.clone()
-                },
-                BackgroundColor(MAROON.into()),
-            ));
-
-            parent.spawn((
-                Node {
-                    ..card_node.clone()
-                },
-                BackgroundColor(MAROON.into()),
-            ));
-
-            parent.spawn((
-                Node {
-                    ..card_node.clone()
-                },
-                BackgroundColor(MAROON.into()),
-            ));
-
-            parent.spawn((
-                Node {
-                    ..card_node.clone()
-                },
-                BackgroundColor(MAROON.into()),
-            ));
+            spawn_card_node(parent);
+            spawn_card_node(parent);
+            spawn_card_node(parent);
+            spawn_card_node(parent);
         });
 
     commands.spawn((
