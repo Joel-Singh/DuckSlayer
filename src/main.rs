@@ -18,8 +18,14 @@ struct Farmer;
 #[derive(Component)]
 struct GoingToBridge;
 
+enum Troop {
+    Farmer
+}
+
 #[derive(Component)]
-struct Card;
+struct Card {
+    troop: Option<Troop>
+}
 
 #[derive(Component)]
 struct Bridge;
@@ -290,6 +296,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
         &asset_server,
     );
 
+
     commands
         .spawn((
             DeckBarRoot,
@@ -309,7 +316,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
             BorderColor(RED.into()),
         ))
         .with_children(|parent| {
-            fn spawn_card_node(parent: &mut ChildBuilder, mugshot: Option<Handle<Image>>) {
+            let spawn_card_node = |parent: &mut ChildBuilder, troop: Option<Troop>| {
                 let mut card_node = parent.spawn((
                     Node {
                         height: Val::Px(100.0),
@@ -317,16 +324,28 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
                         ..default()
                     },
                     BackgroundColor(MAROON.into()),
-                    Card,
+                    Card {
+                        troop: None
+                    },
                     Button
                 ));
 
-                if mugshot.is_some() {
-                    card_node.insert(ImageNode::new(mugshot.unwrap()));
-                }
-            }
+                let image_node = match troop {
+                    None => ImageNode::default(),
+                    Some(ref troop) => match troop {
+                        Troop::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png"))
+                    }
+                };
 
-            spawn_card_node(parent, Some(asset_server.load("farmer_mugshot.png")));
+                card_node.insert((
+                    image_node,
+                    Card {
+                        troop
+                    },
+                ));
+            };
+
+            spawn_card_node(parent, Some(Troop::Farmer));
             spawn_card_node(parent, None);
             spawn_card_node(parent, None);
             spawn_card_node(parent, None);
