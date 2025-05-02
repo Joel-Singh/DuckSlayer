@@ -288,7 +288,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
             BorderColor(RED.into()),
         ))
         .with_children(|parent| {
-            fn spawn_card_node (parent: &mut ChildBuilder) {
+            fn spawn_card_node(parent: &mut ChildBuilder) {
                 parent.spawn((
                     Node {
                         height: Val::Px(100.0),
