@@ -43,6 +43,7 @@ struct DeckBarRoot;
 
 const QUAKKA_SPEED: f32 = 75.0;
 const QUAKKA_HIT_DISTANCE: f32 = 50.0;
+const QUAKKA_DAMAGE: f32 = 10.0;
 
 const FARMER_SPEED: f32 = 25.0;
 
@@ -235,7 +236,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
             Quakka,
             Attacker {
                 cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-                damage: 10.0,
+                damage: QUAKKA_DAMAGE,
             },
         ))
         .id();
