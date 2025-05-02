@@ -3,7 +3,7 @@ use bevy::{color::palettes::css::*, input::common_conditions::*, prelude::*};
 use std::time::Duration;
 
 #[derive(Component)]
-struct Quacka;
+struct Quakka;
 
 #[derive(Component)]
 struct Attacker {
@@ -41,8 +41,8 @@ struct Chaseable;
 #[derive(Component)]
 struct DeckBarRoot;
 
-const QUACKA_SPEED: f32 = 25.0;
-const QUACKA_HIT_DISTANCE: f32 = 50.0;
+const QUAKKA_SPEED: f32 = 25.0;
+const QUAKKA_HIT_DISTANCE: f32 = 50.0;
 
 const FARMER_SPEED: f32 = 25.0;
 
@@ -62,7 +62,7 @@ fn main() {
         .add_systems(
             FixedUpdate,
             (
-                quacka_chase_and_attack,
+                quakka_chase_and_attack,
                 farmer_go_to_bridge,
                 farmer_go_up,
                 update_healthbars,
@@ -114,36 +114,36 @@ fn delete_dead_entities(
     }
 }
 
-fn quacka_chase_and_attack(
-    mut quackas: Query<(&mut Transform, &mut Attacker), (With<Quacka>, Without<Nest>)>,
-    mut chaseables: Query<(&Transform, Entity, &mut Health), (With<Chaseable>, Without<Quacka>)>,
+fn quakka_chase_and_attack(
+    mut quakkas: Query<(&mut Transform, &mut Attacker), (With<Quakka>, Without<Nest>)>,
+    mut chaseables: Query<(&Transform, Entity, &mut Health), (With<Chaseable>, Without<Quakka>)>,
     time: Res<Time>,
 ) {
-    for mut quacka in quackas.iter_mut() {
+    for mut quakka in quakkas.iter_mut() {
         let mut closest_chaseable = chaseables
             .iter_mut()
             .max_by(|a, b| {
-                let a_distance = quacka.0.translation.distance(a.0.translation);
-                let b_distance = quacka.0.translation.distance(b.0.translation);
+                let a_distance = quakka.0.translation.distance(a.0.translation);
+                let b_distance = quakka.0.translation.distance(b.0.translation);
                 b_distance.partial_cmp(&a_distance).unwrap()
             })
             .unwrap();
 
-        let mut difference = closest_chaseable.0.translation - quacka.0.translation;
+        let mut difference = closest_chaseable.0.translation - quakka.0.translation;
         difference = difference.normalize();
 
-        let in_attack_distance = quacka
+        let in_attack_distance = quakka
             .0
             .translation
             .distance(closest_chaseable.0.translation)
-            < QUACKA_HIT_DISTANCE;
+            < QUAKKA_HIT_DISTANCE;
         if in_attack_distance {
-            if quacka.1.cooldown.finished() {
-                quacka.1.cooldown.reset();
-                closest_chaseable.2.current_health -= quacka.1.damage;
+            if quakka.1.cooldown.finished() {
+                quakka.1.cooldown.reset();
+                closest_chaseable.2.current_health -= quakka.1.damage;
             }
         } else {
-            quacka.0.translation += (difference) * time.delta_secs() * QUACKA_SPEED;
+            quakka.0.translation += (difference) * time.delta_secs() * QUAKKA_SPEED;
         }
     }
 }
@@ -220,7 +220,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
     let quakka = commands
         .spawn((
             Sprite {
-                image: asset_server.load("quacka.png"),
+                image: asset_server.load("quakka.png"),
                 custom_size: Some(Vec2::new(100.0, 100.0)),
                 ..default()
             },
@@ -232,7 +232,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
                 current_health: 100.0,
                 max_health: 100.0,
             },
-            Quacka,
+            Quakka,
             Attacker {
                 cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
                 damage: 10.0,
