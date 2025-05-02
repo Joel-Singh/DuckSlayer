@@ -240,11 +240,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
         ))
         .id();
 
-    let quakka_healthbar = commands
-        .spawn((Transform::from_xyz(0., 60., 1.), HealthBar))
-        .id();
-
-    commands.entity(quakka).add_children(&[quakka_healthbar]);
+    add_healthbar_child(quakka, 60., &mut commands);
 
     spawn_nest(
         Vec3::new(
@@ -333,6 +329,14 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
     ));
 }
 
+fn add_healthbar_child(e: Entity, height: f32, commands: &mut Commands) {
+    let healthbar = commands
+        .spawn((Transform::from_xyz(0., height, 1.), HealthBar))
+        .id();
+
+    commands.entity(e).add_children(&[healthbar]);
+}
+
 fn spawn_nest(translation: Vec3, commands: &mut Commands, asset_server: &Res<AssetServer>) {
     let nest = commands
         .spawn((
@@ -353,9 +357,5 @@ fn spawn_nest(translation: Vec3, commands: &mut Commands, asset_server: &Res<Ass
         ))
         .id();
 
-    let nest_healthbar = commands
-        .spawn((Transform::from_xyz(0., 60., 1.), HealthBar))
-        .id();
-
-    commands.entity(nest).add_children(&[nest_healthbar]);
+    add_healthbar_child(nest, 60., commands);
 }
