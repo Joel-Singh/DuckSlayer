@@ -43,7 +43,7 @@ struct DeckBarRoot;
 
 const QUAKKA_SPEED: f32 = 75.0;
 const QUAKKA_HIT_DISTANCE: f32 = 50.0;
-const QUAKKA_DAMAGE: f32 = 10.0;
+const QUAKKA_DAMAGE: f32 = 60.0;
 
 const FARMER_SPEED: f32 = 25.0;
 
