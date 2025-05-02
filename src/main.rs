@@ -326,7 +326,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
                 }
             }
 
-            spawn_card_node(parent, Some(asset_server.load("ice_golem_mugshot.png")));
+            spawn_card_node(parent, Some(asset_server.load("farmer_mugshot.png")));
             spawn_card_node(parent, None);
             spawn_card_node(parent, None);
             spawn_card_node(parent, None);
