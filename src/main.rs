@@ -128,7 +128,7 @@ fn quakka_chase_and_attack(
                 let b_distance = quakka.0.translation.distance(b.0.translation);
                 b_distance.partial_cmp(&a_distance).unwrap()
             })
-            .unwrap();
+            .expect("There is a closest chaseable");
 
         let mut difference = closest_chaseable.0.translation - quakka.0.translation;
         difference = difference.normalize();
