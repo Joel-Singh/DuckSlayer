@@ -121,14 +121,20 @@ fn quakka_chase_and_attack(
     time: Res<Time>,
 ) {
     for mut quakka in quakkas.iter_mut() {
-        let mut closest_chaseable = chaseables
+        let closest_chaseable = chaseables
             .iter_mut()
             .max_by(|a, b| {
                 let a_distance = quakka.0.translation.distance(a.0.translation);
                 let b_distance = quakka.0.translation.distance(b.0.translation);
                 b_distance.partial_cmp(&a_distance).unwrap()
-            })
-            .expect("There is a closest chaseable");
+            });
+
+        // There are no chaseables
+        if closest_chaseable.is_none() {
+            continue;
+        }
+
+        let mut closest_chaseable = closest_chaseable.unwrap();
 
         let mut difference = closest_chaseable.0.translation - quakka.0.translation;
         difference = difference.normalize();
