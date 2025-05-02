@@ -66,13 +66,15 @@ fn main() {
         .add_systems(
             FixedUpdate,
             (
-                quakka_chase_and_attack,
+                (
+                    quakka_chase_and_attack,
+                    delete_dead_entities
+                ).chain(),
                 farmer_go_to_bridge,
                 farmer_go_up,
                 update_healthbars,
                 spawn_farmer.run_if(input_pressed(MouseButton::Left)),
                 tick_attacker_cooldowns,
-                delete_dead_entities,
                 highlight_card_on_hover
             ),
         )
