@@ -288,21 +288,25 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
             BorderColor(RED.into()),
         ))
         .with_children(|parent| {
-            fn spawn_card_node(parent: &mut ChildBuilder) {
-                parent.spawn((
+            fn spawn_card_node(parent: &mut ChildBuilder, mugshot: Option<Handle<Image>>) {
+                let mut card_node = parent.spawn((
                     Node {
                         height: Val::Px(100.0),
                         width: Val::Px(80.0),
                         ..default()
                     },
-                    BackgroundColor(MAROON.into())
+                    BackgroundColor(MAROON.into()),
                 ));
+
+                if mugshot.is_some() {
+                    card_node.insert(ImageNode::new(mugshot.unwrap()));
+                }
             }
 
-            spawn_card_node(parent);
-            spawn_card_node(parent);
-            spawn_card_node(parent);
-            spawn_card_node(parent);
+            spawn_card_node(parent, Some(asset_server.load("ice_golem_mugshot.png")));
+            spawn_card_node(parent, None);
+            spawn_card_node(parent, None);
+            spawn_card_node(parent, None);
         });
 
     commands.spawn((
