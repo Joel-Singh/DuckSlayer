@@ -108,7 +108,7 @@ fn delete_dead_entities(
     mut commands: Commands
 ) {
     for (health, e) in healths.iter() {
-        if health.current_health < 0.0 {
+        if health.current_health <= 0.0 {
             commands.entity(e).despawn_recursive();
         }
     }
