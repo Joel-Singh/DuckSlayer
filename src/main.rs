@@ -19,6 +19,9 @@ struct Farmer;
 struct GoingToBridge;
 
 #[derive(Component)]
+struct Card;
+
+#[derive(Component)]
 struct Bridge;
 
 #[derive(Component)]
@@ -69,7 +72,8 @@ fn main() {
                 update_healthbars,
                 spawn_farmer.run_if(input_pressed(MouseButton::Left)),
                 tick_attacker_cooldowns,
-                delete_dead_entities
+                delete_dead_entities,
+                highlight_card_on_hover
             ),
         )
         .run();
@@ -223,6 +227,21 @@ fn update_healthbars(
     }
 }
 
+
+fn highlight_card_on_hover(
+    mut interaction_query: Query<
+        (&Interaction, &mut ImageNode),
+        (Changed<Interaction>, With<Button>),
+    >,
+) {
+    for (interaction, mut image_node) in &mut interaction_query {
+        image_node.color = match *interaction {
+            Interaction::Hovered => Color::WHITE,
+            _ => GREY.into()
+        }
+    }
+}
+
 fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
     let quakka = commands
         .spawn((
@@ -296,6 +315,8 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
                         ..default()
                     },
                     BackgroundColor(MAROON.into()),
+                    Card,
+                    Button
                 ));
 
                 if mugshot.is_some() {
