@@ -87,6 +87,7 @@ fn main() {
                     .run_if(in_state(GameState::Unpaused)),
                 (
                     move_farmer_with_wasd,
+                    update_counter
                 ).run_if(in_state(GameState::Unpaused)),
                 randomly_spawn_quakkas.run_if(
                     on_timer(Duration::from_secs_f32(1.)).and(in_state(GameState::Unpaused))
@@ -94,7 +95,6 @@ fn main() {
                 restart.run_if(in_state(GameState::Paused).and(input_just_pressed(KeyCode::Space))),
                 tick_attacker_cooldowns,
                 start_game_on_click.run_if(in_state(GameState::StartScreen)),
-                update_counter.run_if(in_state(GameState::Unpaused)),
                 increment_counter.run_if(on_timer(Duration::from_secs(1)).and(in_state(GameState::Unpaused)))
             ),
         )
