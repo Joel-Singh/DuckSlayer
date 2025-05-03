@@ -70,10 +70,10 @@ fn main() {
                     let main_menu = main_menu.into_inner();
                     commands.entity(main_menu).despawn_recursive();
                 },
-                create_seconds_survived
+                create_seconds_survived,
+                restart
             )
         )
-        .add_systems(OnEnter(GameState::Unpaused), restart)
         .add_systems(
             FixedUpdate,
             (
