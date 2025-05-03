@@ -30,6 +30,9 @@ struct HealthBar;
 #[derive(Component, Default)]
 struct Chaseable;
 
+#[derive(Component)]
+struct MainMenuRoot;
+
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 enum GameState {
@@ -54,7 +57,12 @@ fn main() {
             //level: bevy::log::Level::DEBUG,
             ..default()
         }))
-        .add_systems(Startup, (setup_camera, restart))
+        .add_systems(Startup, (setup_camera, setup_start_screen))
+        .add_systems(OnExit(GameState::StartScreen), |mut commands: Commands, main_menu: Single<Entity, With<MainMenuRoot>>| {
+            let main_menu = main_menu.into_inner();
+            commands.entity(main_menu).despawn_recursive();
+        })
+        .add_systems(OnEnter(GameState::Unpaused), restart)
         .add_systems(
             FixedUpdate,
             (
@@ -74,6 +82,7 @@ fn main() {
                 ),
                 restart.run_if(in_state(GameState::Paused).and(input_just_pressed(KeyCode::Space))),
                 tick_attacker_cooldowns,
+                start_game_on_click.run_if(in_state(GameState::StartScreen))
             ),
         )
         .init_state::<GameState>()
@@ -90,6 +99,40 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
             panic!("Attack cooldown should be once");
         }
         attacker.cooldown.tick(time.delta());
+    }
+}
+
+fn setup_start_screen(mut commands: Commands) {
+    commands.spawn((
+        Node {
+            width: Val::Vw(100.0),
+            height: Val::Vh(100.0),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        Button,
+        MainMenuRoot
+    )).with_children(|p| {
+            p.spawn((
+                Text::new("The Start Screen would go here"),
+                Node {
+                    margin: UiRect::horizontal(Val::Auto),
+                    ..default()
+                },
+            ));
+        });
+}
+
+fn start_game_on_click(
+    interactions: Query<&Interaction, Changed<Interaction>>,
+    mut game_state: ResMut<NextState<GameState>>
+) {
+    for interaction in interactions.iter() {
+        if let Interaction::Pressed = interaction {
+            game_state.set(GameState::Unpaused);
+        }
     }
 }
 
