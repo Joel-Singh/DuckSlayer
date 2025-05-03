@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::*, prelude::*};
+use bevy::{color::palettes::css::*, prelude::*, input::common_conditions::*};
 
 use std::time::Duration;
 
@@ -64,6 +64,7 @@ fn main() {
                     move_farmer_with_wasd,
                     pause_when_dead_farmer
                 ).run_if(resource_equals(Paused(false))),
+                restart.run_if(resource_equals(Paused(true)).and(input_just_pressed(KeyCode::Space))),
                 tick_attacker_cooldowns,
             ),
         )
@@ -200,8 +201,11 @@ fn pause_when_dead_farmer(
 fn restart(
     asset_server: Res<AssetServer>,
     quakkas: Query<Entity, With<Quakka>>,
+    mut paused: ResMut<Paused>,
     mut commands: Commands
 ) {
+    paused.0 = false;
+
     for quakka in quakkas.iter() {
         commands.entity(quakka).despawn_recursive();
     }
