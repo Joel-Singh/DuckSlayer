@@ -41,6 +41,8 @@ const QUAKKA_SPEED: f32 = 40.0;
 const QUAKKA_HIT_DISTANCE: f32 = 50.0;
 const QUAKKA_DAMAGE: f32 = 60.0;
 
+const FARMER_SPEED: f32 = 10.0;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(bevy::log::LogPlugin {
@@ -58,6 +60,9 @@ fn main() {
                 )
                     .chain()
                     .run_if(resource_equals(Paused(false))),
+                (
+                    move_farmer_with_wasd
+                ).run_if(resource_equals(Paused(false))),
                 tick_attacker_cooldowns,
             ),
         )
@@ -76,6 +81,33 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
         }
         attacker.cooldown.tick(time.delta());
     }
+}
+
+fn move_farmer_with_wasd(
+    mut commands: Commands,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
+    farmer_transform_q: Single<&mut Transform, With<Farmer>>
+) {
+    let mut movement: Vec3 = Vec3::splat(0.0);
+    if keyboard_input.pressed(KeyCode::KeyW) {
+        movement.y += 1.;
+    }
+
+    if keyboard_input.pressed(KeyCode::KeyD) {
+        movement.x += 1.;
+    }
+
+    if keyboard_input.pressed(KeyCode::KeyS) {
+        movement.y -= 1.;
+    }
+
+    if keyboard_input.pressed(KeyCode::KeyA) {
+        movement.x -= 1.;
+    }
+
+    let mut transform = farmer_transform_q.into_inner();
+    transform.translation += movement;
 }
 
 fn delete_dead_entities(
