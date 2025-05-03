@@ -220,11 +220,13 @@ fn randomly_spawn_quakkas(
         let x = rng.random_range(-SCREEN_WIDTH / 2.0..SCREEN_WIDTH / 2.0);
         let y = rng.random_range(-SCREEN_HEIGHT / 2.0..SCREEN_WIDTH / 2.0);
 
+        const SPRITE_WIDTH: f32 = 3412.;
+        const SPRITE_HEIGHT: f32 = 2814.;
         commands
             .spawn((
                 Sprite {
-                    image: asset_server.load("quakka.png"),
-                    custom_size: Some(Vec2::new(100.0, 100.0)),
+                    image: asset_server.load("duck-with-knife.png"),
+                    custom_size: Some(Vec2::new(SPRITE_WIDTH / 34.12, SPRITE_HEIGHT / 34.12)),
                     ..default()
                 },
                 Transform {
