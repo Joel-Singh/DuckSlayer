@@ -40,6 +40,9 @@ struct SecondsSurvived(i32);
 #[derive(Component)]
 struct SecondsSurvivedCounter;
 
+#[derive(Component)]
+struct TitleBackground;
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 enum GameState {
     #[default]
@@ -66,9 +69,12 @@ fn main() {
         .add_systems(Startup, (setup_camera, setup_start_screen, spawn_background_image))
         .add_systems(OnExit(GameState::StartScreen),
             (
-                |mut commands: Commands, main_menu: Single<Entity, With<MainMenuRoot>>| {
+                |mut commands: Commands, main_menu: Single<Entity, With<MainMenuRoot>>, title_background: Single<Entity, With<TitleBackground>>| {
                     let main_menu = main_menu.into_inner();
                     commands.entity(main_menu).despawn_recursive();
+
+                    let title_background = title_background.into_inner();
+                    commands.entity(title_background).despawn_recursive();
                 },
                 create_seconds_survived,
                 restart
@@ -138,26 +144,19 @@ fn setup_start_screen(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Button,
         MainMenuRoot
-    )).with_children(|p| {
-            const DUCKSLAYER_TITLESCREEN_WIDTH: f32 = 960.;
-            const DUCKSLAYER_TITLESCREEN_HEIGHT: f32 = 720.;
+    ));
 
-            p.spawn((
-                ImageNode::new(asset_server.load("DuckSlayerTitleScreen.png")),
-                Node {
-                    width: Val::Px(DUCKSLAYER_TITLESCREEN_WIDTH / 5.),
-                    height: Val::Px(DUCKSLAYER_TITLESCREEN_HEIGHT / 5.),
-                    ..default()
-                },
-            ));
-            p.spawn((
-                Text::new("DuckSlayer, click to start"),
-                Node {
-                    margin: UiRect::horizontal(Val::Auto),
-                    ..default()
-                },
-            ));
-        });
+    commands.spawn((
+        Sprite {
+            image: asset_server.load("DuckSlayerTitleScreen.png"),
+            ..default()
+        },
+        Transform {
+            translation: Vec3::new(0., 0., -0.5),
+            ..default()
+        },
+        TitleBackground,
+    ));
 }
 
 fn start_game_on_click(
