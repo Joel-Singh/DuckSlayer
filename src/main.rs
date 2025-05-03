@@ -53,11 +53,11 @@ fn main() {
             (
                 (
                     quakka_chase_and_attack,
-                    delete_dead_entities
+                    delete_dead_entities,
+                    update_healthbars,
                 )
                     .chain()
                     .run_if(resource_equals(Paused(false))),
-                update_healthbars,
                 tick_attacker_cooldowns,
             ),
         )
