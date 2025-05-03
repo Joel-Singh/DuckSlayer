@@ -77,6 +77,7 @@ fn main() {
         .add_systems(
             FixedUpdate,
             (
+                start_game_on_click.run_if(in_state(GameState::StartScreen)),
                 (
                     quakka_chase_and_attack,
                     delete_dead_entities,
@@ -92,10 +93,9 @@ fn main() {
                 randomly_spawn_quakkas.run_if(
                     on_timer(Duration::from_secs_f32(1.)).and(in_state(GameState::Unpaused))
                 ),
-                restart.run_if(in_state(GameState::Paused).and(input_just_pressed(KeyCode::Space))),
+                increment_counter.run_if(on_timer(Duration::from_secs(1)).and(in_state(GameState::Unpaused))),
                 tick_attacker_cooldowns,
-                start_game_on_click.run_if(in_state(GameState::StartScreen)),
-                increment_counter.run_if(on_timer(Duration::from_secs(1)).and(in_state(GameState::Unpaused)))
+                restart.run_if(in_state(GameState::Paused).and(input_just_pressed(KeyCode::Space))),
             ),
         )
         .init_state::<GameState>()
