@@ -364,7 +364,7 @@ fn restart(
 
     let farmer = commands.spawn((
         Sprite {
-            image: asset_server.load("farmer.png"),
+            image: asset_server.load("running-man.png"),
             custom_size: Some(Vec2::new(30.0, 30.0)),
             ..default()
         },
