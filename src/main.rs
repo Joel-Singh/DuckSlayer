@@ -84,7 +84,6 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
 }
 
 fn move_farmer_with_wasd(
-    mut commands: Commands,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
     farmer_transform_q: Single<&mut Transform, With<Farmer>>
