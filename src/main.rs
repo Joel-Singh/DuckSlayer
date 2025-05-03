@@ -30,13 +30,13 @@ struct HealthBar;
 #[derive(Component, Default)]
 struct Chaseable;
 
-#[derive(Resource, PartialEq)]
-struct Paused(bool);
 
-impl Default for Paused {
-    fn default() -> Self {
-        Paused(false)
-    }
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
+enum GameState {
+    #[default]
+    StartScreen,
+    Paused,
+    Unpaused
 }
 
 const QUAKKA_SPEED: f32 = 40.0;
@@ -65,16 +65,18 @@ fn main() {
                     pause_when_dead_farmer
                 )
                     .chain()
-                    .run_if(resource_equals(Paused(false))),
+                    .run_if(in_state(GameState::Unpaused)),
                 (
                     move_farmer_with_wasd,
-                ).run_if(resource_equals(Paused(false))),
-                randomly_spawn_quakkas.run_if(on_timer(Duration::from_secs_f32(1.)).and(resource_equals(Paused(false)))),
-                restart.run_if(resource_equals(Paused(true)).and(input_just_pressed(KeyCode::Space))),
+                ).run_if(in_state(GameState::Unpaused)),
+                randomly_spawn_quakkas.run_if(
+                    on_timer(Duration::from_secs_f32(1.)).and(in_state(GameState::Unpaused))
+                ),
+                restart.run_if(in_state(GameState::Paused).and(input_just_pressed(KeyCode::Space))),
                 tick_attacker_cooldowns,
             ),
         )
-        .init_resource::<Paused>()
+        .init_state::<GameState>()
         .run();
 }
 
@@ -234,20 +236,20 @@ fn update_healthbars(
 
 fn pause_when_dead_farmer(
     farmer: Query<&Farmer>,
-    mut paused: ResMut<Paused>
+    mut game_state: ResMut<NextState<GameState>>
 ) {
     if let Err(_) = farmer.get_single() {
-        paused.0 = true;
+        game_state.set(GameState::Paused);
     }
 }
 
 fn restart(
     asset_server: Res<AssetServer>,
     quakkas: Query<Entity, With<Quakka>>,
-    mut paused: ResMut<Paused>,
+    mut game_state: ResMut<NextState<GameState>>,
     mut commands: Commands
 ) {
-    paused.0 = false;
+    game_state.set(GameState::Unpaused);
 
     for quakka in quakkas.iter() {
         commands.entity(quakka).despawn_recursive();
