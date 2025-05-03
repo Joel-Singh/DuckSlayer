@@ -49,7 +49,7 @@ fn main() {
             //level: bevy::log::Level::DEBUG,
             ..default()
         }))
-        .add_systems(Startup, (setup_camera, spawn_entities))
+        .add_systems(Startup, (setup_camera, restart))
         .add_systems(
             FixedUpdate,
             (
@@ -197,7 +197,15 @@ fn pause_when_dead_farmer(
     }
 }
 
-fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
+fn restart(
+    asset_server: Res<AssetServer>,
+    quakkas: Query<Entity, With<Quakka>>,
+    mut commands: Commands
+) {
+    for quakka in quakkas.iter() {
+        commands.entity(quakka).despawn_recursive();
+    }
+
     let quakka = commands
         .spawn((
             Sprite {
