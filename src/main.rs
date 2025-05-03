@@ -126,7 +126,7 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
     }
 }
 
-fn setup_start_screen(mut commands: Commands) {
+fn setup_start_screen(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Node {
             width: Val::Vw(100.0),
@@ -139,6 +139,17 @@ fn setup_start_screen(mut commands: Commands) {
         Button,
         MainMenuRoot
     )).with_children(|p| {
+            const DUCKSLAYER_TITLESCREEN_WIDTH: f32 = 960.;
+            const DUCKSLAYER_TITLESCREEN_HEIGHT: f32 = 720.;
+
+            p.spawn((
+                ImageNode::new(asset_server.load("DuckSlayerTitleScreen.png")),
+                Node {
+                    width: Val::Px(DUCKSLAYER_TITLESCREEN_WIDTH / 5.),
+                    height: Val::Px(DUCKSLAYER_TITLESCREEN_HEIGHT / 5.),
+                    ..default()
+                },
+            ));
             p.spawn((
                 Text::new("DuckSlayer, click to start"),
                 Node {
