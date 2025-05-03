@@ -330,8 +330,10 @@ fn restart(
     asset_server: Res<AssetServer>,
     quakkas: Query<Entity, With<Quakka>>,
     mut game_state: ResMut<NextState<GameState>>,
+    mut seconds_survived: ResMut<SecondsSurvived>,
     mut commands: Commands
 ) {
+    seconds_survived.0 = 0;
     game_state.set(GameState::Unpaused);
 
     for quakka in quakkas.iter() {
