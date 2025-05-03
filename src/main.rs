@@ -61,7 +61,8 @@ fn main() {
                     .chain()
                     .run_if(resource_equals(Paused(false))),
                 (
-                    move_farmer_with_wasd
+                    move_farmer_with_wasd,
+                    pause_when_dead_farmer
                 ).run_if(resource_equals(Paused(false))),
                 tick_attacker_cooldowns,
             ),
@@ -86,7 +87,7 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
 fn move_farmer_with_wasd(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
-    farmer_transform_q: Single<&mut Transform, With<Farmer>>
+    mut farmer_transform_q: Query<&mut Transform, With<Farmer>>
 ) {
     let mut movement: Vec3 = Vec3::splat(0.0);
     if keyboard_input.pressed(KeyCode::KeyW) {
@@ -105,8 +106,9 @@ fn move_farmer_with_wasd(
         movement.x -= 1.;
     }
 
-    let mut transform = farmer_transform_q.into_inner();
-    transform.translation += movement.normalize_or_zero() * time.delta_secs() * FARMER_SPEED;
+    if let Ok(mut transform) = farmer_transform_q.get_single_mut() {
+        transform.translation += movement.normalize_or_zero() * time.delta_secs() * FARMER_SPEED;
+    }
 }
 
 fn delete_dead_entities(
@@ -183,6 +185,15 @@ fn update_healthbars(
         commands
             .entity(healthbar)
             .insert_if_new(MeshMaterial2d(materials.add(Color::from(RED))));
+    }
+}
+
+fn pause_when_dead_farmer(
+    farmer: Query<&Farmer>,
+    mut paused: ResMut<Paused>
+) {
+    if let Err(_) = farmer.get_single() {
+        paused.0 = true;
     }
 }
 
