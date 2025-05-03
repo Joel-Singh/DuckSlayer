@@ -28,6 +28,15 @@ struct HealthBar;
 #[derive(Component, Default)]
 struct Chaseable;
 
+#[derive(Resource, PartialEq)]
+struct Paused(bool);
+
+impl Default for Paused {
+    fn default() -> Self {
+        Paused(false)
+    }
+}
+
 const QUAKKA_SPEED: f32 = 75.0;
 const QUAKKA_HIT_DISTANCE: f32 = 50.0;
 const QUAKKA_DAMAGE: f32 = 60.0;
@@ -45,11 +54,14 @@ fn main() {
                 (
                     quakka_chase_and_attack,
                     delete_dead_entities
-                ).chain(),
+                )
+                    .chain()
+                    .run_if(resource_equals(Paused(false))),
                 update_healthbars,
                 tick_attacker_cooldowns,
             ),
         )
+        .init_resource::<Paused>()
         .run();
 }
 
