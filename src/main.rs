@@ -37,7 +37,7 @@ impl Default for Paused {
     }
 }
 
-const QUAKKA_SPEED: f32 = 75.0;
+const QUAKKA_SPEED: f32 = 40.0;
 const QUAKKA_HIT_DISTANCE: f32 = 50.0;
 const QUAKKA_DAMAGE: f32 = 60.0;
 
