@@ -72,7 +72,7 @@ fn setup_camera(mut commands: Commands) {
 fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>) {
     for mut attacker in attackers.iter_mut() {
         if attacker.cooldown.mode() == TimerMode::Repeating {
-            panic!("Attack coolodwn should be once");
+            panic!("Attack cooldown should be once");
         }
         attacker.cooldown.tick(time.delta());
     }
