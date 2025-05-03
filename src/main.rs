@@ -363,10 +363,13 @@ fn restart(
     }
 
 
+    const SPRITE_WIDTH: f32 = 623.;
+    const SPRITE_HEIGHT: f32 = 564.;
+
     let farmer = commands.spawn((
         Sprite {
-            image: asset_server.load("running-man.png"),
-            custom_size: Some(Vec2::new(30.0, 30.0)),
+            image: asset_server.load("farmer.png"),
+            custom_size: Some(Vec2::new(SPRITE_WIDTH / 6.23, SPRITE_HEIGHT / 6.23)),
             ..default()
         },
         Transform {
@@ -381,7 +384,7 @@ fn restart(
         },
     )).id();
     
-    add_healthbar_child(farmer, 30., &mut commands);
+    add_healthbar_child(farmer, 60., &mut commands);
 }
 
 fn add_healthbar_child(e: Entity, height: f32, commands: &mut Commands) {
