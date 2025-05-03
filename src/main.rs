@@ -30,6 +30,9 @@ struct Card {
 #[derive(Component)]
 struct Bridge;
 
+#[derive(Resource, Default)]
+struct SelectedCard(Option<Entity>);
+
 #[derive(Component)]
 #[require(Chaseable)]
 struct Nest;
@@ -81,9 +84,11 @@ fn main() {
                 update_healthbars,
                 spawn_farmer.run_if(input_pressed(MouseButton::Left)),
                 tick_attacker_cooldowns,
-                highlight_card_on_hover
+                highlight_card_on_hover,
+                select_card_on_click
             ),
         )
+        .init_resource::<SelectedCard>()
         .run();
 }
 
@@ -247,6 +252,33 @@ fn highlight_card_on_hover(
             Interaction::Hovered => Color::WHITE,
             _ => GREY.into()
         }
+    }
+}
+
+fn select_card_on_click(
+    mut interaction_query: Query<
+        (&Interaction, Entity),
+        (Changed<Interaction>, (With<Button>, With<Card>)),
+    >,
+    mut selected_card: ResMut::<SelectedCard>,
+    mut nodes: Query<&mut Node>
+) {
+    if let Some(old_selected_card) = selected_card.0 {
+        let mut old_selected_card = nodes.get_mut(old_selected_card).expect("Selected Card Entity has Node");
+
+        old_selected_card.right = Val::ZERO;
+    }
+
+    for (interaction, entity) in &mut interaction_query {
+        match *interaction {
+            Interaction::Pressed => {
+                selected_card.0 = Some(entity);
+
+                let mut selected_card_node = nodes.get_mut(entity).unwrap();
+                selected_card_node.right = Val::Px(30.0);
+            },
+            _ => {}
+        };
     }
 }
 
