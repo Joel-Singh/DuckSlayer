@@ -63,7 +63,7 @@ fn main() {
             //level: bevy::log::Level::DEBUG,
             ..default()
         }))
-        .add_systems(Startup, (setup_camera, setup_start_screen))
+        .add_systems(Startup, (setup_camera, setup_start_screen, spawn_background_image))
         .add_systems(OnExit(GameState::StartScreen),
             (
                 |mut commands: Commands, main_menu: Single<Entity, With<MainMenuRoot>>| {
@@ -107,6 +107,16 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
 
+fn spawn_background_image(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((
+        Sprite::from_image(asset_server.load("background.png")),
+        Transform {
+            translation: Vec3::new(0., 0., -1.),
+            ..default()
+        },
+    ));
+}
+
 fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>) {
     for mut attacker in attackers.iter_mut() {
         if attacker.cooldown.mode() == TimerMode::Repeating {
@@ -130,7 +140,7 @@ fn setup_start_screen(mut commands: Commands) {
         MainMenuRoot
     )).with_children(|p| {
             p.spawn((
-                Text::new("The Start Screen would go here"),
+                Text::new("DuckSlayer, click to start"),
                 Node {
                     margin: UiRect::horizontal(Val::Auto),
                     ..default()
