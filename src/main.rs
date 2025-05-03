@@ -41,7 +41,7 @@ const QUAKKA_SPEED: f32 = 40.0;
 const QUAKKA_HIT_DISTANCE: f32 = 50.0;
 const QUAKKA_DAMAGE: f32 = 60.0;
 
-const FARMER_SPEED: f32 = 10.0;
+const FARMER_SPEED: f32 = 100.0;
 
 fn main() {
     App::new()
@@ -106,7 +106,7 @@ fn move_farmer_with_wasd(
     }
 
     let mut transform = farmer_transform_q.into_inner();
-    transform.translation += movement;
+    transform.translation += movement.normalize_or_zero() * time.delta_secs() * FARMER_SPEED;
 }
 
 fn delete_dead_entities(
