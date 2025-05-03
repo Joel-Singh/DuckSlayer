@@ -1,4 +1,6 @@
-use bevy::{color::palettes::css::*, prelude::*, input::common_conditions::*};
+use bevy::{color::palettes::css::*, prelude::*, input::common_conditions::*, time::common_conditions::*};
+
+use rand::Rng;
 
 use std::time::Duration;
 
@@ -43,6 +45,9 @@ const QUAKKA_DAMAGE: f32 = 60.0;
 
 const FARMER_SPEED: f32 = 100.0;
 
+const SCREEN_WIDTH: f32 = 1366.0;
+const SCREEN_HEIGHT: f32 = 768.0;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(bevy::log::LogPlugin {
@@ -57,13 +62,14 @@ fn main() {
                     quakka_chase_and_attack,
                     delete_dead_entities,
                     update_healthbars,
+                    pause_when_dead_farmer
                 )
                     .chain()
                     .run_if(resource_equals(Paused(false))),
                 (
                     move_farmer_with_wasd,
-                    pause_when_dead_farmer
                 ).run_if(resource_equals(Paused(false))),
+                randomly_spawn_quakkas.run_if(on_timer(Duration::from_secs_f32(1.)).and(resource_equals(Paused(false)))),
                 restart.run_if(resource_equals(Paused(true)).and(input_just_pressed(KeyCode::Space))),
                 tick_attacker_cooldowns,
             ),
@@ -120,6 +126,43 @@ fn delete_dead_entities(
         if health.current_health <= 0.0 {
             commands.entity(e).despawn_recursive();
         }
+    }
+}
+
+fn randomly_spawn_quakkas(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    farmer: Query<(), With<Farmer>>
+) {
+    if let Ok(()) = farmer.get_single() {
+        let mut rng = rand::rng();
+
+        let x = rng.random_range(-SCREEN_WIDTH / 2.0..SCREEN_WIDTH / 2.0);
+        let y = rng.random_range(-SCREEN_HEIGHT / 2.0..SCREEN_WIDTH / 2.0);
+
+        commands
+            .spawn((
+                Sprite {
+                    image: asset_server.load("quakka.png"),
+                    custom_size: Some(Vec2::new(100.0, 100.0)),
+                    ..default()
+                },
+                Transform {
+                    translation: Vec3::new(x, y, 0.),
+                    ..default()
+                },
+                Health {
+                    current_health: 100.0,
+                    max_health: 100.0,
+                },
+                Quakka,
+                Attacker {
+                    cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
+                    damage: QUAKKA_DAMAGE,
+                },
+            ));
+
+
     }
 }
 
@@ -210,27 +253,6 @@ fn restart(
         commands.entity(quakka).despawn_recursive();
     }
 
-    commands
-        .spawn((
-            Sprite {
-                image: asset_server.load("quakka.png"),
-                custom_size: Some(Vec2::new(100.0, 100.0)),
-                ..default()
-            },
-            Transform {
-                translation: Vec3::new(0., 200., 0.),
-                ..default()
-            },
-            Health {
-                current_health: 100.0,
-                max_health: 100.0,
-            },
-            Quakka,
-            Attacker {
-                cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-                damage: QUAKKA_DAMAGE,
-            },
-        ));
 
     let farmer = commands.spawn((
         Sprite {
