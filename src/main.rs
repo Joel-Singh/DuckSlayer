@@ -34,6 +34,12 @@ struct Chaseable;
 struct MainMenuRoot;
 
 
+#[derive(Resource, Default)]
+struct SecondsSurvived(i32);
+
+#[derive(Component)]
+struct SecondsSurvivedCounter;
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 enum GameState {
     #[default]
@@ -58,10 +64,15 @@ fn main() {
             ..default()
         }))
         .add_systems(Startup, (setup_camera, setup_start_screen))
-        .add_systems(OnExit(GameState::StartScreen), |mut commands: Commands, main_menu: Single<Entity, With<MainMenuRoot>>| {
-            let main_menu = main_menu.into_inner();
-            commands.entity(main_menu).despawn_recursive();
-        })
+        .add_systems(OnExit(GameState::StartScreen),
+            (
+                |mut commands: Commands, main_menu: Single<Entity, With<MainMenuRoot>>| {
+                    let main_menu = main_menu.into_inner();
+                    commands.entity(main_menu).despawn_recursive();
+                },
+                create_seconds_survived
+            )
+        )
         .add_systems(OnEnter(GameState::Unpaused), restart)
         .add_systems(
             FixedUpdate,
@@ -82,10 +93,13 @@ fn main() {
                 ),
                 restart.run_if(in_state(GameState::Paused).and(input_just_pressed(KeyCode::Space))),
                 tick_attacker_cooldowns,
-                start_game_on_click.run_if(in_state(GameState::StartScreen))
+                start_game_on_click.run_if(in_state(GameState::StartScreen)),
+                update_counter.run_if(in_state(GameState::Unpaused)),
+                increment_counter.run_if(on_timer(Duration::from_secs(1)).and(in_state(GameState::Unpaused)))
             ),
         )
         .init_state::<GameState>()
+        .init_resource::<SecondsSurvived>()
         .run();
 }
 
@@ -284,6 +298,32 @@ fn pause_when_dead_farmer(
     if let Err(_) = farmer.get_single() {
         game_state.set(GameState::Paused);
     }
+}
+
+fn create_seconds_survived(mut commands: Commands) {
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(10.0),
+            left: Val::Px(10.0),
+            ..default()
+        },
+        Text::new("0"),
+        SecondsSurvivedCounter,
+    ));
+}
+
+fn update_counter(
+    seconds_survived: Res<SecondsSurvived>,
+    mut counter: Single<&mut Text, With<SecondsSurvivedCounter>>,
+) {
+    counter.0 = seconds_survived.0.to_string();
+}
+
+fn increment_counter(
+    mut seconds_survived: ResMut<SecondsSurvived>
+) {
+    seconds_survived.0 += 1;
 }
 
 fn restart(
