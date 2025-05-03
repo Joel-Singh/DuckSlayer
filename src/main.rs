@@ -210,7 +210,7 @@ fn restart(
         commands.entity(quakka).despawn_recursive();
     }
 
-    let quakka = commands
+    commands
         .spawn((
             Sprite {
                 image: asset_server.load("quakka.png"),
@@ -230,10 +230,7 @@ fn restart(
                 cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
                 damage: QUAKKA_DAMAGE,
             },
-        ))
-        .id();
-
-    add_healthbar_child(quakka, 60., &mut commands);
+        ));
 
     let farmer = commands.spawn((
         Sprite {
