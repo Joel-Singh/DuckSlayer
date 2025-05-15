@@ -2,6 +2,8 @@ use bevy::{color::palettes::css::*, input::common_conditions::*, prelude::*};
 
 use std::time::Duration;
 
+mod util;
+
 #[derive(Component)]
 struct Quakka;
 
@@ -86,6 +88,10 @@ fn main() {
             FixedUpdate,
             start_game_on_click.run_if(in_state(GameState::TitleScreen)),
         )
+        .add_systems(
+            OnExit(GameState::TitleScreen),
+            util::delete_all::<TitleScreen>,
+        )
         .add_systems(OnEnter(GameState::InGame), spawn_entities)
         .add_systems(
             FixedUpdate,
@@ -133,6 +139,7 @@ fn spawn_titlescreen(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         },
         Button,
+        TitleScreen,
     ));
 
     commands.spawn((
