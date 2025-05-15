@@ -19,12 +19,12 @@ struct Farmer;
 struct GoingToBridge;
 
 enum Troop {
-    Farmer
+    Farmer,
 }
 
 #[derive(Component)]
 struct Card {
-    troop: Option<Troop>
+    troop: Option<Troop>,
 }
 
 #[derive(Component)]
@@ -75,17 +75,14 @@ fn main() {
         .add_systems(
             FixedUpdate,
             (
-                (
-                    quakka_chase_and_attack,
-                    delete_dead_entities
-                ).chain(),
+                (quakka_chase_and_attack, delete_dead_entities).chain(),
                 farmer_go_to_bridge,
                 farmer_go_up,
                 update_healthbars,
                 spawn_farmer.run_if(input_pressed(MouseButton::Left)),
                 tick_attacker_cooldowns,
                 highlight_card_on_hover,
-                select_card_on_click
+                select_card_on_click,
             ),
         )
         .init_resource::<SelectedCard>()
@@ -121,10 +118,7 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
     }
 }
 
-fn delete_dead_entities(
-    healths: Query<(&Health, Entity)>,
-    mut commands: Commands
-) {
+fn delete_dead_entities(healths: Query<(&Health, Entity)>, mut commands: Commands) {
     for (health, e) in healths.iter() {
         if health.current_health <= 0.0 {
             commands.entity(e).despawn_recursive();
@@ -138,13 +132,11 @@ fn quakka_chase_and_attack(
     time: Res<Time>,
 ) {
     for mut quakka in quakkas.iter_mut() {
-        let closest_chaseable = chaseables
-            .iter_mut()
-            .max_by(|a, b| {
-                let a_distance = quakka.0.translation.distance(a.0.translation);
-                let b_distance = quakka.0.translation.distance(b.0.translation);
-                b_distance.partial_cmp(&a_distance).unwrap()
-            });
+        let closest_chaseable = chaseables.iter_mut().max_by(|a, b| {
+            let a_distance = quakka.0.translation.distance(a.0.translation);
+            let b_distance = quakka.0.translation.distance(b.0.translation);
+            b_distance.partial_cmp(&a_distance).unwrap()
+        });
 
         // There are no chaseables
         if closest_chaseable.is_none() {
@@ -240,7 +232,6 @@ fn update_healthbars(
     }
 }
 
-
 fn highlight_card_on_hover(
     mut interaction_query: Query<
         (&Interaction, &mut ImageNode),
@@ -250,7 +241,7 @@ fn highlight_card_on_hover(
     for (interaction, mut image_node) in &mut interaction_query {
         image_node.color = match *interaction {
             Interaction::Hovered => Color::WHITE,
-            _ => GREY.into()
+            _ => GREY.into(),
         }
     }
 }
@@ -260,11 +251,13 @@ fn select_card_on_click(
         (&Interaction, Entity),
         (Changed<Interaction>, (With<Button>, With<Card>)),
     >,
-    mut selected_card: ResMut::<SelectedCard>,
-    mut nodes: Query<&mut Node>
+    mut selected_card: ResMut<SelectedCard>,
+    mut nodes: Query<&mut Node>,
 ) {
     if let Some(old_selected_card) = selected_card.0 {
-        let mut old_selected_card = nodes.get_mut(old_selected_card).expect("Selected Card Entity has Node");
+        let mut old_selected_card = nodes
+            .get_mut(old_selected_card)
+            .expect("Selected Card Entity has Node");
 
         old_selected_card.right = Val::ZERO;
     }
@@ -276,7 +269,7 @@ fn select_card_on_click(
 
                 let mut selected_card_node = nodes.get_mut(entity).unwrap();
                 selected_card_node.right = Val::Px(30.0);
-            },
+            }
             _ => {}
         };
     }
@@ -328,7 +321,6 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
         &asset_server,
     );
 
-
     commands
         .spawn((
             DeckBarRoot,
@@ -356,25 +348,18 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
                         ..default()
                     },
                     BackgroundColor(MAROON.into()),
-                    Card {
-                        troop: None
-                    },
-                    Button
+                    Card { troop: None },
+                    Button,
                 ));
 
                 let image_node = match troop {
                     None => ImageNode::default(),
                     Some(ref troop) => match troop {
-                        Troop::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png"))
-                    }
+                        Troop::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png")),
+                    },
                 };
 
-                card_node.insert((
-                    image_node,
-                    Card {
-                        troop
-                    },
-                ));
+                card_node.insert((image_node, Card { troop }));
             };
 
             spawn_card_node(parent, Some(Troop::Farmer));
