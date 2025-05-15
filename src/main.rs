@@ -53,6 +53,16 @@ struct Chaseable;
 #[derive(Component)]
 struct DeckBarRoot;
 
+#[derive(Component)]
+struct TitleScreen;
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
+enum GameState {
+    #[default]
+    TitleScreen,
+    InGame,
+}
+
 const QUAKKA_SPEED: f32 = 75.0;
 const QUAKKA_HIT_DISTANCE: f32 = 50.0;
 const QUAKKA_DAMAGE: f32 = 60.0;
@@ -71,7 +81,12 @@ fn main() {
             //level: bevy::log::Level::DEBUG,
             ..default()
         }))
-        .add_systems(Startup, (setup_camera, spawn_entities))
+        .add_systems(Startup, (setup_camera, spawn_titlescreen))
+        .add_systems(
+            FixedUpdate,
+            start_game_on_click.run_if(in_state(GameState::TitleScreen)),
+        )
+        .add_systems(OnEnter(GameState::InGame), spawn_entities)
         .add_systems(
             FixedUpdate,
             (
@@ -83,14 +98,51 @@ fn main() {
                 tick_attacker_cooldowns,
                 highlight_card_on_hover,
                 select_card_on_click,
-            ),
+            )
+                .run_if(in_state(GameState::InGame)),
         )
+        .init_state::<GameState>()
         .init_resource::<SelectedCard>()
         .run();
 }
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
+}
+
+fn start_game_on_click(
+    interactions: Query<&Interaction, Changed<Interaction>>,
+    mut game_state: ResMut<NextState<GameState>>,
+) {
+    for interaction in interactions.iter() {
+        if let Interaction::Pressed = interaction {
+            game_state.set(GameState::InGame);
+        }
+    }
+}
+
+fn spawn_titlescreen(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((
+        Node {
+            width: Val::Vw(100.0),
+            height: Val::Vh(100.0),
+            ..default()
+        },
+        Button,
+    ));
+
+    commands.spawn((
+        Sprite {
+            image: asset_server.load("title_screen.png"),
+            ..default()
+        },
+        Transform {
+            // -0.5 so it's in the back and clicks are registered to Nodes
+            translation: Vec3::new(0., 0., -0.5),
+            ..default()
+        },
+        TitleScreen,
+    ));
 }
 
 fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
