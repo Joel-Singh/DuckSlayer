@@ -4,6 +4,9 @@ use std::time::Duration;
 
 mod util;
 
+mod global;
+use global::*;
+
 #[derive(Component)]
 struct Quakka;
 
@@ -57,13 +60,6 @@ struct DeckBarRoot;
 
 #[derive(Component)]
 struct TitleScreen;
-
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
-enum GameState {
-    #[default]
-    TitleScreen,
-    InGame,
-}
 
 const QUAKKA_SPEED: f32 = 75.0;
 const QUAKKA_HIT_DISTANCE: f32 = 50.0;
