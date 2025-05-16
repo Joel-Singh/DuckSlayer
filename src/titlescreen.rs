@@ -1,7 +1,7 @@
 use bevy::prelude::*;
+use DuckSlayer::delete_all;
 
 use crate::global::*;
-use crate::util;
 
 #[derive(Component)]
 struct TitleScreen;
@@ -12,10 +12,7 @@ pub fn title_screen(app: &mut App) {
             FixedUpdate,
             start_game_on_click.run_if(in_state(GameState::TitleScreen)),
         )
-        .add_systems(
-            OnExit(GameState::TitleScreen),
-            util::delete_all::<TitleScreen>,
-        );
+        .add_systems(OnExit(GameState::TitleScreen), delete_all::<TitleScreen>);
 }
 
 fn spawn_titlescreen(mut commands: Commands, asset_server: Res<AssetServer>) {

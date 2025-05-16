@@ -2,8 +2,6 @@ use bevy::{color::palettes::css::*, input::common_conditions::*, prelude::*};
 
 use std::time::Duration;
 
-mod util;
-
 mod global;
 use global::*;
 

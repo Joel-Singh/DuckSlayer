@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use bevy::prelude::*;
 
 pub fn delete_all<T: Component>(
