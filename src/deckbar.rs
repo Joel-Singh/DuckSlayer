@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::*, input::common_conditions::*, prelude::*, transform::commands};
+use bevy::{color::palettes::css::*, prelude::*};
 
 use crate::global::*;
 
@@ -106,14 +106,11 @@ fn select_card_on_click(
     }
 
     for (interaction, entity) in &mut interaction_query {
-        match *interaction {
-            Interaction::Pressed => {
-                selected_card.0 = Some(entity);
+        if *interaction == Interaction::Pressed {
+            selected_card.0 = Some(entity);
 
-                let mut selected_card_node = nodes.get_mut(entity).unwrap();
-                selected_card_node.right = Val::Px(30.0);
-            }
-            _ => {}
+            let mut selected_card_node = nodes.get_mut(entity).unwrap();
+            selected_card_node.right = Val::Px(30.0);
         };
     }
 }

@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::*, input::common_conditions::*, prelude::*};
+use bevy::prelude::*;
 
 use std::time::Duration;
 
