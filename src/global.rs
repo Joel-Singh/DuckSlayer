@@ -7,6 +7,11 @@ pub enum GameState {
     InGame,
 }
 
+pub const SCREEN_WIDTH: f32 = 1366.0;
+pub const SCREEN_HEIGHT: f32 = 768.0;
+
+pub const DECK_WIDTH: f32 = 0.1 * SCREEN_WIDTH;
+
 pub fn global(app: &mut App) {
     app.init_state::<GameState>();
 }
