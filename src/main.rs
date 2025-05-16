@@ -40,13 +40,13 @@ fn main() {
         }))
         .add_plugins(title_screen)
         .add_plugins(troops)
+        .add_plugins(global)
         .add_systems(Startup, setup_camera)
         .add_systems(OnEnter(GameState::InGame), spawn_entities)
         .add_systems(
             FixedUpdate,
             (highlight_card_on_hover, select_card_on_click).run_if(in_state(GameState::InGame)),
         )
-        .init_state::<GameState>()
         .init_resource::<SelectedCard>()
         .run();
 }

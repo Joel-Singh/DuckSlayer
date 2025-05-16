@@ -6,3 +6,7 @@ pub enum GameState {
     TitleScreen,
     InGame,
 }
+
+pub fn global(app: &mut App) {
+    app.init_state::<GameState>();
+}
