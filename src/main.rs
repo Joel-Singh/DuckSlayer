@@ -2,17 +2,15 @@ use bevy::{prelude::*, window::WindowResolution};
 
 use std::time::Duration;
 
-mod global;
-use global::*;
-
-mod titlescreen;
-use titlescreen::*;
-
-mod troops;
-use troops::*;
-
 mod deckbar;
+mod global;
+mod titlescreen;
+mod troops;
+
 use deckbar::*;
+use global::*;
+use titlescreen::*;
+use troops::*;
 
 const ARENA_WIDTH: f32 = 0.8 * SCREEN_WIDTH;
 
