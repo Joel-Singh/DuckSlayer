@@ -35,12 +35,29 @@ fn main() {
         .add_plugins(global)
         .add_plugins(deckbar)
         .add_systems(Startup, setup_camera)
-        .add_systems(OnEnter(GameState::InGame), spawn_entities)
+        .add_systems(
+            OnEnter(GameState::InGame),
+            (spawn_entities, spawn_arena_background),
+        )
         .run();
 }
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
+}
+
+fn spawn_arena_background(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((
+        Sprite {
+            image: asset_server.load("arena_background.png"),
+            ..default()
+        },
+        Transform {
+            // -0.5 so it's in the back and clicks are registered to Nodes
+            translation: Vec3::new(0., 0., -0.5),
+            ..default()
+        },
+    ));
 }
 
 fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
