@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, window::WindowResolution};
 
 use std::time::Duration;
 
@@ -18,10 +18,20 @@ const ARENA_WIDTH: f32 = 0.8 * SCREEN_WIDTH;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(bevy::log::LogPlugin {
-            //level: bevy::log::Level::DEBUG,
-            ..default()
-        }))
+        .add_plugins(
+            DefaultPlugins
+                .set(bevy::log::LogPlugin {
+                    //level: bevy::log::Level::DEBUG,
+                    ..default()
+                })
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        resolution: WindowResolution::default().with_scale_factor_override(1.0),
+                        ..default()
+                    }),
+                    ..default()
+                }),
+        )
         .add_plugins(title_screen)
         .add_plugins(troops)
         .add_plugins(global)
