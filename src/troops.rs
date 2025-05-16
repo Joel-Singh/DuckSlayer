@@ -22,11 +22,12 @@ struct Chaseable;
 pub struct Health {
     pub current_health: f32,
     pub max_health: f32,
+    pub healthbar_height: f32,
 }
 
 #[derive(Component)]
 #[require(Transform)]
-pub struct HealthBar;
+struct HealthBar;
 
 #[derive(Component)]
 #[require(Chaseable)]
@@ -54,6 +55,7 @@ pub fn troops(app: &mut App) {
                 update_healthbars,
             )
                 .chain(),
+            intialize_healthbar,
             farmer_go_to_bridge,
             farmer_go_up,
             spawn_farmer.run_if(input_pressed(MouseButton::Left)),
@@ -61,6 +63,19 @@ pub fn troops(app: &mut App) {
         )
             .run_if(in_state(GameState::InGame)),
     );
+}
+
+fn intialize_healthbar(q: Query<(Entity, &Health), Added<Health>>, mut commands: Commands) {
+    for (entity, health) in &q {
+        let healthbar = commands
+            .spawn((
+                Transform::from_xyz(0., health.healthbar_height, 1.),
+                HealthBar,
+            ))
+            .id();
+
+        commands.entity(entity).add_children(&[healthbar]);
+    }
 }
 
 fn quakka_chase_and_attack(

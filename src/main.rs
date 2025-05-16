@@ -36,30 +36,27 @@ fn setup_camera(mut commands: Commands) {
 }
 
 fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
-    let quakka = commands
-        .spawn((
-            Sprite {
-                image: asset_server.load("quakka.png"),
-                custom_size: Some(Vec2::new(100.0, 100.0)),
-                ..default()
-            },
-            Transform {
-                translation: Vec3::new(0., 200., 0.),
-                ..default()
-            },
-            Health {
-                current_health: 100.0,
-                max_health: 100.0,
-            },
-            Quakka,
-            Attacker {
-                cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-                damage: QUAKKA_DAMAGE,
-            },
-        ))
-        .id();
-
-    add_healthbar_child(quakka, 60., &mut commands);
+    commands.spawn((
+        Sprite {
+            image: asset_server.load("quakka.png"),
+            custom_size: Some(Vec2::new(100.0, 100.0)),
+            ..default()
+        },
+        Transform {
+            translation: Vec3::new(0., 200., 0.),
+            ..default()
+        },
+        Health {
+            current_health: 100.0,
+            max_health: 100.0,
+            healthbar_height: 60.,
+        },
+        Quakka,
+        Attacker {
+            cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
+            damage: QUAKKA_DAMAGE,
+        },
+    ));
 
     spawn_nest(
         Vec3::new(
@@ -94,33 +91,22 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
     ));
 }
 
-fn add_healthbar_child(e: Entity, height: f32, commands: &mut Commands) {
-    let healthbar = commands
-        .spawn((Transform::from_xyz(0., height, 1.), HealthBar))
-        .id();
-
-    commands.entity(e).add_children(&[healthbar]);
-}
-
 fn spawn_nest(translation: Vec3, commands: &mut Commands, asset_server: &Res<AssetServer>) {
-    let nest = commands
-        .spawn((
-            Sprite {
-                image: asset_server.load("nest.png"),
-                custom_size: Some(Vec2::new(50., 50.)),
-                ..default()
-            },
-            Transform {
-                translation,
-                ..default()
-            },
-            Health {
-                current_health: 100.0,
-                max_health: 100.0,
-            },
-            Nest,
-        ))
-        .id();
-
-    add_healthbar_child(nest, 60., commands);
+    commands.spawn((
+        Sprite {
+            image: asset_server.load("nest.png"),
+            custom_size: Some(Vec2::new(50., 50.)),
+            ..default()
+        },
+        Transform {
+            translation,
+            ..default()
+        },
+        Health {
+            current_health: 100.0,
+            max_health: 100.0,
+            healthbar_height: 60.,
+        },
+        Nest,
+    ));
 }
