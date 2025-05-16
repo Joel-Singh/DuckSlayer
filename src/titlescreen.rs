@@ -6,7 +6,7 @@ use crate::global::*;
 #[derive(Component)]
 struct TitleScreen;
 
-pub fn title_screen(app: &mut App) {
+pub fn titlescreen(app: &mut App) {
     app.add_systems(Startup, spawn_titlescreen)
         .add_systems(
             FixedUpdate,

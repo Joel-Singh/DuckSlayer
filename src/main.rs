@@ -32,7 +32,7 @@ fn main() {
                     ..default()
                 }),
         )
-        .add_plugins(title_screen)
+        .add_plugins(titlescreen)
         .add_plugins(troops)
         .add_plugins(global)
         .add_plugins(deckbar)
