@@ -6,23 +6,10 @@ mod global;
 use global::*;
 
 mod titlescreen;
-use titlescreen::title_screen;
+use titlescreen::*;
 
-#[derive(Component)]
-struct Quakka;
-
-#[derive(Component)]
-struct Attacker {
-    cooldown: Timer,
-    damage: f32,
-}
-
-#[derive(Component)]
-#[require(Chaseable)]
-struct Farmer;
-
-#[derive(Component)]
-struct GoingToBridge;
+mod troops;
+use troops::*;
 
 enum Troop {
     Farmer,
@@ -33,37 +20,11 @@ struct Card {
     troop: Option<Troop>,
 }
 
-#[derive(Component)]
-struct Bridge;
-
 #[derive(Resource, Default)]
 struct SelectedCard(Option<Entity>);
 
 #[derive(Component)]
-#[require(Chaseable)]
-struct Nest;
-
-#[derive(Component)]
-struct Health {
-    current_health: f32,
-    max_health: f32,
-}
-
-#[derive(Component)]
-#[require(Transform)]
-struct HealthBar;
-
-#[derive(Component, Default)]
-struct Chaseable;
-
-#[derive(Component)]
 struct DeckBarRoot;
-
-const QUAKKA_SPEED: f32 = 75.0;
-const QUAKKA_HIT_DISTANCE: f32 = 50.0;
-const QUAKKA_DAMAGE: f32 = 60.0;
-
-const FARMER_SPEED: f32 = 25.0;
 
 const SCREEN_WIDTH: f32 = 1366.0;
 const SCREEN_HEIGHT: f32 = 768.0;
@@ -78,25 +39,12 @@ fn main() {
             ..default()
         }))
         .add_plugins(title_screen)
+        .add_plugins(troops)
         .add_systems(Startup, setup_camera)
         .add_systems(OnEnter(GameState::InGame), spawn_entities)
         .add_systems(
             FixedUpdate,
-            (
-                (
-                    quakka_chase_and_attack,
-                    delete_dead_entities,
-                    update_healthbars,
-                )
-                    .chain(),
-                farmer_go_to_bridge,
-                farmer_go_up,
-                spawn_farmer.run_if(input_pressed(MouseButton::Left)),
-                tick_attacker_cooldowns,
-                highlight_card_on_hover,
-                select_card_on_click,
-            )
-                .run_if(in_state(GameState::InGame)),
+            (highlight_card_on_hover, select_card_on_click).run_if(in_state(GameState::InGame)),
         )
         .init_state::<GameState>()
         .init_resource::<SelectedCard>()
@@ -105,145 +53,6 @@ fn main() {
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
-}
-
-fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((
-        Sprite {
-            image: asset_server.load("farmer.png"),
-            custom_size: Some(Vec2::new(30.0, 30.0)),
-            ..default()
-        },
-        Transform {
-            translation: Vec3::new(0., 0., 0.),
-            ..default()
-        },
-        Farmer,
-        GoingToBridge,
-    ));
-}
-
-fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>) {
-    for mut attacker in attackers.iter_mut() {
-        if attacker.cooldown.mode() == TimerMode::Repeating {
-            panic!("Attack coolodwn should be once");
-        }
-        attacker.cooldown.tick(time.delta());
-    }
-}
-
-fn delete_dead_entities(healths: Query<(&Health, Entity)>, mut commands: Commands) {
-    for (health, e) in healths.iter() {
-        if health.current_health <= 0.0 {
-            commands.entity(e).despawn_recursive();
-        }
-    }
-}
-
-fn quakka_chase_and_attack(
-    mut quakkas: Query<(&mut Transform, &mut Attacker), (With<Quakka>, Without<Nest>)>,
-    mut chaseables: Query<(&Transform, Entity, &mut Health), (With<Chaseable>, Without<Quakka>)>,
-    time: Res<Time>,
-) {
-    for mut quakka in quakkas.iter_mut() {
-        let closest_chaseable = chaseables.iter_mut().max_by(|a, b| {
-            let a_distance = quakka.0.translation.distance(a.0.translation);
-            let b_distance = quakka.0.translation.distance(b.0.translation);
-            b_distance.partial_cmp(&a_distance).unwrap()
-        });
-
-        // There are no chaseables
-        if closest_chaseable.is_none() {
-            continue;
-        }
-
-        let mut closest_chaseable = closest_chaseable.unwrap();
-
-        let mut difference = closest_chaseable.0.translation - quakka.0.translation;
-        difference = difference.normalize();
-
-        let in_attack_distance = quakka
-            .0
-            .translation
-            .distance(closest_chaseable.0.translation)
-            < QUAKKA_HIT_DISTANCE;
-        if in_attack_distance {
-            if quakka.1.cooldown.finished() {
-                quakka.1.cooldown.reset();
-                closest_chaseable.2.current_health -= quakka.1.damage;
-            }
-        } else {
-            quakka.0.translation += (difference) * time.delta_secs() * QUAKKA_SPEED;
-        }
-    }
-}
-
-fn farmer_go_to_bridge(
-    mut farmers: Query<
-        (&mut Transform, Entity),
-        (With<Farmer>, With<GoingToBridge>, Without<Bridge>),
-    >,
-    bridges: Query<&Transform, (With<Bridge>, Without<Farmer>)>,
-    mut commands: Commands,
-    time: Res<Time>,
-) {
-    for farmer in farmers.iter_mut() {
-        let (mut farmer_transform, farmer_e) = farmer;
-        let farmer_translation = farmer_transform.translation;
-        let bridge = bridges
-            .iter()
-            .max_by(|a, b| {
-                let a_distance = farmer_translation.distance(a.translation);
-                let b_distance = farmer_translation.distance(b.translation);
-                b_distance.partial_cmp(&a_distance).unwrap()
-            })
-            .unwrap();
-
-        let mut difference = bridge.translation - farmer_translation;
-
-        difference = difference.normalize();
-
-        if farmer_translation.distance(bridge.translation) < 10.0 {
-            commands.entity(farmer_e).remove::<GoingToBridge>();
-        } else {
-            farmer_transform.translation += (difference) * time.delta_secs() * FARMER_SPEED;
-        }
-    }
-}
-
-fn farmer_go_up(
-    mut farmer_transforms: Query<&mut Transform, (With<Farmer>, Without<GoingToBridge>)>,
-    time: Res<Time>,
-) {
-    for mut farmer_transform in farmer_transforms.iter_mut() {
-        farmer_transform.translation.y += time.delta_secs() * FARMER_SPEED;
-    }
-}
-
-fn update_healthbars(
-    mut commands: Commands,
-    mut healthbar_q: Query<(Entity, &Parent), With<HealthBar>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    health: Query<&Health>,
-) {
-    for (healthbar, troop) in healthbar_q.iter_mut() {
-        let health = health.get(troop.get());
-        if health.is_err() {
-            panic!("Health component not on troop!");
-        }
-
-        let health = health.unwrap();
-        let health_percentage = health.current_health / health.max_health;
-
-        commands.entity(healthbar).insert(Mesh2d(
-            meshes.add(Rectangle::new(health_percentage * 100.0, 10.0)),
-        ));
-
-        commands
-            .entity(healthbar)
-            .insert_if_new(MeshMaterial2d(materials.add(Color::from(RED))));
-    }
 }
 
 fn highlight_card_on_hover(
