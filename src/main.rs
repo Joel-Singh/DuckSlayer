@@ -7,6 +7,9 @@ mod util;
 mod global;
 use global::*;
 
+mod titlescreen;
+use titlescreen::title_screen;
+
 #[derive(Component)]
 struct Quakka;
 
@@ -58,9 +61,6 @@ struct Chaseable;
 #[derive(Component)]
 struct DeckBarRoot;
 
-#[derive(Component)]
-struct TitleScreen;
-
 const QUAKKA_SPEED: f32 = 75.0;
 const QUAKKA_HIT_DISTANCE: f32 = 50.0;
 const QUAKKA_DAMAGE: f32 = 60.0;
@@ -79,15 +79,8 @@ fn main() {
             //level: bevy::log::Level::DEBUG,
             ..default()
         }))
-        .add_systems(Startup, (setup_camera, spawn_titlescreen))
-        .add_systems(
-            FixedUpdate,
-            start_game_on_click.run_if(in_state(GameState::TitleScreen)),
-        )
-        .add_systems(
-            OnExit(GameState::TitleScreen),
-            util::delete_all::<TitleScreen>,
-        )
+        .add_plugins(title_screen)
+        .add_systems(Startup, setup_camera)
         .add_systems(OnEnter(GameState::InGame), spawn_entities)
         .add_systems(
             FixedUpdate,
@@ -114,42 +107,6 @@ fn main() {
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
-}
-
-fn start_game_on_click(
-    interactions: Query<&Interaction, Changed<Interaction>>,
-    mut game_state: ResMut<NextState<GameState>>,
-) {
-    for interaction in interactions.iter() {
-        if let Interaction::Pressed = interaction {
-            game_state.set(GameState::InGame);
-        }
-    }
-}
-
-fn spawn_titlescreen(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((
-        Node {
-            width: Val::Vw(100.0),
-            height: Val::Vh(100.0),
-            ..default()
-        },
-        Button,
-        TitleScreen,
-    ));
-
-    commands.spawn((
-        Sprite {
-            image: asset_server.load("title_screen.png"),
-            ..default()
-        },
-        Transform {
-            // -0.5 so it's in the back and clicks are registered to Nodes
-            translation: Vec3::new(0., 0., -0.5),
-            ..default()
-        },
-        TitleScreen,
-    ));
 }
 
 fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
