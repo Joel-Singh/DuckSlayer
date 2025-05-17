@@ -66,11 +66,11 @@ pub fn troops(app: &mut App) {
         )
         .add_systems(
             FixedUpdate,
-            (intialize_healthbar, update_healthbars).run_if(in_state(GameState::InGame)),
+            (initialize_healthbar, update_healthbars).run_if(in_state(GameState::InGame)),
         );
 }
 
-fn intialize_healthbar(q: Query<(Entity, &Health), Added<Health>>, mut commands: Commands) {
+fn initialize_healthbar(q: Query<(Entity, &Health), Added<Health>>, mut commands: Commands) {
     for (entity, health) in &q {
         let healthbar = commands
             .spawn((
