@@ -65,7 +65,7 @@ pub fn troops(app: &mut App) {
             intialize_healthbar,
             farmer_go_to_bridge,
             farmer_go_up,
-            spawn_farmer_on_click,
+            spawn_troop_on_click,
             tick_attacker_cooldowns,
         )
             .run_if(in_state(GameState::InGame)),
@@ -199,7 +199,7 @@ fn farmer_go_up(
     }
 }
 
-fn spawn_farmer_on_click(
+fn spawn_troop_on_click(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut mousebtn_evr: EventReader<MouseButtonInput>,
