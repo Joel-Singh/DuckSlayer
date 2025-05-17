@@ -41,7 +41,7 @@ fn main() {
         )
         .add_systems(
             FixedUpdate,
-            unpause.run_if(input_just_pressed(KeyCode::Space)),
+            unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameState::InGame))),
         )
         .run();
 }
