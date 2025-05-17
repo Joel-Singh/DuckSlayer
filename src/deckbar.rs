@@ -120,16 +120,18 @@ fn hover_sprite_when_card_selected(
     cursor_world_coords: Res<CursorWorldCoords>,
 ) {
     if let Some((_, troop)) = selected_card.0 {
-        match troop {
-            Troop::Farmer => {
-                commands.entity(*hover_sprite).insert(Sprite {
-                    image: asset_server.load("farmer.png"),
-                    custom_size: Some(FARMER_SIZE),
-                    color: Color::linear_rgba(1., 1., 1., 0.5),
-                    ..default()
-                });
+        if current_sprite.is_none() || troop != current_sprite.unwrap() {
+            match troop {
+                Troop::Farmer => {
+                    commands.entity(*hover_sprite).insert(Sprite {
+                        image: asset_server.load("farmer.png"),
+                        custom_size: Some(FARMER_SIZE),
+                        color: Color::linear_rgba(1., 1., 1., 0.5),
+                        ..default()
+                    });
 
-                *current_sprite = Some(Troop::Farmer);
+                    *current_sprite = Some(Troop::Farmer);
+                }
             }
         }
     } else {
