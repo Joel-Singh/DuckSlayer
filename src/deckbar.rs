@@ -54,7 +54,6 @@ fn initialize_deckbar(mut commands: Commands, asset_server: Res<AssetServer>) {
                         ..default()
                     },
                     BackgroundColor(MAROON.into()),
-                    Card { troop: None },
                     Button,
                 ));
 
