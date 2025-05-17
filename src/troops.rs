@@ -5,7 +5,10 @@ use bevy::{
     window::PrimaryWindow,
 };
 
-use crate::global::*;
+use crate::{
+    deckbar::{Card, SelectedCard, Troop},
+    global::*,
+};
 
 #[derive(Component)]
 pub struct Quakka;
@@ -202,25 +205,32 @@ fn spawn_farmer_on_click(
     asset_server: Res<AssetServer>,
     mut mousebtn_evr: EventReader<MouseButtonInput>,
     mouse_coords: Res<CursorWorldCoords>,
+    selected_card: Res<SelectedCard>,
 ) {
     for ev in mousebtn_evr.read() {
         if ev.state != ButtonState::Pressed {
             return;
         }
 
-        commands.spawn((
-            Sprite {
-                image: asset_server.load("farmer.png"),
-                custom_size: Some(Vec2::new(30.0, 30.0)),
-                ..default()
-            },
-            Transform {
-                translation: mouse_coords.0.extend(0.),
-                ..default()
-            },
-            Farmer,
-            GoingToBridge,
-        ));
+        if let Some((_, troop)) = selected_card.0 {
+            match troop {
+                Troop::Farmer => {
+                    commands.spawn((
+                        Sprite {
+                            image: asset_server.load("farmer.png"),
+                            custom_size: Some(Vec2::new(30.0, 30.0)),
+                            ..default()
+                        },
+                        Transform {
+                            translation: mouse_coords.0.extend(0.),
+                            ..default()
+                        },
+                        Farmer,
+                        GoingToBridge,
+                    ));
+                }
+            }
+        }
     }
 }
 

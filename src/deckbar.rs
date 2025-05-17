@@ -3,17 +3,18 @@ use bevy::{color::palettes::css::*, prelude::*};
 use crate::global::*;
 
 #[derive(Resource, Default)]
-struct SelectedCard(Option<Entity>);
+pub struct SelectedCard(pub Option<(Entity, Troop)>);
 
 #[derive(Component)]
 struct DeckBarRoot;
 
 #[derive(Component)]
-struct Card {
-    troop: Option<Troop>,
+pub struct Card {
+    pub troop: Option<Troop>,
 }
 
-enum Troop {
+#[derive(Clone, Copy)]
+pub enum Troop {
     Farmer,
 }
 
@@ -102,7 +103,7 @@ fn select_card_on_click(
             return;
         }
 
-        let card_clicked = cards_q.get(entity).expect("Clicked entity is Card");
+        let card_clicked = cards_q.get(entity).unwrap();
 
         if card_clicked.troop.is_none() {
             return;
@@ -110,13 +111,13 @@ fn select_card_on_click(
 
         if let Some(old_selected_card) = selected_card.0 {
             let mut old_selected_card = nodes
-                .get_mut(old_selected_card)
+                .get_mut(old_selected_card.0)
                 .expect("Selected Card Entity has Node");
 
             old_selected_card.right = Val::ZERO;
         }
 
-        selected_card.0 = Some(entity);
+        selected_card.0 = Some((entity, card_clicked.troop.unwrap()));
         let mut selected_card_node = nodes.get_mut(entity).unwrap();
         selected_card_node.right = Val::Px(30.0);
     }
