@@ -23,6 +23,7 @@ pub const SCREEN_WIDTH: f32 = 1366.0;
 pub const SCREEN_HEIGHT: f32 = 768.0;
 
 pub const DECK_WIDTH: f32 = 0.1 * SCREEN_WIDTH;
+pub const ARENA_WIDTH: f32 = 0.8 * SCREEN_WIDTH;
 
 pub const FARMER_SPRITE_SIZE: (f32, f32) = (1399., 1238.);
 pub const FARMER_CUSTOM_WIDTH: f32 = 60.;
