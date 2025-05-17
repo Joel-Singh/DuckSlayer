@@ -119,20 +119,20 @@ fn quakka_chase_and_attack(
 fn delete_dead_entities(healths: Query<(&Health, Entity)>, mut commands: Commands) {
     for (health, e) in healths.iter() {
         if health.current_health <= 0.0 {
-            commands.entity(e).despawn_recursive();
+            commands.entity(e).despawn();
         }
     }
 }
 
 fn update_healthbars(
     mut commands: Commands,
-    mut healthbar_q: Query<(Entity, &Parent), With<HealthBar>>,
+    mut healthbar_q: Query<(Entity, &ChildOf), With<HealthBar>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     health: Query<&Health>,
 ) {
     for (healthbar, troop) in healthbar_q.iter_mut() {
-        let health = health.get(troop.get());
+        let health = health.get(troop.parent());
         if health.is_err() {
             panic!("Health component not on troop!");
         }

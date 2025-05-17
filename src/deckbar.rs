@@ -46,7 +46,7 @@ fn initialize_deckbar(mut commands: Commands, asset_server: Res<AssetServer>) {
             BorderColor(RED.into()),
         ))
         .with_children(|parent| {
-            let spawn_card_node = |parent: &mut ChildBuilder, troop: Option<Troop>| {
+            let spawn_card_node = |parent: &mut ChildSpawnerCommands, troop: Option<Troop>| {
                 let mut card_node = parent.spawn((
                     Node {
                         height: Val::Px(100.0),

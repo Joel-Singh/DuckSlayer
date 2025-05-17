@@ -7,6 +7,6 @@ pub fn delete_all<T: Component>(
     mut commands: Commands,
 ) {
     for entity in &entities_to_delete {
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).despawn();
     }
 }
