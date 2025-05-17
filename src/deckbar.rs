@@ -143,7 +143,7 @@ fn hover_sprite_when_card_selected(
         .entity(*hover_sprite)
         .entry::<Transform>()
         .and_modify(move |mut transform| {
-            transform.translation = dbg!(cursor_world_coords.extend(0.));
+            transform.translation = cursor_world_coords.extend(0.);
         });
 }
 
