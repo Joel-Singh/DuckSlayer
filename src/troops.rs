@@ -5,7 +5,7 @@ use bevy::{
 };
 
 use crate::{
-    deckbar::{SelectedCard, Troop},
+    deckbar::{DeleteSelectedCard, SelectedCard, Troop},
     global::*,
 };
 
@@ -229,6 +229,8 @@ fn spawn_troop_on_click(
                     ));
                 }
             }
+
+            commands.queue(DeleteSelectedCard::default());
         }
     }
 }

@@ -122,3 +122,18 @@ fn select_card_on_click(
         selected_card_node.right = Val::Px(30.0);
     }
 }
+
+#[derive(Default)]
+pub struct DeleteSelectedCard;
+impl Command for DeleteSelectedCard {
+    fn apply(self, world: &mut World) {
+        let mut selected_card_res = world.get_resource_mut::<SelectedCard>().unwrap();
+        let (selected_card_e, _) = selected_card_res.0.unwrap();
+
+        selected_card_res.0 = None;
+
+        let mut selected_card = world.get_entity_mut(selected_card_e).unwrap();
+
+        selected_card.insert((ImageNode::default(), Card { troop: None }));
+    }
+}
