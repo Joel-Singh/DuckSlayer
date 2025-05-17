@@ -1,12 +1,11 @@
 use bevy::{
     color::palettes::css::*,
-    input::{common_conditions::*, mouse::MouseButtonInput, ButtonState},
+    input::{mouse::MouseButtonInput, ButtonState},
     prelude::*,
-    window::PrimaryWindow,
 };
 
 use crate::{
-    deckbar::{Card, SelectedCard, Troop},
+    deckbar::{SelectedCard, Troop},
     global::*,
 };
 
