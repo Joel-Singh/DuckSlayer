@@ -32,7 +32,7 @@ fn update_cursor_world_coords(
         if let Ok(cursor_world_coords) =
             camera.viewport_to_world_2d(camera_transform, cursor_window_position)
         {
-            cursor_world_coords_res.0 = dbg!(cursor_world_coords);
+            cursor_world_coords_res.0 = cursor_world_coords;
         }
     }
 }
