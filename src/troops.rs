@@ -1,8 +1,4 @@
-use bevy::{
-    color::palettes::css::*,
-    input::{mouse::MouseButtonInput, ButtonState},
-    prelude::*,
-};
+use bevy::{color::palettes::css::*, prelude::*};
 
 use crate::{
     deckbar::{DeleteSelectedCard, SelectedCard, Troop},
@@ -46,6 +42,9 @@ struct GoingToBridge;
 #[derive(Component)]
 pub struct Bridge;
 
+#[derive(Component)]
+pub struct Arena;
+
 const QUAKKA_SPEED: f32 = 75.0;
 const QUAKKA_HIT_DISTANCE: f32 = 50.0;
 pub const QUAKKA_DAMAGE: f32 = 60.0;
@@ -53,7 +52,7 @@ pub const QUAKKA_DAMAGE: f32 = 60.0;
 const FARMER_SPEED: f32 = 25.0;
 
 pub fn troops(app: &mut App) {
-    app.add_systems(
+    app.add_systems(Startup, spawn_arena_area).add_systems(
         FixedUpdate,
         (
             (
@@ -83,6 +82,19 @@ fn intialize_healthbar(q: Query<(Entity, &Health), Added<Health>>, mut commands:
 
         commands.entity(entity).add_children(&[healthbar]);
     }
+}
+
+fn spawn_arena_area(mut commands: Commands) {
+    commands.spawn((
+        Arena,
+        Node {
+            width: Val::Vw(100.0),
+            height: Val::Vh(100.0),
+            ..default()
+        },
+        Button,
+        GlobalZIndex(-1),
+    ));
 }
 
 fn quakka_chase_and_attack(
@@ -202,12 +214,12 @@ fn farmer_go_up(
 fn spawn_troop_on_click(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut mousebtn_evr: EventReader<MouseButtonInput>,
+    interaction_q: Query<&Interaction, (With<Arena>, Changed<Interaction>)>,
     mouse_coords: Res<CursorWorldCoords>,
     selected_card: Res<SelectedCard>,
 ) {
-    for ev in mousebtn_evr.read() {
-        if ev.state != ButtonState::Pressed {
+    for interaction in interaction_q {
+        if *interaction != Interaction::Pressed {
             return;
         }
 

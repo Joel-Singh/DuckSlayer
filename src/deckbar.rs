@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::*, prelude::*};
+use bevy::{color::palettes::css::*, prelude::*, ui::FocusPolicy};
 
 use crate::global::*;
 
@@ -45,6 +45,7 @@ fn initialize_deckbar(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             },
             BorderColor(RED.into()),
+            FocusPolicy::Block,
         ))
         .with_children(|parent| {
             let spawn_card_node = |parent: &mut ChildSpawnerCommands, troop: Option<Troop>| {
