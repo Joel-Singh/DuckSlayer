@@ -125,6 +125,7 @@ fn hover_sprite_when_card_selected(
                 commands.entity(*hover_sprite).insert(Sprite {
                     image: asset_server.load("farmer.png"),
                     custom_size: Some(FARMER_SIZE),
+                    color: Color::linear_rgba(1., 1., 1., 0.5),
                     ..default()
                 });
 
