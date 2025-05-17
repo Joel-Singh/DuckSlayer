@@ -97,20 +97,21 @@ fn select_card_on_click(
     mut selected_card: ResMut<SelectedCard>,
     mut nodes: Query<&mut Node>,
 ) {
-    if let Some(old_selected_card) = selected_card.0 {
-        let mut old_selected_card = nodes
-            .get_mut(old_selected_card)
-            .expect("Selected Card Entity has Node");
-
-        old_selected_card.right = Val::ZERO;
-    }
-
     for (interaction, entity) in &mut interaction_query {
-        if *interaction == Interaction::Pressed {
-            selected_card.0 = Some(entity);
+        if *interaction != Interaction::Pressed {
+            return;
+        }
 
-            let mut selected_card_node = nodes.get_mut(entity).unwrap();
-            selected_card_node.right = Val::Px(30.0);
-        };
+        if let Some(old_selected_card) = selected_card.0 {
+            let mut old_selected_card = nodes
+                .get_mut(old_selected_card)
+                .expect("Selected Card Entity has Node");
+
+            old_selected_card.right = Val::ZERO;
+        }
+
+        selected_card.0 = Some(entity);
+        let mut selected_card_node = nodes.get_mut(entity).unwrap();
+        selected_card_node.right = Val::Px(30.0);
     }
 }
