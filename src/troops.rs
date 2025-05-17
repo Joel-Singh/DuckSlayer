@@ -1,4 +1,9 @@
-use bevy::{color::palettes::css::*, input::common_conditions::*, prelude::*};
+use bevy::{
+    color::palettes::css::*,
+    input::{common_conditions::*, mouse::MouseButtonInput, ButtonState},
+    prelude::*,
+    window::PrimaryWindow,
+};
 
 use crate::global::*;
 
@@ -58,7 +63,7 @@ pub fn troops(app: &mut App) {
             intialize_healthbar,
             farmer_go_to_bridge,
             farmer_go_up,
-            spawn_farmer.run_if(input_pressed(MouseButton::Left)),
+            spawn_farmer_on_click,
             tick_attacker_cooldowns,
         )
             .run_if(in_state(GameState::InGame)),
@@ -192,20 +197,41 @@ fn farmer_go_up(
     }
 }
 
-fn spawn_farmer(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((
-        Sprite {
-            image: asset_server.load("farmer.png"),
-            custom_size: Some(Vec2::new(30.0, 30.0)),
-            ..default()
-        },
-        Transform {
-            translation: Vec3::new(0., 0., 0.),
-            ..default()
-        },
-        Farmer,
-        GoingToBridge,
-    ));
+fn spawn_farmer_on_click(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    windows_q: Single<&Window, With<PrimaryWindow>>,
+    camera_q: Single<(&Camera, &GlobalTransform)>,
+    mut mousebtn_evr: EventReader<MouseButtonInput>,
+) {
+    for ev in mousebtn_evr.read() {
+        if ev.state != ButtonState::Pressed {
+            return;
+        }
+
+        let cursor_position = windows_q.cursor_position();
+        if let Some(cursor_position) = cursor_position {
+            let (camera, camera_transform) = *camera_q;
+
+            if let Ok(spawn_position) =
+                camera.viewport_to_world_2d(camera_transform, cursor_position)
+            {
+                commands.spawn((
+                    Sprite {
+                        image: asset_server.load("farmer.png"),
+                        custom_size: Some(Vec2::new(30.0, 30.0)),
+                        ..default()
+                    },
+                    Transform {
+                        translation: spawn_position.extend(0.),
+                        ..default()
+                    },
+                    Farmer,
+                    GoingToBridge,
+                ));
+            }
+        };
+    }
 }
 
 fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>) {
