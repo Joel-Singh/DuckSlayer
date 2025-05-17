@@ -226,16 +226,10 @@ fn spawn_troop_on_click(
         if let Some((_, troop)) = selected_card.0 {
             match troop {
                 Troop::Farmer => {
-                    const FARMER_SPRITE_SIZE: Vec2 = Vec2::new(1399., 1238.);
-
-                    const CUSTOM_WIDTH: f32 = 60.;
-
                     commands.spawn((
                         Sprite {
                             image: asset_server.load("farmer.png"),
-                            custom_size: Some(
-                                FARMER_SPRITE_SIZE * (CUSTOM_WIDTH / FARMER_SPRITE_SIZE.x),
-                            ),
+                            custom_size: Some(FARMER_SIZE),
                             ..default()
                         },
                         Transform {

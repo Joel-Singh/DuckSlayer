@@ -15,6 +15,13 @@ pub const SCREEN_HEIGHT: f32 = 768.0;
 
 pub const DECK_WIDTH: f32 = 0.1 * SCREEN_WIDTH;
 
+pub const FARMER_SPRITE_SIZE: (f32, f32) = (1399., 1238.);
+pub const FARMER_CUSTOM_WIDTH: f32 = 60.;
+pub const FARMER_SIZE: Vec2 = Vec2::new(
+    FARMER_SPRITE_SIZE.0 * (FARMER_CUSTOM_WIDTH / FARMER_SPRITE_SIZE.0),
+    FARMER_SPRITE_SIZE.1 * (FARMER_CUSTOM_WIDTH / FARMER_SPRITE_SIZE.0),
+);
+
 pub fn global(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
         .init_resource::<CursorWorldCoords>()

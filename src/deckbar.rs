@@ -9,22 +9,33 @@ pub struct SelectedCard(pub Option<(Entity, Troop)>);
 struct DeckBarRoot;
 
 #[derive(Component)]
+struct HoverSprite;
+
+#[derive(Component)]
 pub struct Card {
     pub troop: Option<Troop>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Troop {
     Farmer,
 }
 
 pub fn deckbar(app: &mut App) {
-    app.add_systems(OnEnter(GameState::InGame), initialize_deckbar)
-        .add_systems(
-            FixedUpdate,
-            (highlight_card_on_hover, select_card_on_click).run_if(in_state(GameState::InGame)),
+    app.add_systems(
+        OnEnter(GameState::InGame),
+        (initialize_deckbar, spawn_hover_sprite),
+    )
+    .add_systems(
+        FixedUpdate,
+        (
+            highlight_card_on_hover,
+            select_card_on_click,
+            hover_sprite_when_card_selected,
         )
-        .init_resource::<SelectedCard>();
+            .run_if(in_state(GameState::InGame)),
+    )
+    .init_resource::<SelectedCard>();
 }
 
 fn initialize_deckbar(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -88,6 +99,49 @@ fn highlight_card_on_hover(
             _ => GREY.into(),
         }
     }
+}
+
+fn spawn_hover_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((
+        HoverSprite,
+        Transform::default(),
+        Sprite::from_image(asset_server.load("farmer.png")),
+    ));
+}
+
+fn hover_sprite_when_card_selected(
+    mut commands: Commands,
+    mut current_sprite: Local<Option<Troop>>,
+
+    hover_sprite: Single<Entity, With<HoverSprite>>,
+
+    selected_card: Res<SelectedCard>,
+    asset_server: Res<AssetServer>,
+    cursor_world_coords: Res<CursorWorldCoords>,
+) {
+    if let Some((_, troop)) = selected_card.0 {
+        match troop {
+            Troop::Farmer => {
+                commands.entity(*hover_sprite).insert(Sprite {
+                    image: asset_server.load("farmer.png"),
+                    custom_size: Some(FARMER_SIZE),
+                    ..default()
+                });
+
+                *current_sprite = Some(Troop::Farmer);
+            }
+        }
+    } else {
+        commands.entity(*hover_sprite).insert(Sprite::default());
+    }
+
+    let cursor_world_coords = cursor_world_coords.0;
+    commands
+        .entity(*hover_sprite)
+        .entry::<Transform>()
+        .and_modify(move |mut transform| {
+            transform.translation = dbg!(cursor_world_coords.extend(0.));
+        });
 }
 
 fn select_card_on_click(
