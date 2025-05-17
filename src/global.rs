@@ -7,6 +7,15 @@ pub enum GameState {
     InGame,
 }
 
+#[derive(Resource, PartialEq)]
+pub struct IsPaused(pub bool);
+
+impl Default for IsPaused {
+    fn default() -> Self {
+        return IsPaused(true);
+    }
+}
+
 #[derive(Resource, Default)]
 pub struct CursorWorldCoords(pub Vec2);
 
@@ -25,6 +34,7 @@ pub const FARMER_SIZE: Vec2 = Vec2::new(
 pub fn global(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
         .init_resource::<CursorWorldCoords>()
+        .init_resource::<IsPaused>()
         .init_state::<GameState>();
 }
 

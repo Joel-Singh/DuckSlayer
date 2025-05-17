@@ -1,4 +1,4 @@
-use bevy::{prelude::*, window::WindowResolution};
+use bevy::{input::common_conditions::input_just_pressed, prelude::*, window::WindowResolution};
 
 use std::time::Duration;
 
@@ -39,11 +39,19 @@ fn main() {
             OnEnter(GameState::InGame),
             (spawn_entities, spawn_arena_background),
         )
+        .add_systems(
+            FixedUpdate,
+            unpause.run_if(input_just_pressed(KeyCode::Space)),
+        )
         .run();
 }
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
+}
+
+fn unpause(mut is_paused: ResMut<IsPaused>) {
+    is_paused.0 = false;
 }
 
 fn spawn_arena_background(mut commands: Commands, asset_server: Res<AssetServer>) {

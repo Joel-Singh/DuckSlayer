@@ -52,23 +52,22 @@ pub const QUAKKA_DAMAGE: f32 = 60.0;
 const FARMER_SPEED: f32 = 25.0;
 
 pub fn troops(app: &mut App) {
-    app.add_systems(Startup, spawn_arena_area).add_systems(
-        FixedUpdate,
-        (
+    app.add_systems(Startup, spawn_arena_area)
+        .add_systems(
+            FixedUpdate,
             (
-                quakka_chase_and_attack,
-                delete_dead_entities,
-                update_healthbars,
+                (quakka_chase_and_attack, delete_dead_entities).chain(),
+                farmer_go_to_bridge,
+                farmer_go_up,
+                spawn_troop_on_click,
+                tick_attacker_cooldowns,
             )
-                .chain(),
-            intialize_healthbar,
-            farmer_go_to_bridge,
-            farmer_go_up,
-            spawn_troop_on_click,
-            tick_attacker_cooldowns,
+                .run_if(in_state(GameState::InGame).and(resource_equals(IsPaused(false)))),
         )
-            .run_if(in_state(GameState::InGame)),
-    );
+        .add_systems(
+            FixedUpdate,
+            (intialize_healthbar, update_healthbars).run_if(in_state(GameState::InGame)),
+        );
 }
 
 fn intialize_healthbar(q: Query<(Entity, &Health), Added<Health>>, mut commands: Commands) {
