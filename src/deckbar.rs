@@ -136,5 +136,8 @@ impl Command for DeleteSelectedCard {
         let mut selected_card = world.get_entity_mut(selected_card_e).unwrap();
 
         selected_card.insert((ImageNode::default(), Card { troop: None }));
+
+        let mut selected_card_node = selected_card.get_mut::<Node>().unwrap();
+        selected_card_node.right = Val::ZERO;
     }
 }
