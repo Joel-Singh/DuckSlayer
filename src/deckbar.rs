@@ -95,9 +95,16 @@ fn select_card_on_click(
     >,
     mut selected_card: ResMut<SelectedCard>,
     mut nodes: Query<&mut Node>,
+    cards_q: Query<&Card>,
 ) {
     for (interaction, entity) in &mut interaction_query {
         if *interaction != Interaction::Pressed {
+            return;
+        }
+
+        let card_clicked = cards_q.get(entity).expect("Clicked entity is Card");
+
+        if card_clicked.troop.is_none() {
             return;
         }
 
