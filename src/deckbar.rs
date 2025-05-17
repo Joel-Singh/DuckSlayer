@@ -92,7 +92,7 @@ fn highlight_card_on_hover(
 fn select_card_on_click(
     mut interaction_query: Query<
         (&Interaction, Entity),
-        (Changed<Interaction>, (With<Button>, With<Card>)),
+        (Changed<Interaction>, With<Button>, With<Card>),
     >,
     mut selected_card: ResMut<SelectedCard>,
     mut nodes: Query<&mut Node>,
