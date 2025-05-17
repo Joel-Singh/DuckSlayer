@@ -8,7 +8,7 @@ pub enum GameState {
 }
 
 #[derive(Resource, Default)]
-struct CursorWorldCoords(Vec2);
+pub struct CursorWorldCoords(pub Vec2);
 
 pub const SCREEN_WIDTH: f32 = 1366.0;
 pub const SCREEN_HEIGHT: f32 = 768.0;
