@@ -200,37 +200,27 @@ fn farmer_go_up(
 fn spawn_farmer_on_click(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    windows_q: Single<&Window, With<PrimaryWindow>>,
-    camera_q: Single<(&Camera, &GlobalTransform)>,
     mut mousebtn_evr: EventReader<MouseButtonInput>,
+    mouse_coords: Res<CursorWorldCoords>,
 ) {
     for ev in mousebtn_evr.read() {
         if ev.state != ButtonState::Pressed {
             return;
         }
 
-        let cursor_position = windows_q.cursor_position();
-        if let Some(cursor_position) = cursor_position {
-            let (camera, camera_transform) = *camera_q;
-
-            if let Ok(spawn_position) =
-                camera.viewport_to_world_2d(camera_transform, cursor_position)
-            {
-                commands.spawn((
-                    Sprite {
-                        image: asset_server.load("farmer.png"),
-                        custom_size: Some(Vec2::new(30.0, 30.0)),
-                        ..default()
-                    },
-                    Transform {
-                        translation: spawn_position.extend(0.),
-                        ..default()
-                    },
-                    Farmer,
-                    GoingToBridge,
-                ));
-            }
-        };
+        commands.spawn((
+            Sprite {
+                image: asset_server.load("farmer.png"),
+                custom_size: Some(Vec2::new(30.0, 30.0)),
+                ..default()
+            },
+            Transform {
+                translation: mouse_coords.0.extend(0.),
+                ..default()
+            },
+            Farmer,
+            GoingToBridge,
+        ));
     }
 }
 
