@@ -49,21 +49,13 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
     ));
 
     spawn_nest(
-        Vec3::new(
-            0. - DECK_WIDTH - 0.15 * ARENA_WIDTH,
-            0.0 - 0.25 * SCREEN_HEIGHT,
-            0.,
-        ),
+        Vec3::new(NEST_FIRST_X, NEST_Y, 0.),
         &mut commands,
         &asset_server,
     );
 
     spawn_nest(
-        Vec3::new(
-            0. - DECK_WIDTH + 0.15 * ARENA_WIDTH,
-            0.0 - 0.25 * SCREEN_HEIGHT,
-            0.,
-        ),
+        Vec3::new(NEST_SECOND_X, NEST_Y, 0.),
         &mut commands,
         &asset_server,
     );

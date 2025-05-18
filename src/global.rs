@@ -30,6 +30,10 @@ pub const FARMER_SIZE: Vec2 = Vec2::new(
     FARMER_SPRITE_SIZE.1 * (FARMER_CUSTOM_WIDTH / FARMER_SPRITE_SIZE.0),
 );
 
+pub const NEST_FIRST_X: f32 = -388.;
+pub const NEST_SECOND_X: f32 = 173.;
+pub const NEST_Y: f32 = -312.;
+
 pub fn global(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
         .init_resource::<CursorWorldCoords>()
