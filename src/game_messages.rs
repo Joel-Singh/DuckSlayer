@@ -11,7 +11,7 @@ pub fn game_messages(app: &mut App) {
             OnEnter(GameState::InGame),
             set_message("[Space] to start level".to_string()),
         )
-        .add_systems(OnExit(IsPaused::True), set_message("".to_string()));
+        .add_systems(OnEnter(IsPaused::False), set_message("".to_string()));
 }
 
 fn spawn_message_box(mut commands: Commands) {
