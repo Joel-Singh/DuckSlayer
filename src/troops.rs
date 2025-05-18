@@ -246,6 +246,12 @@ fn spawn_troop_on_click(
                         },
                         Farmer,
                         GoingToBridge,
+                        Chaseable,
+                        Health {
+                            current_health: 100.0,
+                            max_health: 100.0,
+                            healthbar_height: 60.,
+                        },
                     ));
                 }
             }
