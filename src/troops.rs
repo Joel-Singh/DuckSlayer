@@ -56,7 +56,7 @@ pub fn troops(app: &mut App) {
         .add_systems(
             FixedUpdate,
             (
-                delete_dead_entities.run_if(resource_equals(IsPaused(false))),
+                delete_dead_entities.run_if(in_state(IsPaused::False)),
                 update_healthbars,
             )
                 .chain()
@@ -71,7 +71,7 @@ pub fn troops(app: &mut App) {
                 tick_attacker_cooldowns,
                 quakka_chase_and_attack,
             )
-                .run_if(in_state(GameState::InGame).and(resource_equals(IsPaused(false)))),
+                .run_if(in_state(GameState::InGame).and(in_state(IsPaused::False))),
         )
         .add_systems(
             FixedUpdate,

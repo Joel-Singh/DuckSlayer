@@ -1,12 +1,14 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, window::WindowResolution};
 
 mod deckbar;
+mod game_messages;
 mod global;
 mod initialize_game;
 mod titlescreen;
 mod troops;
 
 use deckbar::*;
+use game_messages::*;
 use global::*;
 use initialize_game::*;
 use titlescreen::*;
@@ -33,6 +35,7 @@ fn main() {
         .add_plugins(global)
         .add_plugins(deckbar)
         .add_plugins(initialize_game)
+        .add_plugins(game_messages)
         .add_systems(Startup, setup_camera)
         .add_systems(
             FixedUpdate,
@@ -45,6 +48,6 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
 
-fn unpause(mut is_paused: ResMut<IsPaused>) {
-    is_paused.0 = false;
+fn unpause(mut is_paused: ResMut<NextState<IsPaused>>) {
+    is_paused.set(IsPaused::False);
 }
