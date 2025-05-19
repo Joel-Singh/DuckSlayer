@@ -14,6 +14,15 @@ pub enum IsPaused {
     False,
 }
 
+#[derive(Resource, PartialEq)]
+pub struct IsDebug(pub bool);
+
+impl Default for IsDebug {
+    fn default() -> Self {
+        IsDebug(false)
+    }
+}
+
 #[derive(Resource, Default)]
 pub struct CursorWorldCoords(pub Vec2);
 
@@ -37,6 +46,7 @@ pub const NEST_Y: f32 = -312.;
 pub fn global(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
         .init_resource::<CursorWorldCoords>()
+        .init_resource::<IsDebug>()
         .init_state::<IsPaused>()
         .init_state::<GameState>();
 }

@@ -1,4 +1,5 @@
 use bevy::{color::palettes::css::*, prelude::*};
+use debug::debug;
 
 use crate::{
     deckbar::{DeleteSelectedCard, SelectedCard, Troop},
@@ -76,7 +77,8 @@ pub fn troops(app: &mut App) {
         .add_systems(
             FixedUpdate,
             initialize_healthbar.run_if(in_state(GameState::InGame)),
-        );
+        )
+        .add_plugins(debug);
 }
 
 fn initialize_healthbar(q: Query<(Entity, &Health), Added<Health>>, mut commands: Commands) {
@@ -267,5 +269,29 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
             panic!("Attack coolodwn should be once");
         }
         attacker.cooldown.tick(time.delta());
+    }
+}
+
+mod debug {
+    use crate::global::IsDebug;
+
+    use super::Bridge;
+    use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
+
+    pub fn debug(app: &mut App) {
+        app.add_systems(
+            FixedUpdate,
+            show_bridge_points.run_if(resource_equals(IsDebug(true))),
+        );
+    }
+
+    fn show_bridge_points(mut draw: Gizmos, bridges: Query<&Transform, With<Bridge>>) {
+        for bridge in bridges {
+            draw.circle_2d(
+                Isometry2d::from_translation(bridge.translation.truncate()),
+                10.,
+                PINK_600,
+            );
+        }
     }
 }
