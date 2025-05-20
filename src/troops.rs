@@ -333,15 +333,15 @@ mod nest {
 }
 
 mod debug {
-    use crate::global::IsDebug;
+    use crate::global::{IsDebug, NEST_ATTACK_DISTANCE};
 
-    use super::Bridge;
+    use super::{nest::Nest, Bridge};
     use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
 
     pub fn debug(app: &mut App) {
         app.add_systems(
             FixedUpdate,
-            show_bridge_points.run_if(resource_equals(IsDebug(true))),
+            (show_bridge_points, show_nest_attack_radius).run_if(resource_equals(IsDebug(true))),
         );
     }
 
@@ -350,6 +350,16 @@ mod debug {
             draw.circle_2d(
                 Isometry2d::from_translation(bridge.translation.truncate()),
                 10.,
+                PINK_600,
+            );
+        }
+    }
+
+    fn show_nest_attack_radius(mut draw: Gizmos, nests: Query<&Transform, With<Nest>>) {
+        for nest in nests {
+            draw.circle_2d(
+                Isometry2d::from_translation(nest.translation.truncate()),
+                NEST_ATTACK_DISTANCE,
                 PINK_600,
             );
         }
