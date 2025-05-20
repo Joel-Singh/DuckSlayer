@@ -1,4 +1,7 @@
-use bevy::prelude::*;
+use bevy::{
+    ecs::{schedule::ScheduleConfigs, system::ScheduleSystem},
+    prelude::*,
+};
 
 use crate::global::{GameState, IsPaused};
 
@@ -32,10 +35,11 @@ fn spawn_message_box(mut commands: Commands) {
     ));
 }
 
-fn set_message(message: String) -> impl Fn(Commands, Single<Entity, With<MessageBox>>) {
-    return move |mut commands: Commands, message_box: Single<Entity, With<MessageBox>>| {
+fn set_message(message: String) -> ScheduleConfigs<ScheduleSystem> {
+    return (move |mut commands: Commands, message_box: Single<Entity, With<MessageBox>>| {
         commands
             .entity(*message_box)
             .insert(Text::new(message.clone()));
-    };
+    })
+    .into_configs();
 }
