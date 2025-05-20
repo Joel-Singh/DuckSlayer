@@ -1,5 +1,4 @@
 use crate::global::*;
-use crate::nest::spawn_nest;
 use crate::troops::*;
 use bevy::prelude::*;
 
