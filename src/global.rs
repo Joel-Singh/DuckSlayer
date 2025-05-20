@@ -53,7 +53,7 @@ pub const QUAKKA_DAMAGE: f32 = 60.0;
 pub const NEST_FIRST_X: f32 = -388.;
 pub const NEST_SECOND_X: f32 = 173.;
 pub const NEST_Y: f32 = -312.;
-pub const NEST_ATTACK_DISTANCE: f32 = 200.;
+pub const NEST_ATTACK_DISTANCE: f32 = 300.;
 pub const NEST_DAMAGE: f32 = 10.;
 
 pub const QUAKKA_STARTING_POSITION: Vec2 = Vec2::new(-391., 104.);
