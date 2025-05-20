@@ -108,7 +108,7 @@ fn spawn_arena_area(mut commands: Commands) {
 }
 
 fn quakka_chase_and_attack(
-    mut quakkas: Query<(&mut Transform, &mut Attacker), (With<Quakka>, Without<Nest>)>,
+    mut quakkas: Query<(&mut Transform, &mut Attacker), With<Quakka>>,
     mut chaseables: Query<(&Transform, Entity, &mut Health), (With<Chaseable>, Without<Quakka>)>,
     time: Res<Time>,
 ) {
