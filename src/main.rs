@@ -37,17 +37,9 @@ fn main() {
         .add_plugins(manage_level)
         .add_plugins(game_messages)
         .add_systems(Startup, setup_camera)
-        .add_systems(
-            FixedUpdate,
-            unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameState::InGame))),
-        )
         .run();
 }
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
-}
-
-fn unpause(mut is_paused: ResMut<NextState<IsPaused>>) {
-    is_paused.set(IsPaused::False);
 }

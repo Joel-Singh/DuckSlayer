@@ -1,13 +1,23 @@
-use crate::global::*;
-use crate::troops::*;
-use bevy::prelude::*;
+use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 
 use std::time::Duration;
+
+use crate::{
+    global::{
+        GameState, IsPaused, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_DAMAGE,
+        QUAKKA_STARTING_POSITION,
+    },
+    troops::{spawn_nest, Attacker, Bridge, Health, Quakka},
+};
 
 pub fn manage_level(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::InGame),
         (spawn_entities, spawn_arena_background),
+    )
+    .add_systems(
+        FixedUpdate,
+        unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameState::InGame))),
     );
 }
 
@@ -75,4 +85,8 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
             ..default()
         },
     ));
+}
+
+fn unpause(mut is_paused: ResMut<NextState<IsPaused>>) {
+    is_paused.set(IsPaused::False);
 }
