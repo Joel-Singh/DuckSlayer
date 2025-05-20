@@ -33,7 +33,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
             ..default()
         },
         Transform {
-            translation: Vec3::new(0., 200., 0.),
+            translation: QUAKKA_STARTING_POSITION.extend(0.0),
             ..default()
         },
         Health {

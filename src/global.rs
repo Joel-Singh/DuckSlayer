@@ -52,6 +52,8 @@ pub const NEST_Y: f32 = -312.;
 pub const NEST_ATTACK_DISTANCE: f32 = 200.;
 pub const NEST_DAMAGE: f32 = 10.;
 
+pub const QUAKKA_STARTING_POSITION: Vec2 = Vec2::new(-391., 104.);
+
 pub fn global(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
         .init_resource::<CursorWorldCoords>()
