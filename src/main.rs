@@ -3,14 +3,14 @@ use bevy::{input::common_conditions::input_just_pressed, prelude::*, window::Win
 mod deckbar;
 mod game_messages;
 mod global;
-mod initialize_game;
+mod manage_level;
 mod titlescreen;
 mod troops;
 
 use deckbar::*;
 use game_messages::*;
 use global::*;
-use initialize_game::*;
+use manage_level::*;
 use titlescreen::*;
 use troops::*;
 
@@ -34,7 +34,7 @@ fn main() {
         .add_plugins(troops)
         .add_plugins(global)
         .add_plugins(deckbar)
-        .add_plugins(initialize_game)
+        .add_plugins(manage_level)
         .add_plugins(game_messages)
         .add_systems(Startup, setup_camera)
         .add_systems(

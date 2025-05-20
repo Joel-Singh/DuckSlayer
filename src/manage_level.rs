@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use std::time::Duration;
 
-pub fn initialize_game(app: &mut App) {
+pub fn manage_level(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::InGame),
         (spawn_entities, spawn_arena_background),
