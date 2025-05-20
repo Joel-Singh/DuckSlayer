@@ -113,10 +113,10 @@ fn quakka_chase_and_attack(
     time: Res<Time>,
 ) {
     for mut quakka in quakkas.iter_mut() {
-        let closest_chaseable = chaseables.iter_mut().max_by(|a, b| {
+        let closest_chaseable = chaseables.iter_mut().min_by(|a, b| {
             let a_distance = quakka.0.translation.distance(a.0.translation);
             let b_distance = quakka.0.translation.distance(b.0.translation);
-            b_distance.partial_cmp(&a_distance).unwrap()
+            a_distance.partial_cmp(&b_distance).unwrap()
         });
 
         // There are no chaseables
@@ -126,21 +126,21 @@ fn quakka_chase_and_attack(
 
         let mut closest_chaseable = closest_chaseable.unwrap();
 
-        let mut difference = closest_chaseable.0.translation - quakka.0.translation;
-        difference = difference.normalize();
-
-        let in_attack_distance = quakka
+        let distance_to_chaseable = quakka
             .0
             .translation
-            .distance(closest_chaseable.0.translation)
-            < QUAKKA_HIT_DISTANCE;
-        if in_attack_distance {
-            if quakka.1.cooldown.finished() {
-                quakka.1.cooldown.reset();
-                closest_chaseable.2.current_health -= quakka.1.damage;
-            }
-        } else {
-            quakka.0.translation += (difference) * time.delta_secs() * QUAKKA_SPEED;
+            .distance(closest_chaseable.0.translation);
+
+        let in_attack_distance = distance_to_chaseable < QUAKKA_HIT_DISTANCE;
+
+        if in_attack_distance && quakka.1.cooldown.finished() {
+            quakka.1.cooldown.reset();
+            closest_chaseable.2.current_health -= quakka.1.damage;
+        } else if !in_attack_distance {
+            let mut to_chaseable = closest_chaseable.0.translation - quakka.0.translation;
+            to_chaseable = to_chaseable.normalize();
+
+            quakka.0.translation += to_chaseable * time.delta_secs() * QUAKKA_SPEED;
         }
     }
 }
