@@ -1,4 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
+use std::env;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
 pub enum GameState {
@@ -19,6 +20,13 @@ pub struct IsDebug(pub bool);
 
 impl Default for IsDebug {
     fn default() -> Self {
+        if let Ok(duckslayer_debug) = env::var("DUCKSLAYER_DEBUG") {
+            if duckslayer_debug == "true" {
+                return IsDebug(true);
+            } else {
+                return IsDebug(false);
+            }
+        }
         IsDebug(false)
     }
 }
