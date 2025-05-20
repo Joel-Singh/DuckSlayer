@@ -119,7 +119,6 @@ fn quakka_chase_and_attack(
             a_distance.partial_cmp(&b_distance).unwrap()
         });
 
-        // There are no chaseables
         if closest_chaseable.is_none() {
             continue;
         }
