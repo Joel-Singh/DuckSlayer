@@ -271,30 +271,6 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
     }
 }
 
-mod debug {
-    use crate::global::IsDebug;
-
-    use super::Bridge;
-    use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
-
-    pub fn debug(app: &mut App) {
-        app.add_systems(
-            FixedUpdate,
-            show_bridge_points.run_if(resource_equals(IsDebug(true))),
-        );
-    }
-
-    fn show_bridge_points(mut draw: Gizmos, bridges: Query<&Transform, With<Bridge>>) {
-        for bridge in bridges {
-            draw.circle_2d(
-                Isometry2d::from_translation(bridge.translation.truncate()),
-                10.,
-                PINK_600,
-            );
-        }
-    }
-}
-
 mod nest {
     use super::{Attacker, Chaseable, Farmer, Health};
     use crate::global::{NEST_ATTACK_DISTANCE, NEST_DAMAGE};
@@ -352,6 +328,30 @@ mod nest {
                 nest.1.cooldown.reset();
                 closest_victim.1.current_health -= NEST_DAMAGE;
             }
+        }
+    }
+}
+
+mod debug {
+    use crate::global::IsDebug;
+
+    use super::Bridge;
+    use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
+
+    pub fn debug(app: &mut App) {
+        app.add_systems(
+            FixedUpdate,
+            show_bridge_points.run_if(resource_equals(IsDebug(true))),
+        );
+    }
+
+    fn show_bridge_points(mut draw: Gizmos, bridges: Query<&Transform, With<Bridge>>) {
+        for bridge in bridges {
+            draw.circle_2d(
+                Isometry2d::from_translation(bridge.translation.truncate()),
+                10.,
+                PINK_600,
+            );
         }
     }
 }
