@@ -63,11 +63,15 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
     commands.spawn((
         Bridge,
         Transform {
-            translation: Vec3::new(
-                0. - DECK_WIDTH - 0.15 * ARENA_WIDTH,
-                0.0 + 0.25 * SCREEN_HEIGHT,
-                0.,
-            ),
+            translation: Vec3::new(-392.0, -4.0, 0.),
+            ..default()
+        },
+    ));
+
+    commands.spawn((
+        Bridge,
+        Transform {
+            translation: Vec3::new(165.0, -8.0, 0.),
             ..default()
         },
     ));
