@@ -6,7 +6,10 @@ pub use nest::spawn_nest;
 
 use crate::{
     deckbar::{DeleteSelectedCard, SelectedCard, Troop},
-    global::*,
+    global::{
+        CursorWorldCoords, GameState, IsPaused, FARMER_SIZE, FARMER_SPEED, QUAKKA_HIT_DISTANCE,
+        QUAKKA_SPEED,
+    },
 };
 
 #[derive(Component)]
@@ -44,12 +47,6 @@ pub struct Bridge;
 
 #[derive(Component)]
 pub struct Arena;
-
-const QUAKKA_SPEED: f32 = 75.0;
-const QUAKKA_HIT_DISTANCE: f32 = 50.0;
-pub const QUAKKA_DAMAGE: f32 = 60.0;
-
-const FARMER_SPEED: f32 = 25.0;
 
 pub fn troops(app: &mut App) {
     app.add_systems(Startup, spawn_arena_area)
