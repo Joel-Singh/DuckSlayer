@@ -135,7 +135,10 @@ fn hover_sprite_when_card_selected(
             }
         }
     } else {
-        commands.entity(*hover_sprite).insert(Sprite::default());
+        commands.entity(*hover_sprite).insert(Sprite {
+            color: Color::NONE,
+            ..default()
+        });
     }
 
     let cursor_world_coords = cursor_world_coords.0;
