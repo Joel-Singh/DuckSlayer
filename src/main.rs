@@ -4,6 +4,7 @@ mod deckbar;
 mod game_messages;
 mod global;
 mod initialize_game;
+mod nest;
 mod titlescreen;
 mod troops;
 
@@ -36,6 +37,7 @@ fn main() {
         .add_plugins(deckbar)
         .add_plugins(initialize_game)
         .add_plugins(game_messages)
+        .add_plugins(nest::nest)
         .add_systems(Startup, setup_camera)
         .add_systems(
             FixedUpdate,

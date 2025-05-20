@@ -49,6 +49,9 @@ pub const NEST_FIRST_X: f32 = -388.;
 pub const NEST_SECOND_X: f32 = 173.;
 pub const NEST_Y: f32 = -312.;
 
+pub const NEST_ATTACK_DISTANCE: f32 = 200.;
+pub const NEST_DAMAGE: f32 = 10.;
+
 pub fn global(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
         .init_resource::<CursorWorldCoords>()

@@ -15,12 +15,8 @@ pub struct Attacker {
     pub damage: f32,
 }
 
-#[derive(Component)]
-#[require(Chaseable)]
-pub struct Nest;
-
 #[derive(Component, Default)]
-struct Chaseable;
+pub struct Chaseable;
 
 #[derive(Component)]
 pub struct Health {
@@ -35,7 +31,7 @@ struct HealthBar;
 
 #[derive(Component)]
 #[require(Chaseable)]
-struct Farmer;
+pub struct Farmer;
 
 #[derive(Component)]
 struct GoingToBridge;

@@ -1,4 +1,5 @@
 use crate::global::*;
+use crate::nest::spawn_nest;
 use crate::troops::*;
 use bevy::prelude::*;
 
@@ -74,25 +75,5 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
             translation: Vec3::new(165.0, -8.0, 0.),
             ..default()
         },
-    ));
-}
-
-fn spawn_nest(translation: Vec3, commands: &mut Commands, asset_server: &Res<AssetServer>) {
-    commands.spawn((
-        Sprite {
-            image: asset_server.load("nest.png"),
-            custom_size: Some(Vec2::new(50., 50.)),
-            ..default()
-        },
-        Transform {
-            translation,
-            ..default()
-        },
-        Health {
-            current_health: 100.0,
-            max_health: 100.0,
-            healthbar_height: 60.,
-        },
-        Nest,
     ));
 }
