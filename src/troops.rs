@@ -3,6 +3,7 @@ use debug::debug;
 use nest::nest_shoot;
 
 pub use nest::spawn_nest;
+pub use nest::Nest;
 
 use crate::{
     deckbar::{DeleteSelectedCard, SelectedCard, Troop},

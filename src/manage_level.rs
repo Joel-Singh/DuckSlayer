@@ -7,7 +7,7 @@ use crate::{
         GameState, IsPaused, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_DAMAGE,
         QUAKKA_STARTING_POSITION,
     },
-    troops::{spawn_nest, Attacker, Bridge, Health, Quakka},
+    troops::{spawn_nest, Attacker, Bridge, Health, Nest, Quakka},
 };
 
 pub fn manage_level(app: &mut App) {
@@ -17,7 +17,10 @@ pub fn manage_level(app: &mut App) {
     )
     .add_systems(
         FixedUpdate,
-        unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameState::InGame))),
+        (
+            unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameState::InGame))),
+            pause.run_if(nest_destroyed),
+        ),
     );
 }
 
@@ -89,4 +92,12 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
 
 fn unpause(mut is_paused: ResMut<NextState<IsPaused>>) {
     is_paused.set(IsPaused::False);
+}
+
+fn pause(mut is_paused: ResMut<NextState<IsPaused>>) {
+    is_paused.set(IsPaused::True);
+}
+
+fn nest_destroyed(nests: Query<(), With<Nest>>) -> bool {
+    nests.iter().count() < 2
 }
