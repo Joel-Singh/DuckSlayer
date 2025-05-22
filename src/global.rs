@@ -8,13 +8,6 @@ pub enum GameState {
     InGame,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
-pub enum IsPaused {
-    #[default]
-    True,
-    False,
-}
-
 #[derive(Resource, PartialEq)]
 pub struct IsDebug(pub bool);
 
@@ -62,7 +55,6 @@ pub fn global(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
         .init_resource::<CursorWorldCoords>()
         .init_resource::<IsDebug>()
-        .init_state::<IsPaused>()
         .init_state::<GameState>();
 }
 

@@ -5,11 +5,11 @@ use nest::nest_shoot;
 pub use nest::spawn_nest;
 pub use nest::Nest;
 
+use crate::manage_level::IsPaused;
 use crate::{
     deckbar::{DeleteSelectedCard, SelectedCard, Troop},
     global::{
-        CursorWorldCoords, GameState, IsPaused, FARMER_SIZE, FARMER_SPEED, QUAKKA_HIT_DISTANCE,
-        QUAKKA_SPEED,
+        CursorWorldCoords, GameState, FARMER_SIZE, FARMER_SPEED, QUAKKA_HIT_DISTANCE, QUAKKA_SPEED,
     },
 };
 
