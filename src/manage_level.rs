@@ -30,10 +30,10 @@ pub fn manage_level(app: &mut App) {
             (
                 spawn_entities,
                 spawn_arena_background,
-                set_message("[Space] to start level".to_string()),
+                set_message("[Space] to start level"),
             ),
         )
-        .add_systems(OnEnter(IsPaused::False), set_message("".to_string()))
+        .add_systems(OnEnter(IsPaused::False), set_message(""))
         .add_systems(
             FixedUpdate,
             (
@@ -44,7 +44,7 @@ pub fn manage_level(app: &mut App) {
         )
         .add_systems(
             OnEnter(GameOver::True),
-            (pause, set_message("Gameover: nest destroyed".to_string())),
+            (pause, set_message("Gameover: nest destroyed")),
         )
         .insert_state::<IsPaused>(IsPaused::True)
         .init_state::<GameOver>();
@@ -163,11 +163,9 @@ mod game_messages {
         ));
     }
 
-    pub fn set_message(message: String) -> ScheduleConfigs<ScheduleSystem> {
+    pub fn set_message(message: &'static str) -> ScheduleConfigs<ScheduleSystem> {
         return (move |mut commands: Commands, message_box: Single<Entity, With<MessageBox>>| {
-            commands
-                .entity(*message_box)
-                .insert(Text::new(message.clone()));
+            commands.entity(*message_box).insert(Text::new(message));
         })
         .into_configs();
     }
