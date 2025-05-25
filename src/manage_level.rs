@@ -1,5 +1,6 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use game_messages::set_message;
+use DuckSlayer::delete_all;
 
 use std::time::Duration;
 
@@ -23,6 +24,9 @@ pub enum GameOver {
     False,
 }
 
+#[derive(Component, Default)]
+pub struct LevelEntity;
+
 pub fn manage_level(app: &mut App) {
     app.add_plugins(game_messages::game_messages)
         .add_systems(
@@ -45,6 +49,18 @@ pub fn manage_level(app: &mut App) {
         .add_systems(
             OnEnter(GameOver::True),
             (pause, set_message("Gameover: nest destroyed")),
+        )
+        .add_systems(
+            FixedUpdate,
+            (
+                delete_all::<LevelEntity>,
+                spawn_entities,
+                pause,
+                set_gameover_false,
+                set_message("[Space] to start level"),
+            )
+                .chain()
+                .run_if(input_just_pressed(KeyCode::KeyZ).and(in_state(GameState::InGame))),
         )
         .insert_state::<IsPaused>(IsPaused::True)
         .init_state::<GameOver>();
@@ -126,6 +142,10 @@ fn pause(mut is_paused: ResMut<NextState<IsPaused>>) {
 
 fn set_gameover_true(mut gameover: ResMut<NextState<GameOver>>) {
     gameover.set(GameOver::True);
+}
+
+fn set_gameover_false(mut gameover: ResMut<NextState<GameOver>>) {
+    gameover.set(GameOver::False);
 }
 
 fn nest_destroyed(nests: Query<(), With<Nest>>) -> bool {

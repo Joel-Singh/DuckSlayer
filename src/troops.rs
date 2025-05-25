@@ -7,6 +7,7 @@ pub use nest::spawn_nest;
 pub use nest::Nest;
 
 use crate::manage_level::IsPaused;
+use crate::manage_level::LevelEntity;
 use crate::{
     deckbar::{DeleteSelectedCard, SelectedCard, Troop},
     global::{
@@ -15,6 +16,7 @@ use crate::{
 };
 
 #[derive(Component)]
+#[require(LevelEntity)]
 pub struct Quakka;
 
 #[derive(Component)]
@@ -38,7 +40,7 @@ pub struct Health {
 struct HealthBar;
 
 #[derive(Component)]
-#[require(Chaseable)]
+#[require(Chaseable, LevelEntity)]
 pub struct Farmer;
 
 #[derive(Component)]
@@ -273,12 +275,15 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
 
 mod nest {
     use super::{Attacker, Chaseable, Farmer, Health};
-    use crate::global::{NEST_ATTACK_DISTANCE, NEST_DAMAGE};
+    use crate::{
+        global::{NEST_ATTACK_DISTANCE, NEST_DAMAGE},
+        manage_level::LevelEntity,
+    };
     use bevy::prelude::*;
     use std::time::Duration;
 
     #[derive(Component, Default)]
-    #[require(Chaseable)]
+    #[require(Chaseable, LevelEntity)]
     pub struct Nest {
         current_victim: Option<Entity>,
     }
