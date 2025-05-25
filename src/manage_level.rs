@@ -37,7 +37,7 @@ pub fn manage_level(app: &mut App) {
         .add_systems(
             FixedUpdate,
             (
-                unpause.run_if(input_just_pressed(KeyCode::Space).and(run_once)),
+                unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
                 set_gameover_true.run_if(nest_destroyed),
             )
                 .run_if(in_state(GameState::InGame)),
