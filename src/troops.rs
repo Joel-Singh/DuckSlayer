@@ -1,5 +1,6 @@
 use bevy::{color::palettes::css::*, prelude::*};
 use debug::debug;
+use nest::nest_plugin;
 use nest::nest_shoot;
 
 pub use nest::spawn_nest;
@@ -76,6 +77,7 @@ pub fn troops(app: &mut App) {
             FixedUpdate,
             initialize_healthbar.run_if(in_state(GameState::InGame)),
         )
+        .add_plugins(nest_plugin)
         .add_plugins(debug);
 }
 
@@ -275,9 +277,20 @@ mod nest {
     use bevy::prelude::*;
     use std::time::Duration;
 
-    #[derive(Component)]
+    #[derive(Component, Default)]
     #[require(Chaseable)]
-    pub struct Nest;
+    pub struct Nest {
+        current_victim: Option<Entity>,
+    }
+
+    #[derive(Component)]
+    pub struct Egg {
+        from_nest: Entity,
+    }
+
+    pub fn nest_plugin(app: &mut App) {
+        app.add_systems(FixedUpdate, (spawn_eggs, render_eggs));
+    }
 
     pub fn spawn_nest(translation: Vec3, commands: &mut Commands, asset_server: &Res<AssetServer>) {
         commands.spawn((
@@ -295,7 +308,7 @@ mod nest {
                 max_health: 100.0,
                 healthbar_height: 60.,
             },
-            Nest,
+            Nest::default(),
             Attacker {
                 cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
                 damage: NEST_DAMAGE,
@@ -304,8 +317,8 @@ mod nest {
     }
 
     pub fn nest_shoot(
-        mut victims: Query<(&Transform, &mut Health), (Without<Nest>, Without<Farmer>)>,
-        nests: Query<(&Transform, &mut Attacker), With<Nest>>,
+        mut victims: Query<(&Transform, &mut Health, Entity), (Without<Nest>, Without<Farmer>)>,
+        nests: Query<(&Transform, &mut Attacker, &mut Nest), With<Nest>>,
     ) {
         for mut nest in nests {
             let closest_victim = victims.iter_mut().min_by(|a, b| {
@@ -315,6 +328,7 @@ mod nest {
             });
 
             if closest_victim.is_none() {
+                nest.2.current_victim = None;
                 continue;
             }
 
@@ -322,9 +336,70 @@ mod nest {
 
             let dist_to_victim = nest.0.translation.distance(closest_victim.0.translation);
 
-            if dist_to_victim < NEST_ATTACK_DISTANCE && nest.1.cooldown.finished() {
-                nest.1.cooldown.reset();
-                closest_victim.1.current_health -= NEST_DAMAGE;
+            if dist_to_victim < NEST_ATTACK_DISTANCE {
+                nest.2.current_victim = Some(closest_victim.2);
+
+                if nest.1.cooldown.finished() {
+                    nest.1.cooldown.reset();
+                    closest_victim.1.current_health -= NEST_DAMAGE;
+                }
+            } else {
+                nest.2.current_victim = None;
+            }
+        }
+    }
+
+    fn spawn_eggs(
+        mut commands: Commands,
+        nest_q: Query<Entity, Added<Nest>>,
+        asset_server: Res<AssetServer>,
+    ) {
+        for nest in nest_q {
+            const IMAGE_SIZE: Vec2 = Vec2::new(50.0, 65.0);
+            commands.spawn((
+                Egg { from_nest: nest },
+                Sprite {
+                    image: asset_server.load("nest-egg.png"),
+                    custom_size: Some(IMAGE_SIZE * 0.5),
+                    ..default()
+                },
+            ));
+        }
+    }
+
+    pub fn render_eggs(
+        mut commands: Commands,
+        nest_q: Query<&Nest>,
+        attacker_q: Query<&Attacker>,
+        transform_q: Query<&mut Transform>,
+        eggs: Query<(Entity, &Egg, &mut Sprite)>,
+    ) {
+        for mut egg in eggs {
+            let nest = nest_q.get(egg.1.from_nest);
+
+            // Nest must have died
+            if nest.is_err() {
+                commands.entity(egg.0).despawn();
+                return;
+            }
+
+            let nest = nest.unwrap();
+
+            if let Some(victim) = nest.current_victim {
+                egg.2.color = Color::WHITE;
+
+                let victim_transform = transform_q.get(victim).unwrap();
+                let nest_transform = transform_q.get(egg.1.from_nest).unwrap();
+                let nest_attack = attacker_q.get(egg.1.from_nest).unwrap();
+
+                let nest_to_victim: Vec3 =
+                    victim_transform.translation - nest_transform.translation;
+
+                commands.entity(egg.0).insert(Transform::from_translation(
+                    nest_transform.translation + (nest_to_victim * nest_attack.cooldown.fraction()),
+                ));
+            } else {
+                egg.2.color = Color::NONE;
             }
         }
     }
