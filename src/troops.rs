@@ -366,6 +366,7 @@ mod nest {
                 Sprite {
                     image: asset_server.load("nest-egg.png"),
                     custom_size: Some(IMAGE_SIZE * 0.5),
+                    color: Color::NONE,
                     ..default()
                 },
             ));
