@@ -24,7 +24,12 @@ pub enum Troop {
 pub fn deckbar(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::InGame),
-        (initialize_deckbar, push_farmer, spawn_hover_sprite).chain(),
+        (
+            initialize_deckbar,
+            push_farmer_to_deckbar,
+            spawn_hover_sprite,
+        )
+            .chain(),
     )
     .add_systems(
         FixedUpdate,
@@ -102,7 +107,7 @@ fn update_card_image(
     }
 }
 
-fn push_farmer(
+pub fn push_farmer_to_deckbar(
     mut commands: Commands,
     card_node: Single<&Children, With<DeckBarRoot>>,
     card_q: Query<&Card>,
