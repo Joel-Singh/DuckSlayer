@@ -32,13 +32,14 @@ pub fn deckbar(app: &mut App) {
             highlight_card_on_hover,
             select_card_on_click,
             hover_sprite_when_card_selected,
+            update_card_image,
         )
             .run_if(in_state(GameState::InGame)),
     )
     .init_resource::<SelectedCard>();
 }
 
-fn initialize_deckbar(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn initialize_deckbar(mut commands: Commands) {
     commands
         .spawn((
             DeckBarRoot,
@@ -68,7 +69,6 @@ fn initialize_deckbar(mut commands: Commands, asset_server: Res<AssetServer>) {
                     },
                     BackgroundColor(MAROON.into()),
                     Button,
-                    ImageNode::default(),
                     Card { troop: None },
                 );
             }
@@ -80,13 +80,25 @@ fn initialize_deckbar(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-fn get_image_node(troop: Option<Troop>, asset_server: &Res<AssetServer>) -> ImageNode {
-    if let Some(troop) = troop {
-        match troop {
-            Troop::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png")),
+fn update_card_image(
+    cards: Query<(Entity, &Card), Changed<Card>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    for (e, card) in cards {
+        commands
+            .entity(e)
+            .insert(get_image_node(card.troop, &asset_server));
+    }
+
+    fn get_image_node(troop: Option<Troop>, asset_server: &Res<AssetServer>) -> ImageNode {
+        if let Some(troop) = troop {
+            match troop {
+                Troop::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png")),
+            }
+        } else {
+            ImageNode::default()
         }
-    } else {
-        ImageNode::default()
     }
 }
 
@@ -94,7 +106,6 @@ fn push_farmer(
     mut commands: Commands,
     card_node: Single<&Children, With<DeckBarRoot>>,
     card_q: Query<&Card>,
-    asset_server: Res<AssetServer>,
 ) {
     let mut empty_card_node: Option<Entity> = None;
     for card_node in card_node.into_iter() {
@@ -107,12 +118,9 @@ fn push_farmer(
     }
 
     if let Some(empty_card_node) = empty_card_node {
-        commands.entity(empty_card_node).insert((
-            get_image_node(Some(Troop::Farmer), &asset_server),
-            Card {
-                troop: Some(Troop::Farmer),
-            },
-        ));
+        commands.entity(empty_card_node).insert((Card {
+            troop: Some(Troop::Farmer),
+        },));
     } else {
         panic!("Tried to push with full DeckBar");
     }
