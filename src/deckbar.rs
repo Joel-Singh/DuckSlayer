@@ -6,7 +6,7 @@ use crate::global::*;
 pub struct SelectedCard(pub Option<(Entity, Troop)>);
 
 #[derive(Component)]
-struct DeckBarRoot;
+pub struct DeckBarRoot;
 
 #[derive(Component)]
 struct HoverSprite;
