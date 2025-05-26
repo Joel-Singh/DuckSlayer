@@ -24,7 +24,7 @@ pub enum Troop {
 pub fn deckbar(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::InGame),
-        (initialize_deckbar, spawn_hover_sprite),
+        (initialize_deckbar, push_farmer, spawn_hover_sprite).chain(),
     )
     .add_systems(
         FixedUpdate,
@@ -59,8 +59,8 @@ fn initialize_deckbar(mut commands: Commands, asset_server: Res<AssetServer>) {
             FocusPolicy::Block,
         ))
         .with_children(|parent| {
-            let spawn_card_node = |parent: &mut ChildSpawnerCommands, troop: Option<Troop>| {
-                let mut card_node = parent.spawn((
+            fn get_empty_card_node_bundle() -> impl Bundle {
+                return (
                     Node {
                         height: Val::Px(100.0),
                         width: Val::Px(80.0),
@@ -68,23 +68,54 @@ fn initialize_deckbar(mut commands: Commands, asset_server: Res<AssetServer>) {
                     },
                     BackgroundColor(MAROON.into()),
                     Button,
-                ));
+                    ImageNode::default(),
+                    Card { troop: None },
+                );
+            }
 
-                let image_node = match troop {
-                    None => ImageNode::default(),
-                    Some(ref troop) => match troop {
-                        Troop::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png")),
-                    },
-                };
-
-                card_node.insert((image_node, Card { troop }));
-            };
-
-            spawn_card_node(parent, Some(Troop::Farmer));
-            spawn_card_node(parent, None);
-            spawn_card_node(parent, None);
-            spawn_card_node(parent, None);
+            parent.spawn(get_empty_card_node_bundle());
+            parent.spawn(get_empty_card_node_bundle());
+            parent.spawn(get_empty_card_node_bundle());
+            parent.spawn(get_empty_card_node_bundle());
         });
+}
+
+fn get_image_node(troop: Option<Troop>, asset_server: &Res<AssetServer>) -> ImageNode {
+    if let Some(troop) = troop {
+        match troop {
+            Troop::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png")),
+        }
+    } else {
+        ImageNode::default()
+    }
+}
+
+fn push_farmer(
+    mut commands: Commands,
+    card_node: Single<&Children, With<DeckBarRoot>>,
+    card_q: Query<&Card>,
+    asset_server: Res<AssetServer>,
+) {
+    let mut empty_card_node: Option<Entity> = None;
+    for card_node in card_node.into_iter() {
+        let card = card_q.get(*card_node).unwrap();
+
+        if card.troop.is_none() {
+            empty_card_node = Some(*card_node);
+            break;
+        }
+    }
+
+    if let Some(empty_card_node) = empty_card_node {
+        commands.entity(empty_card_node).insert((
+            get_image_node(Some(Troop::Farmer), &asset_server),
+            Card {
+                troop: Some(Troop::Farmer),
+            },
+        ));
+    } else {
+        panic!("Tried to push with full DeckBar");
+    }
 }
 
 fn highlight_card_on_hover(
