@@ -12,7 +12,7 @@ use crate::deckbar::Card;
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
 use crate::{
-    deckbar::{DeleteSelectedCard, SelectedCard, Troop},
+    deckbar::{DeleteSelectedCard, SelectedCard},
     global::{
         CursorWorldCoords, GameState, FARMER_SIZE, FARMER_SPEED, QUAKKA_HIT_DISTANCE, QUAKKA_SPEED,
     },
@@ -244,30 +244,29 @@ fn spawn_troop_on_click(
         }
 
         if let Some(selected_card) = selected_card {
-            if let Some(troop) = selected_card.troop {
-                match troop {
-                    Troop::Farmer => {
-                        commands.spawn((
-                            Sprite {
-                                image: asset_server.load("farmer.png"),
-                                custom_size: Some(FARMER_SIZE),
-                                ..default()
-                            },
-                            Transform {
-                                translation: mouse_coords.0.extend(0.),
-                                ..default()
-                            },
-                            Farmer,
-                            GoingToBridge,
-                            Chaseable,
-                            Health {
-                                current_health: 100.0,
-                                max_health: 100.0,
-                                healthbar_height: 60.,
-                            },
-                        ));
-                    }
+            match selected_card {
+                Card::Farmer => {
+                    commands.spawn((
+                        Sprite {
+                            image: asset_server.load("farmer.png"),
+                            custom_size: Some(FARMER_SIZE),
+                            ..default()
+                        },
+                        Transform {
+                            translation: mouse_coords.0.extend(0.),
+                            ..default()
+                        },
+                        Farmer,
+                        GoingToBridge,
+                        Chaseable,
+                        Health {
+                            current_health: 100.0,
+                            max_health: 100.0,
+                            healthbar_height: 60.,
+                        },
+                    ));
                 }
+                Card::Empty => {}
             }
 
             commands.queue(DeleteSelectedCard::default());

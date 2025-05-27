@@ -11,13 +11,9 @@ pub struct DeckBarRoot;
 #[derive(Component)]
 struct HoverSprite;
 
-#[derive(Component)]
-pub struct Card {
-    pub troop: Option<Troop>,
-}
-
-#[derive(Clone, Copy, PartialEq)]
-pub enum Troop {
+#[derive(Component, PartialEq)]
+pub enum Card {
+    Empty,
     Farmer,
 }
 
@@ -75,7 +71,7 @@ fn initialize_deckbar(mut commands: Commands) {
                     },
                     BackgroundColor(MAROON.into()),
                     Button,
-                    Card { troop: None },
+                    Card::Empty,
                 );
             }
 
@@ -102,12 +98,12 @@ fn add_selected_card_style(trigger: Trigger<OnAdd, SelectedCard>, mut node_q: Qu
 }
 
 pub fn clear_deckbar(
-    cards: Query<&mut Card>,
+    cards: Query<Entity, With<Card>>,
     selected_card: Option<Single<Entity, With<SelectedCard>>>,
     mut commands: Commands,
 ) {
-    for mut card in cards {
-        card.troop = None;
+    for card in cards {
+        commands.entity(card).insert(Card::Empty);
     }
 
     if let Some(e) = selected_card {
@@ -123,16 +119,13 @@ fn update_card_image(
     for (e, card) in cards {
         commands
             .entity(e)
-            .insert(get_image_node(card.troop, &asset_server));
+            .insert(get_image_node(card, &asset_server));
     }
 
-    fn get_image_node(troop: Option<Troop>, asset_server: &Res<AssetServer>) -> ImageNode {
-        if let Some(troop) = troop {
-            match troop {
-                Troop::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png")),
-            }
-        } else {
-            ImageNode::default()
+    fn get_image_node(card: &Card, asset_server: &Res<AssetServer>) -> ImageNode {
+        match card {
+            Card::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png")),
+            Card::Empty => ImageNode::default(),
         }
     }
 }
@@ -146,16 +139,14 @@ pub fn push_farmer_to_deckbar(
     for card_node in card_node.into_iter() {
         let card = card_q.get(*card_node).unwrap();
 
-        if card.troop.is_none() {
+        if *card == Card::Empty {
             empty_card_node = Some(*card_node);
             break;
         }
     }
 
     if let Some(empty_card_node) = empty_card_node {
-        commands.entity(empty_card_node).insert((Card {
-            troop: Some(Troop::Farmer),
-        },));
+        commands.entity(empty_card_node).insert(Card::Farmer);
     } else {
         panic!("Tried to push with full DeckBar");
     }
@@ -175,17 +166,19 @@ fn highlight_card_on_hover(
     }
 }
 
-fn spawn_hover_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_hover_sprite(mut commands: Commands) {
     commands.spawn((
         HoverSprite,
         Transform::default(),
-        Sprite::from_image(asset_server.load("farmer.png")),
+        Sprite {
+            color: Color::NONE,
+            ..default()
+        },
     ));
 }
 
 fn hover_sprite_when_card_selected(
     mut commands: Commands,
-    mut current_sprite: Local<Option<Troop>>,
 
     hover_sprite: Single<Entity, With<HoverSprite>>,
 
@@ -193,31 +186,27 @@ fn hover_sprite_when_card_selected(
     asset_server: Res<AssetServer>,
     cursor_world_coords: Res<CursorWorldCoords>,
 ) {
-    if let Some(selected_card) = selected_card {
-        if let Some(troop) = selected_card.troop {
-            match troop {
-                Troop::Farmer => {
-                    commands.entity(*hover_sprite).insert(Sprite {
-                        image: asset_server.load("farmer.png"),
-                        custom_size: Some(FARMER_SIZE),
-                        color: Color::linear_rgba(1., 1., 1., 0.5),
-                        ..default()
-                    });
-
-                    *current_sprite = Some(Troop::Farmer);
-                }
-            }
-        } else {
-            commands.entity(*hover_sprite).insert(Sprite {
-                color: Color::NONE,
-                ..default()
-            });
-        }
-    } else {
+    let mut hide_hover_sprite = || {
         commands.entity(*hover_sprite).insert(Sprite {
             color: Color::NONE,
             ..default()
         });
+    };
+
+    if let Some(selected_card) = selected_card {
+        match selected_card.into_inner() {
+            Card::Farmer => {
+                commands.entity(*hover_sprite).insert(Sprite {
+                    image: asset_server.load("farmer.png"),
+                    custom_size: Some(FARMER_SIZE),
+                    color: Color::linear_rgba(1., 1., 1., 0.5),
+                    ..default()
+                });
+            }
+            Card::Empty => hide_hover_sprite(),
+        }
+    } else {
+        hide_hover_sprite()
     }
 
     let cursor_world_coords = cursor_world_coords.0;
@@ -254,7 +243,7 @@ fn select_card_on_click(
 
         let card_clicked = cards_q.get(card_clicked_e).unwrap();
 
-        if card_clicked.troop.is_none() {
+        if *card_clicked == Card::Empty {
             return;
         }
 
@@ -278,6 +267,6 @@ impl Command for DeleteSelectedCard {
         let mut selected_card = world.get_entity_mut(selected_card).unwrap();
 
         selected_card.remove::<SelectedCard>();
-        selected_card.insert(Card { troop: None });
+        selected_card.insert(Card::Empty);
     }
 }
