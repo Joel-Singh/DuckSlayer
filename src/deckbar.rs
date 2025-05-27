@@ -85,10 +85,21 @@ fn initialize_deckbar(mut commands: Commands) {
         });
 }
 
-pub fn clear_deckbar(cards: Query<&mut Card>) {
+pub fn clear_deckbar(
+    cards: Query<&mut Card>,
+    mut selected_card: ResMut<SelectedCard>,
+    mut node_q: Query<&mut Node>,
+) {
     for mut card in cards {
         card.troop = None;
     }
+
+    if let Some((e, _)) = selected_card.0 {
+        let mut selected_card_node = node_q.get_mut(e).unwrap();
+        selected_card_node.right = Val::ZERO;
+    }
+
+    selected_card.0 = None;
 }
 
 fn update_card_image(
@@ -170,18 +181,16 @@ fn hover_sprite_when_card_selected(
     cursor_world_coords: Res<CursorWorldCoords>,
 ) {
     if let Some((_, troop)) = selected_card.0 {
-        if current_sprite.is_none() || troop != current_sprite.unwrap() {
-            match troop {
-                Troop::Farmer => {
-                    commands.entity(*hover_sprite).insert(Sprite {
-                        image: asset_server.load("farmer.png"),
-                        custom_size: Some(FARMER_SIZE),
-                        color: Color::linear_rgba(1., 1., 1., 0.5),
-                        ..default()
-                    });
+        match troop {
+            Troop::Farmer => {
+                commands.entity(*hover_sprite).insert(Sprite {
+                    image: asset_server.load("farmer.png"),
+                    custom_size: Some(FARMER_SIZE),
+                    color: Color::linear_rgba(1., 1., 1., 0.5),
+                    ..default()
+                });
 
-                    *current_sprite = Some(Troop::Farmer);
-                }
+                *current_sprite = Some(Troop::Farmer);
             }
         }
     } else {
