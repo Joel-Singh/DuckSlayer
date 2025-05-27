@@ -2,8 +2,8 @@ use bevy::{color::palettes::css::*, prelude::*, ui::FocusPolicy};
 
 use crate::global::*;
 
-#[derive(Resource, Default)]
-pub struct SelectedCard(pub Option<(Entity, Troop)>);
+#[derive(Component, Default)]
+pub struct SelectedCard;
 
 #[derive(Component)]
 pub struct DeckBarRoot;
@@ -41,7 +41,8 @@ pub fn deckbar(app: &mut App) {
         )
             .run_if(in_state(GameState::InGame)),
     )
-    .init_resource::<SelectedCard>();
+    .add_observer(remove_selected_card_style)
+    .add_observer(add_selected_card_style);
 }
 
 fn initialize_deckbar(mut commands: Commands) {
@@ -85,21 +86,33 @@ fn initialize_deckbar(mut commands: Commands) {
         });
 }
 
+fn remove_selected_card_style(
+    trigger: Trigger<OnRemove, SelectedCard>,
+    mut node_q: Query<&mut Node>,
+) {
+    let e = trigger.target();
+    let mut card_style = node_q.get_mut(e).unwrap();
+    card_style.right = Val::ZERO;
+}
+
+fn add_selected_card_style(trigger: Trigger<OnAdd, SelectedCard>, mut node_q: Query<&mut Node>) {
+    let e = trigger.target();
+    let mut card_style = node_q.get_mut(e).unwrap();
+    card_style.right = Val::Px(30.0);
+}
+
 pub fn clear_deckbar(
     cards: Query<&mut Card>,
-    mut selected_card: ResMut<SelectedCard>,
-    mut node_q: Query<&mut Node>,
+    selected_card: Option<Single<Entity, With<SelectedCard>>>,
+    mut commands: Commands,
 ) {
     for mut card in cards {
         card.troop = None;
     }
 
-    if let Some((e, _)) = selected_card.0 {
-        let mut selected_card_node = node_q.get_mut(e).unwrap();
-        selected_card_node.right = Val::ZERO;
+    if let Some(e) = selected_card {
+        commands.entity(e.into_inner()).remove::<SelectedCard>();
     }
-
-    selected_card.0 = None;
 }
 
 fn update_card_image(
@@ -176,22 +189,29 @@ fn hover_sprite_when_card_selected(
 
     hover_sprite: Single<Entity, With<HoverSprite>>,
 
-    selected_card: Res<SelectedCard>,
+    selected_card: Option<Single<&Card, With<SelectedCard>>>,
     asset_server: Res<AssetServer>,
     cursor_world_coords: Res<CursorWorldCoords>,
 ) {
-    if let Some((_, troop)) = selected_card.0 {
-        match troop {
-            Troop::Farmer => {
-                commands.entity(*hover_sprite).insert(Sprite {
-                    image: asset_server.load("farmer.png"),
-                    custom_size: Some(FARMER_SIZE),
-                    color: Color::linear_rgba(1., 1., 1., 0.5),
-                    ..default()
-                });
+    if let Some(selected_card) = selected_card {
+        if let Some(troop) = selected_card.troop {
+            match troop {
+                Troop::Farmer => {
+                    commands.entity(*hover_sprite).insert(Sprite {
+                        image: asset_server.load("farmer.png"),
+                        custom_size: Some(FARMER_SIZE),
+                        color: Color::linear_rgba(1., 1., 1., 0.5),
+                        ..default()
+                    });
 
-                *current_sprite = Some(Troop::Farmer);
+                    *current_sprite = Some(Troop::Farmer);
+                }
             }
+        } else {
+            commands.entity(*hover_sprite).insert(Sprite {
+                color: Color::NONE,
+                ..default()
+            });
         }
     } else {
         commands.entity(*hover_sprite).insert(Sprite {
@@ -214,49 +234,50 @@ fn select_card_on_click(
         (&Interaction, Entity),
         (Changed<Interaction>, With<Button>, With<Card>),
     >,
-    mut selected_card: ResMut<SelectedCard>,
-    mut nodes: Query<&mut Node>,
+    old_selected_card: Option<Single<Entity, With<SelectedCard>>>,
     cards_q: Query<&Card>,
+
+    mut commands: Commands,
 ) {
-    for (interaction, entity) in &mut interaction_query {
+    let old_selected_card: Option<Entity> = {
+        if let Some(old_selected_card) = old_selected_card {
+            Some(old_selected_card.into_inner())
+        } else {
+            None
+        }
+    };
+
+    for (interaction, card_clicked_e) in &mut interaction_query {
         if *interaction != Interaction::Pressed {
             return;
         }
 
-        let card_clicked = cards_q.get(entity).unwrap();
+        let card_clicked = cards_q.get(card_clicked_e).unwrap();
 
         if card_clicked.troop.is_none() {
             return;
         }
 
-        if let Some(old_selected_card) = selected_card.0 {
-            let mut old_selected_card = nodes
-                .get_mut(old_selected_card.0)
-                .expect("Selected Card Entity has Node");
-
-            old_selected_card.right = Val::ZERO;
+        if let Some(old_selected_card) = old_selected_card {
+            commands.entity(old_selected_card).remove::<SelectedCard>();
         }
 
-        selected_card.0 = Some((entity, card_clicked.troop.unwrap()));
-        let mut selected_card_node = nodes.get_mut(entity).unwrap();
-        selected_card_node.right = Val::Px(30.0);
+        commands.entity(card_clicked_e).insert(SelectedCard);
     }
 }
 
 #[derive(Default)]
 pub struct DeleteSelectedCard;
 impl Command for DeleteSelectedCard {
-    fn apply(self, world: &mut World) {
-        let mut selected_card_res = world.get_resource_mut::<SelectedCard>().unwrap();
-        let (selected_card_e, _) = selected_card_res.0.unwrap();
+    fn apply(self, mut world: &mut World) {
+        let selected_card: Entity = world
+            .query_filtered::<Entity, With<SelectedCard>>()
+            .single(&mut world)
+            .unwrap();
 
-        selected_card_res.0 = None;
+        let mut selected_card = world.get_entity_mut(selected_card).unwrap();
 
-        let mut selected_card = world.get_entity_mut(selected_card_e).unwrap();
-
-        selected_card.insert((ImageNode::default(), Card { troop: None }));
-
-        let mut selected_card_node = selected_card.get_mut::<Node>().unwrap();
-        selected_card_node.right = Val::ZERO;
+        selected_card.remove::<SelectedCard>();
+        selected_card.insert(Card { troop: None });
     }
 }

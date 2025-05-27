@@ -8,6 +8,7 @@ use nest::nest_shoot;
 pub use nest::spawn_nest;
 pub use nest::Nest;
 
+use crate::deckbar::Card;
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
 use crate::{
@@ -227,35 +228,45 @@ fn spawn_troop_on_click(
     asset_server: Res<AssetServer>,
     interaction_q: Query<&Interaction, (With<Arena>, Changed<Interaction>)>,
     mouse_coords: Res<CursorWorldCoords>,
-    selected_card: Res<SelectedCard>,
+    selected_card: Option<Single<&Card, With<SelectedCard>>>,
 ) {
+    let selected_card: Option<&Card> = {
+        if let Some(selected_card) = selected_card {
+            Some(selected_card.into_inner())
+        } else {
+            None
+        }
+    };
+
     for interaction in interaction_q {
         if *interaction != Interaction::Pressed {
             return;
         }
 
-        if let Some((_, troop)) = selected_card.0 {
-            match troop {
-                Troop::Farmer => {
-                    commands.spawn((
-                        Sprite {
-                            image: asset_server.load("farmer.png"),
-                            custom_size: Some(FARMER_SIZE),
-                            ..default()
-                        },
-                        Transform {
-                            translation: mouse_coords.0.extend(0.),
-                            ..default()
-                        },
-                        Farmer,
-                        GoingToBridge,
-                        Chaseable,
-                        Health {
-                            current_health: 100.0,
-                            max_health: 100.0,
-                            healthbar_height: 60.,
-                        },
-                    ));
+        if let Some(selected_card) = selected_card {
+            if let Some(troop) = selected_card.troop {
+                match troop {
+                    Troop::Farmer => {
+                        commands.spawn((
+                            Sprite {
+                                image: asset_server.load("farmer.png"),
+                                custom_size: Some(FARMER_SIZE),
+                                ..default()
+                            },
+                            Transform {
+                                translation: mouse_coords.0.extend(0.),
+                                ..default()
+                            },
+                            Farmer,
+                            GoingToBridge,
+                            Chaseable,
+                            Health {
+                                current_health: 100.0,
+                                max_health: 100.0,
+                                healthbar_height: 60.,
+                            },
+                        ));
+                    }
                 }
             }
 
