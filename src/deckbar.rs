@@ -85,6 +85,12 @@ fn initialize_deckbar(mut commands: Commands) {
         });
 }
 
+pub fn clear_deckbar(cards: Query<&mut Card>) {
+    for mut card in cards {
+        card.troop = None;
+    }
+}
+
 fn update_card_image(
     cards: Query<(Entity, &Card), Changed<Card>>,
     mut commands: Commands,

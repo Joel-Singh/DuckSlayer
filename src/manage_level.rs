@@ -5,6 +5,7 @@ use DuckSlayer::delete_all;
 use std::time::Duration;
 
 use crate::{
+    deckbar::{clear_deckbar, push_farmer_to_deckbar},
     global::{
         GameState, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_DAMAGE, QUAKKA_STARTING_POSITION,
     },
@@ -55,6 +56,8 @@ pub fn manage_level(app: &mut App) {
             (
                 delete_all::<LevelEntity>,
                 spawn_entities,
+                clear_deckbar,
+                push_farmer_to_deckbar,
                 pause,
                 set_gameover_false,
                 set_message("[Space] to start level"),
