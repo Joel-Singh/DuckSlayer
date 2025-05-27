@@ -404,16 +404,22 @@ mod nest {
             if let Some(victim) = nest.current_victim {
                 egg.2.color = Color::WHITE;
 
-                let victim_transform = transform_q.get(victim).unwrap();
-                let nest_transform = transform_q.get(egg.1.from_nest).unwrap();
-                let nest_attack = attacker_q.get(egg.1.from_nest).unwrap();
+                let victim_transform = transform_q.get(victim);
+                let nest_transform = transform_q.get(egg.1.from_nest);
+                let nest_attack = attacker_q.get(egg.1.from_nest);
 
-                let nest_to_victim: Vec3 =
-                    victim_transform.translation - nest_transform.translation;
+                // Victim might have died
+                if let (Ok(victim_transform), Ok(nest_transform), Ok(nest_attack)) =
+                    (victim_transform, nest_transform, nest_attack)
+                {
+                    let nest_to_victim: Vec3 =
+                        victim_transform.translation - nest_transform.translation;
 
-                commands.entity(egg.0).insert(Transform::from_translation(
-                    nest_transform.translation + (nest_to_victim * nest_attack.cooldown.fraction()),
-                ));
+                    commands.entity(egg.0).insert(Transform::from_translation(
+                        nest_transform.translation
+                            + (nest_to_victim * nest_attack.cooldown.fraction()),
+                    ));
+                }
             } else {
                 egg.2.color = Color::NONE;
             }
