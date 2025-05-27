@@ -1,3 +1,5 @@
+use bevy::ecs::component::{ComponentHooks, HookContext};
+use bevy::ecs::world::DeferredWorld;
 use bevy::{color::palettes::css::*, prelude::*};
 use debug::debug;
 use nest::nest_plugin;
@@ -29,6 +31,7 @@ pub struct Attacker {
 pub struct Chaseable;
 
 #[derive(Component)]
+#[component(on_add = initialize_healthbar)]
 pub struct Health {
     pub current_health: f32,
     pub max_health: f32,
@@ -75,25 +78,22 @@ pub fn troops(app: &mut App) {
             )
                 .run_if(in_state(GameState::InGame).and(in_state(IsPaused::False))),
         )
-        .add_systems(
-            FixedUpdate,
-            initialize_healthbar.run_if(in_state(GameState::InGame)),
-        )
         .add_plugins(nest_plugin)
         .add_plugins(debug);
 }
 
-fn initialize_healthbar(q: Query<(Entity, &Health), Added<Health>>, mut commands: Commands) {
-    for (entity, health) in &q {
-        let healthbar = commands
-            .spawn((
-                Transform::from_xyz(0., health.healthbar_height, 1.),
-                HealthBar,
-            ))
-            .id();
+fn initialize_healthbar(mut world: DeferredWorld, context: HookContext) {
+    let healthbar_height = world
+        .get::<Health>(context.entity)
+        .unwrap()
+        .healthbar_height;
 
-        commands.entity(entity).add_children(&[healthbar]);
-    }
+    let healthbar = world
+        .commands()
+        .spawn((Transform::from_xyz(0., healthbar_height, 1.), HealthBar))
+        .id();
+
+    world.commands().entity(context.entity).add_child(healthbar);
 }
 
 fn spawn_arena_area(mut commands: Commands) {
