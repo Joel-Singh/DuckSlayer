@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.16.0" }
+# Using the github because bevy_ui doesn't compile with track_location with the cargo version of bevy. Inane, yes.
+bevy = { git = "https://github.com/bevyengine/bevy.git", tag = "v0.16.0" }
