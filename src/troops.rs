@@ -7,6 +7,7 @@ use nest::nest_shoot;
 
 pub use nest::spawn_nest;
 pub use nest::Nest;
+use troop_bundles::quakka_bundle;
 
 use crate::deckbar::Card;
 use crate::manage_level::IsPaused;
@@ -266,6 +267,9 @@ fn spawn_troop_on_click(
                         },
                     ));
                 }
+                Card::Quakka => {
+                    commands.spawn(quakka_bundle(&asset_server, mouse_coords.0));
+                }
                 Card::Empty => {}
             }
 
@@ -280,6 +284,37 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
             panic!("Attack coolodwn should be once");
         }
         attacker.cooldown.tick(time.delta());
+    }
+}
+
+mod troop_bundles {
+    use super::{Attacker, Health, Quakka};
+    use crate::global::{QUAKKA_DAMAGE, QUAKKA_SIZE};
+    use bevy::prelude::*;
+    use std::time::Duration;
+
+    pub fn quakka_bundle(asset_server: &Res<AssetServer>, position: Vec2) -> impl Bundle {
+        (
+            Sprite {
+                image: asset_server.load("quakka.png"),
+                custom_size: Some(QUAKKA_SIZE),
+                ..default()
+            },
+            Transform {
+                translation: position.extend(0.0),
+                ..default()
+            },
+            Health {
+                current_health: 100.0,
+                max_health: 100.0,
+                healthbar_height: 60.,
+            },
+            Quakka,
+            Attacker {
+                cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
+                damage: QUAKKA_DAMAGE,
+            },
+        )
     }
 }
 

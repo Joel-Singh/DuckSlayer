@@ -1,4 +1,9 @@
-use bevy::{color::palettes::css::*, prelude::*, ui::FocusPolicy};
+use bevy::{
+    color::palettes::css::*,
+    ecs::{schedule::ScheduleConfigs, system::ScheduleSystem},
+    prelude::*,
+    ui::FocusPolicy,
+};
 
 use crate::global::*;
 
@@ -11,10 +16,20 @@ pub struct DeckBarRoot;
 #[derive(Component)]
 struct HoverSprite;
 
-#[derive(Component, PartialEq)]
+#[derive(Component, Clone, Copy)]
 pub enum Card {
     Empty,
     Farmer,
+    Quakka,
+}
+
+impl Card {
+    fn is_empty(&self) -> bool {
+        match self {
+            Card::Empty => true,
+            _ => false,
+        }
+    }
 }
 
 pub fn deckbar(app: &mut App) {
@@ -22,7 +37,7 @@ pub fn deckbar(app: &mut App) {
         OnEnter(GameState::InGame),
         (
             initialize_deckbar,
-            push_farmer_to_deckbar,
+            push_to_deckbar(Card::Farmer),
             spawn_hover_sprite,
         )
             .chain(),
@@ -125,31 +140,33 @@ fn update_card_image(
     fn get_image_node(card: &Card, asset_server: &Res<AssetServer>) -> ImageNode {
         match card {
             Card::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png")),
+            Card::Quakka => ImageNode::new(asset_server.load("quakka_mugshot.png")),
             Card::Empty => ImageNode::default(),
         }
     }
 }
 
-pub fn push_farmer_to_deckbar(
-    mut commands: Commands,
-    card_node: Single<&Children, With<DeckBarRoot>>,
-    card_q: Query<&Card>,
-) {
-    let mut empty_card_node: Option<Entity> = None;
-    for card_node in card_node.into_iter() {
-        let card = card_q.get(*card_node).unwrap();
+pub fn push_to_deckbar(card: Card) -> ScheduleConfigs<ScheduleSystem> {
+    (move |mut commands: Commands,
+           card_node: Single<&Children, With<DeckBarRoot>>,
+           card_q: Query<&Card>| {
+        let mut empty_card_node: Option<Entity> = None;
+        for card_node in card_node.into_iter() {
+            let card = card_q.get(*card_node).unwrap();
 
-        if *card == Card::Empty {
-            empty_card_node = Some(*card_node);
-            break;
+            if card.is_empty() {
+                empty_card_node = Some(*card_node);
+                break;
+            }
         }
-    }
 
-    if let Some(empty_card_node) = empty_card_node {
-        commands.entity(empty_card_node).insert(Card::Farmer);
-    } else {
-        panic!("Tried to push with full DeckBar");
-    }
+        if let Some(empty_card_node) = empty_card_node {
+            commands.entity(empty_card_node).insert(card);
+        } else {
+            panic!("Tried to push with full DeckBar");
+        }
+    })
+    .into_configs()
 }
 
 fn highlight_card_on_hover(
@@ -203,6 +220,14 @@ fn hover_sprite_when_card_selected(
                     ..default()
                 });
             }
+            Card::Quakka => {
+                commands.entity(*hover_sprite).insert(Sprite {
+                    image: asset_server.load("quakka.png"),
+                    custom_size: Some(QUAKKA_SIZE),
+                    color: Color::linear_rgba(1., 1., 1., 0.5),
+                    ..default()
+                });
+            }
             Card::Empty => hide_hover_sprite(),
         }
     } else {
@@ -243,7 +268,7 @@ fn select_card_on_click(
 
         let card_clicked = cards_q.get(card_clicked_e).unwrap();
 
-        if *card_clicked == Card::Empty {
+        if card_clicked.is_empty() {
             return;
         }
 

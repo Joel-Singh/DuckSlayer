@@ -5,9 +5,10 @@ use DuckSlayer::delete_all;
 use std::time::Duration;
 
 use crate::{
-    deckbar::{clear_deckbar, push_farmer_to_deckbar},
+    deckbar::{clear_deckbar, push_to_deckbar, Card},
     global::{
-        GameState, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_DAMAGE, QUAKKA_STARTING_POSITION,
+        GameState, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_DAMAGE, QUAKKA_SIZE,
+        QUAKKA_STARTING_POSITION,
     },
     troops::{spawn_nest, Attacker, Bridge, Health, Nest, Quakka},
 };
@@ -57,13 +58,18 @@ pub fn manage_level(app: &mut App) {
                 delete_all::<LevelEntity>,
                 spawn_entities,
                 clear_deckbar,
-                push_farmer_to_deckbar,
+                push_to_deckbar(Card::Farmer),
                 pause,
                 set_gameover_false,
                 set_message("[Space] to start level"),
             )
                 .chain()
                 .run_if(input_just_pressed(KeyCode::KeyZ).and(in_state(GameState::InGame))),
+        )
+        .add_systems(
+            FixedUpdate,
+            push_to_deckbar(Card::Quakka)
+                .run_if(input_just_pressed(KeyCode::KeyX).and(in_state(GameState::InGame))),
         )
         .insert_state::<IsPaused>(IsPaused::True)
         .init_state::<GameOver>();
@@ -87,7 +93,7 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
     commands.spawn((
         Sprite {
             image: asset_server.load("quakka.png"),
-            custom_size: Some(Vec2::new(100.0, 100.0)),
+            custom_size: Some(QUAKKA_SIZE),
             ..default()
         },
         Transform {
