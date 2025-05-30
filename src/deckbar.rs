@@ -158,8 +158,6 @@ pub fn push_to_deckbar(card: Card) -> ScheduleConfigs<ScheduleSystem> {
 
         if let Some(empty_card_node) = empty_card_node {
             commands.entity(empty_card_node).insert(card);
-        } else {
-            panic!("Tried to push with full DeckBar");
         }
     })
     .into_configs()
