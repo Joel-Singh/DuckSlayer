@@ -24,7 +24,7 @@ pub enum Card {
 }
 
 impl Card {
-    fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         match self {
             Card::Empty => true,
             _ => false,

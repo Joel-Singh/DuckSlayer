@@ -7,16 +7,14 @@ use nest::nest_shoot;
 
 pub use nest::spawn_nest;
 pub use nest::Nest;
-use troop_bundles::quakka_bundle;
+use troop_bundles::spawn_troop;
 
 use crate::deckbar::Card;
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
 use crate::{
     deckbar::{DeleteSelectedCard, SelectedCard},
-    global::{
-        CursorWorldCoords, GameState, FARMER_SIZE, FARMER_SPEED, QUAKKA_HIT_DISTANCE, QUAKKA_SPEED,
-    },
+    global::{CursorWorldCoords, GameState, FARMER_SPEED, QUAKKA_HIT_DISTANCE, QUAKKA_SPEED},
 };
 
 #[derive(Component)]
@@ -245,32 +243,8 @@ fn spawn_troop_on_click(
         }
 
         if let Some(selected_card) = selected_card {
-            match selected_card {
-                Card::Farmer => {
-                    commands.spawn((
-                        Sprite {
-                            image: asset_server.load("farmer.png"),
-                            custom_size: Some(FARMER_SIZE),
-                            ..default()
-                        },
-                        Transform {
-                            translation: mouse_coords.0.extend(0.),
-                            ..default()
-                        },
-                        Farmer,
-                        GoingToBridge,
-                        Chaseable,
-                        Health {
-                            current_health: 100.0,
-                            max_health: 100.0,
-                            healthbar_height: 60.,
-                        },
-                    ));
-                }
-                Card::Quakka => {
-                    commands.spawn(quakka_bundle(&asset_server, mouse_coords.0));
-                }
-                Card::Empty => {}
+            if !selected_card.is_empty() {
+                spawn_troop(*selected_card, mouse_coords.0, &mut commands, &asset_server);
             }
 
             commands.queue(DeleteSelectedCard::default());
@@ -287,13 +261,33 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
     }
 }
 
-mod troop_bundles {
-    use super::{Attacker, Health, Quakka};
-    use crate::global::{QUAKKA_DAMAGE, QUAKKA_SIZE};
+pub mod troop_bundles {
+    use super::{Attacker, Chaseable, Farmer, GoingToBridge, Health, Quakka};
+    use crate::{
+        deckbar::Card,
+        global::{FARMER_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE},
+    };
     use bevy::prelude::*;
     use std::time::Duration;
 
-    pub fn quakka_bundle(asset_server: &Res<AssetServer>, position: Vec2) -> impl Bundle {
+    pub fn spawn_troop(
+        card: Card,
+        position: Vec2,
+        commands: &mut Commands,
+        asset_server: &Res<AssetServer>,
+    ) {
+        match card {
+            Card::Farmer => {
+                commands.spawn(farmer_bundle(position, asset_server));
+            }
+            Card::Quakka => {
+                commands.spawn(quakka_bundle(position, asset_server));
+            }
+            Card::Empty => warn!("Cannot spawn an empty card bundle"),
+        }
+    }
+
+    fn quakka_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
         (
             Sprite {
                 image: asset_server.load("quakka.png"),
@@ -313,6 +307,28 @@ mod troop_bundles {
             Attacker {
                 cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
                 damage: QUAKKA_DAMAGE,
+            },
+        )
+    }
+
+    fn farmer_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
+        (
+            Sprite {
+                image: asset_server.load("farmer.png"),
+                custom_size: Some(FARMER_SIZE),
+                ..default()
+            },
+            Transform {
+                translation: position.extend(0.),
+                ..default()
+            },
+            Farmer,
+            GoingToBridge,
+            Chaseable,
+            Health {
+                current_health: 100.0,
+                max_health: 100.0,
+                healthbar_height: 60.,
             },
         )
     }

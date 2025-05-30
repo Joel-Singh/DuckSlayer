@@ -2,15 +2,10 @@ use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use game_messages::set_message;
 use DuckSlayer::delete_all;
 
-use std::time::Duration;
-
 use crate::{
     deckbar::{clear_deckbar, push_to_deckbar, Card},
-    global::{
-        GameState, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_DAMAGE, QUAKKA_SIZE,
-        QUAKKA_STARTING_POSITION,
-    },
-    troops::{spawn_nest, Attacker, Bridge, Health, Nest, Quakka},
+    global::{GameState, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_STARTING_POSITION},
+    troops::{spawn_nest, troop_bundles::spawn_troop, Bridge, Nest},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -90,27 +85,12 @@ fn spawn_arena_background(mut commands: Commands, asset_server: Res<AssetServer>
 }
 
 fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
-    commands.spawn((
-        Sprite {
-            image: asset_server.load("quakka.png"),
-            custom_size: Some(QUAKKA_SIZE),
-            ..default()
-        },
-        Transform {
-            translation: QUAKKA_STARTING_POSITION.extend(0.0),
-            ..default()
-        },
-        Health {
-            current_health: 100.0,
-            max_health: 100.0,
-            healthbar_height: 60.,
-        },
-        Quakka,
-        Attacker {
-            cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-            damage: QUAKKA_DAMAGE,
-        },
-    ));
+    spawn_troop(
+        Card::Quakka,
+        QUAKKA_STARTING_POSITION,
+        &mut commands,
+        &asset_server,
+    );
 
     spawn_nest(
         Vec3::new(NEST_FIRST_X, NEST_Y, 0.),
