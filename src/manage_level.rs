@@ -3,7 +3,7 @@ use game_messages::set_message;
 use DuckSlayer::delete_all;
 
 use crate::{
-    deckbar::{clear_deckbar, push_to_deckbar, Card},
+    deckbar::{clear_deckbar, push_to_deckbar, show_deckbar, Card},
     global::{GameState, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_STARTING_POSITION},
     troops::{spawn_nest, troop_bundles::spawn_troop, Bridge, Nest},
 };
@@ -31,6 +31,8 @@ pub fn manage_level(app: &mut App) {
             (
                 spawn_entities,
                 spawn_arena_background,
+                show_deckbar,
+                push_to_deckbar(Card::Farmer),
                 set_message("[Space] to start level"),
             ),
         )

@@ -33,27 +33,19 @@ impl Card {
 }
 
 pub fn deckbar(app: &mut App) {
-    app.add_systems(
-        OnEnter(GameState::InGame),
-        (
-            initialize_deckbar,
-            push_to_deckbar(Card::Farmer),
-            spawn_hover_sprite,
+    app.add_systems(Startup, (initialize_deckbar, spawn_hover_sprite))
+        .add_systems(
+            FixedUpdate,
+            (
+                highlight_card_on_hover,
+                select_card_on_click,
+                hover_sprite_when_card_selected,
+                update_card_image,
+            )
+                .run_if(in_state(GameState::InGame)),
         )
-            .chain(),
-    )
-    .add_systems(
-        FixedUpdate,
-        (
-            highlight_card_on_hover,
-            select_card_on_click,
-            hover_sprite_when_card_selected,
-            update_card_image,
-        )
-            .run_if(in_state(GameState::InGame)),
-    )
-    .add_observer(remove_selected_card_style)
-    .add_observer(add_selected_card_style);
+        .add_observer(remove_selected_card_style)
+        .add_observer(add_selected_card_style);
 }
 
 fn initialize_deckbar(mut commands: Commands) {
@@ -61,7 +53,7 @@ fn initialize_deckbar(mut commands: Commands) {
         .spawn((
             DeckBarRoot,
             Node {
-                display: Display::Flex,
+                display: Display::None,
                 row_gap: Val::Px(10.0),
                 column_gap: Val::Px(10.0),
                 width: Val::Px(DECK_WIDTH * 0.8),
@@ -95,6 +87,10 @@ fn initialize_deckbar(mut commands: Commands) {
             parent.spawn(get_empty_card_node_bundle());
             parent.spawn(get_empty_card_node_bundle());
         });
+}
+
+pub fn show_deckbar(mut deck_bar: Single<&mut Node, With<DeckBarRoot>>) {
+    deck_bar.display = Display::Flex;
 }
 
 fn remove_selected_card_style(
