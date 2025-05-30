@@ -135,8 +135,16 @@ fn update_card_image(
 
     fn get_image_node(card: &Card, asset_server: &Res<AssetServer>) -> ImageNode {
         match card {
-            Card::Farmer => ImageNode::new(asset_server.load("farmer_mugshot.png")),
-            Card::Quakka => ImageNode::new(asset_server.load("quakka_mugshot.png")),
+            Card::Farmer => ImageNode {
+                image: asset_server.load("farmer_mugshot.png"),
+                color: GREY.into(),
+                ..Default::default()
+            },
+            Card::Quakka => ImageNode {
+                image: asset_server.load("quakka_mugshot.png"),
+                color: GREY.into(),
+                ..Default::default()
+            },
             Card::Empty => ImageNode::default(),
         }
     }
