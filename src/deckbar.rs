@@ -16,7 +16,7 @@ pub struct DeckBarRoot;
 #[derive(Component)]
 struct HoverSprite;
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, Debug)]
 pub enum Card {
     Empty,
     Farmer,
@@ -295,5 +295,24 @@ impl Command for DeleteSelectedCard {
 
         selected_card.remove::<SelectedCard>();
         selected_card.insert(Card::Empty);
+    }
+}
+
+pub struct PushToDeckbar(pub Card);
+
+impl Command for PushToDeckbar {
+    fn apply(self, world: &mut World) -> () {
+        let deck = world
+            .query_filtered::<&Children, With<DeckBarRoot>>()
+            .single(world)
+            .unwrap();
+
+        let empty_card = deck
+            .iter()
+            .find(|e| world.get::<Card>(*e).unwrap().is_empty());
+
+        if let Some(empty_card) = empty_card {
+            *world.get_mut::<Card>(empty_card).unwrap() = self.0;
+        }
     }
 }
