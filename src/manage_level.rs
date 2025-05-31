@@ -3,9 +3,9 @@ use game_messages::set_message;
 use DuckSlayer::delete_all;
 
 use crate::{
-    deckbar::{clear_deckbar, push_to_deckbar, show_deckbar, Card},
+    deckbar::{clear_deckbar, push_to_deckbar, show_deckbar, Card, DeckBarRoot, PushToDeckbar},
     global::{GameState, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_STARTING_POSITION},
-    troops::{spawn_nest, troop_bundles::spawn_troop, Bridge, Nest},
+    troops::{spawn_nest, troop_bundles::spawn_troop, Bridge, Farmer, Nest, Quakka},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -19,6 +19,36 @@ pub enum GameOver {
     True,
     #[default]
     False,
+}
+
+#[derive(Resource)]
+struct LevelRes {
+    troops: Vec<(Card, Vec2)>,
+    nest_locations: Vec<Vec2>,
+    starting_deckbar: Vec<Card>,
+}
+
+impl Default for LevelRes {
+    fn default() -> Self {
+        return LevelRes {
+            troops: vec![(Card::Quakka, QUAKKA_STARTING_POSITION)],
+            nest_locations: vec![
+                (NEST_FIRST_X, NEST_Y).into(),
+                (NEST_SECOND_X, NEST_Y).into(),
+            ],
+            starting_deckbar: vec![Card::Farmer],
+        };
+    }
+}
+
+impl LevelRes {
+    fn clear(&mut self) {
+        *self = LevelRes {
+            troops: Vec::new(),
+            nest_locations: Vec::new(),
+            starting_deckbar: Vec::new(),
+        };
+    }
 }
 
 #[derive(Component, Default)]
@@ -53,9 +83,8 @@ pub fn manage_level(app: &mut App) {
             FixedUpdate,
             (
                 delete_all::<LevelEntity>,
-                spawn_entities,
                 clear_deckbar,
-                push_to_deckbar(Card::Farmer),
+                spawn_entities_from_level,
                 pause,
                 set_gameover_false,
                 set_message("[Space] to start level"),
@@ -65,11 +94,16 @@ pub fn manage_level(app: &mut App) {
         )
         .add_systems(
             FixedUpdate,
+            save_level.run_if(input_just_pressed(KeyCode::KeyA)),
+        )
+        .add_systems(
+            FixedUpdate,
             push_to_deckbar(Card::Quakka)
                 .run_if(input_just_pressed(KeyCode::KeyX).and(in_state(GameState::InGame))),
         )
         .insert_state::<IsPaused>(IsPaused::True)
-        .init_state::<GameOver>();
+        .init_state::<GameOver>()
+        .init_resource::<LevelRes>();
 }
 
 fn spawn_arena_background(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -121,6 +155,51 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
             ..default()
         },
     ));
+}
+
+fn save_level(
+    mut level: ResMut<LevelRes>,
+    level_entities: Query<(&Transform, Has<Quakka>, Has<Farmer>, Has<Nest>), With<LevelEntity>>,
+    cards: Query<&Card>,
+    deck: Single<&Children, With<DeckBarRoot>>,
+) {
+    level.clear();
+
+    for (transform, is_quakka, is_farmer, is_nest) in level_entities {
+        if is_quakka {
+            level
+                .troops
+                .push((Card::Quakka, transform.translation.truncate()));
+        } else if is_farmer {
+            level
+                .troops
+                .push((Card::Farmer, transform.translation.truncate()));
+        } else if is_nest {
+            level.nest_locations.push(transform.translation.truncate());
+        }
+    }
+
+    for card_e in deck.into_inner() {
+        level.starting_deckbar.push(*cards.get(*card_e).unwrap());
+    }
+}
+
+fn spawn_entities_from_level(
+    level: Res<LevelRes>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    for (card, position) in &level.troops {
+        spawn_troop(*card, *position, &mut commands, &asset_server);
+    }
+
+    for nest_position in &level.nest_locations {
+        spawn_nest(nest_position.extend(0.), &mut commands, &asset_server);
+    }
+
+    for card in &level.starting_deckbar {
+        commands.queue(PushToDeckbar(*card));
+    }
 }
 
 fn unpause(mut is_paused: ResMut<NextState<IsPaused>>) {
