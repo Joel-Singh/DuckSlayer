@@ -458,7 +458,7 @@ mod nest {
     pub fn render_eggs(
         mut commands: Commands,
         nest_q: Query<&Nest>,
-        attacker_q: Query<&Attacker>,
+        attacker_q: Query<&Attacker, With<Nest>>,
         transform_q: Query<&mut Transform>,
         eggs: Query<(Entity, &Egg, &mut Sprite)>,
     ) {
