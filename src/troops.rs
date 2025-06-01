@@ -18,14 +18,14 @@ use crate::{
 };
 
 #[derive(Component)]
-#[require(LevelEntity)]
+#[require(LevelEntity, NestTarget)]
 pub struct Quakka;
 
 #[derive(Component)]
 pub struct Waterball;
 
 #[derive(Component)]
-#[require(Chaseable, LevelEntity)]
+#[require(QuakkaTarget, LevelEntity)]
 pub struct Farmer;
 
 #[derive(Component)]
@@ -35,7 +35,10 @@ pub struct Attacker {
 }
 
 #[derive(Component, Default)]
-pub struct Chaseable;
+pub struct QuakkaTarget;
+
+#[derive(Component, Default)]
+pub struct NestTarget;
 
 #[derive(Component)]
 #[component(on_add = initialize_healthbar)]
@@ -114,7 +117,7 @@ fn spawn_arena_area(mut commands: Commands) {
 
 fn quakka_chase_and_attack(
     mut quakkas: Query<(&mut Transform, &mut Attacker), With<Quakka>>,
-    mut chaseables: Query<(&Transform, Entity, &mut Health), (With<Chaseable>, Without<Quakka>)>,
+    mut chaseables: Query<(&Transform, Entity, &mut Health), (With<QuakkaTarget>, Without<Quakka>)>,
     time: Res<Time>,
 ) {
     for mut quakka in quakkas.iter_mut() {
@@ -265,7 +268,7 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
 }
 
 pub mod troop_bundles {
-    use super::{Attacker, Chaseable, Farmer, GoingToBridge, Health, Quakka, Waterball};
+    use super::{Attacker, Farmer, GoingToBridge, Health, Quakka, Waterball};
     use crate::{
         deckbar::Card,
         global::{FARMER_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE, WATERBALL_SIZE},
@@ -330,7 +333,6 @@ pub mod troop_bundles {
             },
             Farmer,
             GoingToBridge,
-            Chaseable,
             Health {
                 current_health: 100.0,
                 max_health: 100.0,
@@ -356,7 +358,7 @@ pub mod troop_bundles {
 }
 
 mod nest {
-    use super::{Attacker, Chaseable, Farmer, Health};
+    use super::{Attacker, Health, NestTarget, QuakkaTarget};
     use crate::{
         global::{NEST_ATTACK_DISTANCE, NEST_DAMAGE},
         manage_level::LevelEntity,
@@ -365,7 +367,7 @@ mod nest {
     use std::time::Duration;
 
     #[derive(Component, Default)]
-    #[require(Chaseable, LevelEntity)]
+    #[require(QuakkaTarget, LevelEntity)]
     pub struct Nest {
         current_victim: Option<Entity>,
     }
@@ -404,7 +406,7 @@ mod nest {
     }
 
     pub fn nest_shoot(
-        mut victims: Query<(&Transform, &mut Health, Entity), (Without<Nest>, Without<Farmer>)>,
+        mut victims: Query<(&Transform, &mut Health, Entity), With<NestTarget>>,
         nests: Query<(&Transform, &mut Attacker, &mut Nest), With<Nest>>,
     ) {
         for mut nest in nests {
