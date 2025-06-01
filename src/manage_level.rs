@@ -118,17 +118,9 @@ fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
         &asset_server,
     );
 
-    spawn_nest(
-        Vec3::new(NEST_FIRST_X, NEST_Y, 0.),
-        &mut commands,
-        &asset_server,
-    );
+    spawn_nest((NEST_FIRST_X, NEST_Y).into(), &mut commands, &asset_server);
 
-    spawn_nest(
-        Vec3::new(NEST_SECOND_X, NEST_Y, 0.),
-        &mut commands,
-        &asset_server,
-    );
+    spawn_nest((NEST_SECOND_X, NEST_Y).into(), &mut commands, &asset_server);
 
     commands.spawn((
         Bridge,
@@ -184,7 +176,7 @@ fn spawn_entities_from_level(
     }
 
     for nest_position in &level.nest_locations {
-        spawn_nest(nest_position.extend(0.), &mut commands, &asset_server);
+        spawn_nest(*nest_position, &mut commands, &asset_server);
     }
 
     for card in &level.starting_deckbar {

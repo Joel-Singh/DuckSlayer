@@ -358,7 +358,7 @@ mod nest {
         app.add_systems(FixedUpdate, (spawn_eggs, render_eggs));
     }
 
-    pub fn spawn_nest(translation: Vec3, commands: &mut Commands, asset_server: &Res<AssetServer>) {
+    pub fn spawn_nest(translation: Vec2, commands: &mut Commands, asset_server: &Res<AssetServer>) {
         commands.spawn((
             Sprite {
                 image: asset_server.load("nest.png"),
@@ -366,7 +366,7 @@ mod nest {
                 ..default()
             },
             Transform {
-                translation,
+                translation: translation.extend(0.0),
                 ..default()
             },
             Health {
