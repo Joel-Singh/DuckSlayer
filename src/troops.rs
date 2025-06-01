@@ -10,6 +10,7 @@ pub use nest::Nest;
 use troop_bundles::spawn_troop;
 
 use crate::deckbar::Card;
+use crate::global::{WATERBALL_DAMAGE, WATERBALL_RADIUS};
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
 use crate::{
@@ -18,11 +19,14 @@ use crate::{
 };
 
 #[derive(Component)]
-#[require(LevelEntity, NestTarget)]
+#[require(LevelEntity, NestTarget, WaterballTarget)]
 pub struct Quakka;
 
 #[derive(Component)]
 pub struct Waterball;
+
+#[derive(Component, Default)]
+pub struct WaterballTarget;
 
 #[derive(Component)]
 #[require(QuakkaTarget, LevelEntity)]
@@ -80,6 +84,7 @@ pub fn troops(app: &mut App) {
                 spawn_troop_on_click,
                 tick_attacker_cooldowns,
                 quakka_chase_and_attack,
+                explode_waterballs,
                 nest_shoot,
             )
                 .run_if(in_state(GameState::InGame).and(in_state(IsPaused::False))),
@@ -143,7 +148,10 @@ fn spawn_arena_area(mut commands: Commands) {
 
 fn quakka_chase_and_attack(
     mut quakkas: Query<(&mut Transform, &mut Attacker), With<Quakka>>,
-    mut quakka_targets: Query<(&Transform, Entity, &mut Health), (With<QuakkaTarget>, Without<Quakka>)>,
+    mut quakka_targets: Query<
+        (&Transform, Entity, &mut Health),
+        (With<QuakkaTarget>, Without<Quakka>),
+    >,
     time: Res<Time>,
 ) {
     for mut quakka in quakkas.iter_mut() {
@@ -175,6 +183,48 @@ fn quakka_chase_and_attack(
 
             quakka.0.translation += to_chaseable * time.delta_secs() * QUAKKA_SPEED;
         }
+    }
+}
+
+fn explode_waterballs(
+    mut waterball_targets: Query<Entity, With<WaterballTarget>>,
+    waterballs: Query<Entity, With<Waterball>>,
+    mut health_q: Query<&mut Health>,
+    mut attacker_q: Query<&mut Attacker, With<Waterball>>,
+    transform_q: Query<&Transform>,
+
+    mut commands: Commands,
+) {
+    for waterball_e in waterballs {
+        let waterball_attacker = attacker_q.get_mut(waterball_e).unwrap();
+
+        if !waterball_attacker.cooldown.finished() {
+            continue;
+        }
+
+        for target in &mut waterball_targets {
+            let target_transform = transform_q.get(target);
+
+            // Checking if within distance
+            if let Ok(target_transform) = target_transform {
+                let target_position = target_transform.translation.truncate();
+                let waterball_position =
+                    transform_q.get(waterball_e).unwrap().translation.truncate();
+
+                let is_in_explosion_distance =
+                    waterball_position.distance(target_position) < WATERBALL_RADIUS;
+                if !is_in_explosion_distance {
+                    continue;
+                }
+            }
+
+            let target_health = health_q.get_mut(target);
+            if let Ok(mut target_health) = target_health {
+                target_health.current_health -= WATERBALL_DAMAGE;
+            }
+        }
+
+        commands.entity(waterball_e).despawn();
     }
 }
 
@@ -271,7 +321,7 @@ pub mod troop_bundles {
     use super::{Attacker, Farmer, GoingToBridge, Health, Quakka, Waterball};
     use crate::{
         deckbar::Card,
-        global::{FARMER_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE, WATERBALL_SIZE},
+        global::{FARMER_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE, WATERBALL_DAMAGE, WATERBALL_SIZE},
     };
     use bevy::prelude::*;
     use std::time::Duration;
@@ -352,6 +402,10 @@ pub mod troop_bundles {
             Transform {
                 translation: position.extend(0.0),
                 ..default()
+            },
+            Attacker {
+                cooldown: Timer::new(Duration::from_secs_f32(0.1), TimerMode::Once),
+                damage: WATERBALL_DAMAGE,
             },
         )
     }
