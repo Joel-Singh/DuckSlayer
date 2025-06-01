@@ -214,6 +214,7 @@ mod debug_ui {
     use crate::{
         deckbar::{Card, PushToDeckbar},
         global::in_debug,
+        troops::IsTroopDebugOverlayEnabled,
     };
 
     use super::save_level;
@@ -231,6 +232,16 @@ mod debug_ui {
             if ui.button("Save level").clicked() {
                 commands.queue(move |world: &mut World| {
                     let _ = world.run_system_once(save_level);
+                })
+            }
+
+            if ui.button("Toggle Troop Debug Overlay").clicked() {
+                commands.queue(move |world: &mut World| {
+                    let mut is_overlay_enabled = world
+                        .get_resource_mut::<IsTroopDebugOverlayEnabled>()
+                        .unwrap();
+
+                    is_overlay_enabled.0 = !is_overlay_enabled.0;
                 })
             }
         });

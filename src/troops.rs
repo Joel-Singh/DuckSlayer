@@ -555,17 +555,30 @@ mod nest {
     }
 }
 
+pub use debug::IsTroopDebugOverlayEnabled;
+
 mod debug {
-    use crate::global::{IsDebug, NEST_ATTACK_DISTANCE};
+    use crate::global::{in_debug, NEST_ATTACK_DISTANCE};
 
     use super::{nest::Nest, Bridge};
     use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
 
+    #[derive(Resource, PartialEq)]
+    pub struct IsTroopDebugOverlayEnabled(pub bool);
+
+    impl Default for IsTroopDebugOverlayEnabled {
+        fn default() -> Self {
+            IsTroopDebugOverlayEnabled(false)
+        }
+    }
+
     pub fn debug(app: &mut App) {
         app.add_systems(
             FixedUpdate,
-            (show_bridge_points, show_nest_attack_radius).run_if(resource_equals(IsDebug(true))),
-        );
+            (show_bridge_points, show_nest_attack_radius)
+                .run_if(in_debug.and(resource_equals(IsTroopDebugOverlayEnabled(true)))),
+        )
+        .init_resource::<IsTroopDebugOverlayEnabled>();
     }
 
     fn show_bridge_points(mut draw: Gizmos, bridges: Query<&Transform, With<Bridge>>) {
