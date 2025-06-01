@@ -66,40 +66,30 @@ pub fn manage_level(app: &mut App) {
                 set_message("[Space] to start level"),
             ),
         )
-        .add_systems(OnEnter(IsPaused::False), set_message(""))
         .add_systems(
             FixedUpdate,
             (
+                ((
+                    delete_all::<LevelEntity>,
+                    clear_deckbar,
+                    spawn_entities_from_level,
+                    pause,
+                    set_gameover_false,
+                    set_message("[Space] to start level"),
+                )
+                    .chain()
+                    .run_if(input_just_pressed(KeyCode::KeyZ))),
                 unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
+                push_to_deckbar(Card::Quakka).run_if(input_just_pressed(KeyCode::KeyX)),
+                save_level.run_if(input_just_pressed(KeyCode::KeyA)),
                 set_gameover_true.run_if(nest_destroyed),
             )
                 .run_if(in_state(GameState::InGame)),
         )
+        .add_systems(OnEnter(IsPaused::False), set_message(""))
         .add_systems(
             OnEnter(GameOver::True),
             (pause, set_message("Gameover: nest destroyed")),
-        )
-        .add_systems(
-            FixedUpdate,
-            (
-                delete_all::<LevelEntity>,
-                clear_deckbar,
-                spawn_entities_from_level,
-                pause,
-                set_gameover_false,
-                set_message("[Space] to start level"),
-            )
-                .chain()
-                .run_if(input_just_pressed(KeyCode::KeyZ).and(in_state(GameState::InGame))),
-        )
-        .add_systems(
-            FixedUpdate,
-            save_level.run_if(input_just_pressed(KeyCode::KeyA)),
-        )
-        .add_systems(
-            FixedUpdate,
-            push_to_deckbar(Card::Quakka)
-                .run_if(input_just_pressed(KeyCode::KeyX).and(in_state(GameState::InGame))),
         )
         .insert_state::<IsPaused>(IsPaused::True)
         .init_state::<GameOver>()
