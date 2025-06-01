@@ -2,6 +2,7 @@ use bevy::{
     color::palettes::css::*,
     ecs::{schedule::ScheduleConfigs, system::ScheduleSystem},
     prelude::*,
+    render::texture::TRANSPARENT_IMAGE_HANDLE,
     ui::FocusPolicy,
 };
 
@@ -21,6 +22,7 @@ pub enum Card {
     Empty,
     Farmer,
     Quakka,
+    Waterball,
 }
 
 impl Card {
@@ -134,18 +136,17 @@ fn update_card_image(
     }
 
     fn get_image_node(card: &Card, asset_server: &Res<AssetServer>) -> ImageNode {
-        match card {
-            Card::Farmer => ImageNode {
-                image: asset_server.load("farmer_mugshot.png"),
-                color: GREY.into(),
-                ..Default::default()
-            },
-            Card::Quakka => ImageNode {
-                image: asset_server.load("quakka_mugshot.png"),
-                color: GREY.into(),
-                ..Default::default()
-            },
-            Card::Empty => ImageNode::default(),
+        let image = match card {
+            Card::Farmer => asset_server.load("farmer_mugshot.png"),
+            Card::Quakka => asset_server.load("quakka_mugshot.png"),
+            Card::Waterball => asset_server.load("waterball_mugshot.png"),
+            Card::Empty => TRANSPARENT_IMAGE_HANDLE,
+        };
+
+        ImageNode {
+            image,
+            color: GREY.into(),
+            ..Default::default()
         }
     }
 }
@@ -226,6 +227,14 @@ fn hover_sprite_when_card_selected(
                 commands.entity(*hover_sprite).insert(Sprite {
                     image: asset_server.load("quakka.png"),
                     custom_size: Some(QUAKKA_SIZE),
+                    color: Color::linear_rgba(1., 1., 1., 0.5),
+                    ..default()
+                });
+            }
+            Card::Waterball => {
+                commands.entity(*hover_sprite).insert(Sprite {
+                    image: asset_server.load("waterball.png"),
+                    custom_size: Some(WATERBALL_SIZE),
                     color: Color::linear_rgba(1., 1., 1., 0.5),
                     ..default()
                 });

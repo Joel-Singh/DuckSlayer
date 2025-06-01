@@ -22,6 +22,9 @@ use crate::{
 pub struct Quakka;
 
 #[derive(Component)]
+pub struct Waterball;
+
+#[derive(Component)]
 pub struct Attacker {
     pub cooldown: Timer,
     pub damage: f32,
@@ -262,10 +265,10 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
 }
 
 pub mod troop_bundles {
-    use super::{Attacker, Chaseable, Farmer, GoingToBridge, Health, Quakka};
+    use super::{Attacker, Chaseable, Farmer, GoingToBridge, Health, Quakka, Waterball};
     use crate::{
         deckbar::Card,
-        global::{FARMER_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE},
+        global::{FARMER_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE, WATERBALL_SIZE},
     };
     use bevy::prelude::*;
     use std::time::Duration;
@@ -282,6 +285,9 @@ pub mod troop_bundles {
             }
             Card::Quakka => {
                 commands.spawn(quakka_bundle(position, asset_server));
+            }
+            Card::Waterball => {
+                commands.spawn(waterball_bundle(position, asset_server));
             }
             Card::Empty => warn!("Cannot spawn an empty card bundle"),
         }
@@ -329,6 +335,21 @@ pub mod troop_bundles {
                 current_health: 100.0,
                 max_health: 100.0,
                 healthbar_height: 60.,
+            },
+        )
+    }
+
+    fn waterball_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
+        (
+            Waterball,
+            Sprite {
+                image: asset_server.load("waterball.png"),
+                custom_size: Some(WATERBALL_SIZE),
+                ..default()
+            },
+            Transform {
+                translation: position.extend(0.0),
+                ..default()
             },
         )
     }

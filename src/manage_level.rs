@@ -36,7 +36,7 @@ impl Default for LevelRes {
                 (NEST_FIRST_X, NEST_Y).into(),
                 (NEST_SECOND_X, NEST_Y).into(),
             ],
-            starting_deckbar: vec![Card::Farmer],
+            starting_deckbar: vec![Card::Farmer, Card::Waterball],
         };
     }
 }

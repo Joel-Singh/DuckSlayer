@@ -44,6 +44,8 @@ pub const QUAKKA_HIT_DISTANCE: f32 = 50.0;
 pub const QUAKKA_DAMAGE: f32 = 60.0;
 pub const QUAKKA_SIZE: Vec2 = Vec2::new(100.0, 100.0);
 
+pub const WATERBALL_SIZE: Vec2 = Vec2::new(100., 100.);
+
 pub const NEST_FIRST_X: f32 = -388.;
 pub const NEST_SECOND_X: f32 = 173.;
 pub const NEST_Y: f32 = -312.;
