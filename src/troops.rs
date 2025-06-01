@@ -102,6 +102,32 @@ fn initialize_healthbar(mut world: DeferredWorld, context: HookContext) {
     world.commands().entity(context.entity).add_child(healthbar);
 }
 
+fn update_healthbars(
+    mut commands: Commands,
+    mut healthbar_q: Query<(Entity, &ChildOf), With<HealthBar>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    health: Query<&Health>,
+) {
+    for (healthbar, troop) in healthbar_q.iter_mut() {
+        let health = health.get(troop.parent());
+        if health.is_err() {
+            panic!("Health component not on troop!");
+        }
+
+        let health = health.unwrap();
+        let health_percentage = health.current_health / health.max_health;
+
+        commands.entity(healthbar).insert(Mesh2d(
+            meshes.add(Rectangle::new(health_percentage * 100.0, 10.0)),
+        ));
+
+        commands
+            .entity(healthbar)
+            .insert_if_new(MeshMaterial2d(materials.add(Color::from(RED))));
+    }
+}
+
 fn spawn_arena_area(mut commands: Commands) {
     commands.spawn((
         Arena,
@@ -157,32 +183,6 @@ fn delete_dead_entities(healths: Query<(&Health, Entity)>, mut commands: Command
         if health.current_health <= 0.0 {
             commands.entity(e).despawn();
         }
-    }
-}
-
-fn update_healthbars(
-    mut commands: Commands,
-    mut healthbar_q: Query<(Entity, &ChildOf), With<HealthBar>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    health: Query<&Health>,
-) {
-    for (healthbar, troop) in healthbar_q.iter_mut() {
-        let health = health.get(troop.parent());
-        if health.is_err() {
-            panic!("Health component not on troop!");
-        }
-
-        let health = health.unwrap();
-        let health_percentage = health.current_health / health.max_health;
-
-        commands.entity(healthbar).insert(Mesh2d(
-            meshes.add(Rectangle::new(health_percentage * 100.0, 10.0)),
-        ));
-
-        commands
-            .entity(healthbar)
-            .insert_if_new(MeshMaterial2d(materials.add(Color::from(RED))));
     }
 }
 
