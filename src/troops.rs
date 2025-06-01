@@ -25,6 +25,10 @@ pub struct Quakka;
 pub struct Waterball;
 
 #[derive(Component)]
+#[require(Chaseable, LevelEntity)]
+pub struct Farmer;
+
+#[derive(Component)]
 pub struct Attacker {
     pub cooldown: Timer,
     pub damage: f32,
@@ -44,10 +48,6 @@ pub struct Health {
 #[derive(Component)]
 #[require(Transform)]
 struct HealthBar;
-
-#[derive(Component)]
-#[require(Chaseable, LevelEntity)]
-pub struct Farmer;
 
 #[derive(Component)]
 struct GoingToBridge;
