@@ -143,11 +143,11 @@ fn spawn_arena_area(mut commands: Commands) {
 
 fn quakka_chase_and_attack(
     mut quakkas: Query<(&mut Transform, &mut Attacker), With<Quakka>>,
-    mut chaseables: Query<(&Transform, Entity, &mut Health), (With<QuakkaTarget>, Without<Quakka>)>,
+    mut quakka_targets: Query<(&Transform, Entity, &mut Health), (With<QuakkaTarget>, Without<Quakka>)>,
     time: Res<Time>,
 ) {
     for mut quakka in quakkas.iter_mut() {
-        let closest_chaseable = chaseables.iter_mut().min_by(|a, b| {
+        let closest_chaseable = quakka_targets.iter_mut().min_by(|a, b| {
             let a_distance = quakka.0.translation.distance(a.0.translation);
             let b_distance = quakka.0.translation.distance(b.0.translation);
             a_distance.partial_cmp(&b_distance).unwrap()
