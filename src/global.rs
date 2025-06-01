@@ -24,6 +24,10 @@ impl Default for IsDebug {
     }
 }
 
+pub fn in_debug(is_debug: Res<IsDebug>) -> bool {
+    is_debug.0
+}
+
 #[derive(Resource, Default)]
 pub struct CursorWorldCoords(pub Vec2);
 

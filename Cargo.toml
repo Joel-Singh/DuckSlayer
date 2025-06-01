@@ -5,4 +5,7 @@ edition = "2021"
 
 [dependencies]
 # Using the github because bevy_ui doesn't compile with track_location with the cargo version of bevy. Inane, yes.
-bevy = { git = "https://github.com/bevyengine/bevy.git", tag = "v0.16.0" }
+bevy = "0.16.1"
+bevy_egui = "0.34.1"
+strum = "0.27"
+strum_macros = "0.27"

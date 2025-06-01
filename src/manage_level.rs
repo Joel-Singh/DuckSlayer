@@ -56,6 +56,7 @@ pub struct LevelEntity;
 
 pub fn manage_level(app: &mut App) {
     app.add_plugins(game_messages::game_messages)
+        .add_plugins(debug_ui::debug_ui_plugin)
         .add_systems(
             OnEnter(GameState::InGame),
             (
@@ -80,8 +81,6 @@ pub fn manage_level(app: &mut App) {
                     .chain()
                     .run_if(input_just_pressed(KeyCode::KeyZ))),
                 unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
-                push_to_deckbar(Card::Quakka).run_if(input_just_pressed(KeyCode::KeyX)),
-                save_level.run_if(input_just_pressed(KeyCode::KeyA)),
                 set_gameover_true.run_if(nest_destroyed),
             )
                 .run_if(in_state(GameState::InGame)),
@@ -202,6 +201,53 @@ fn set_gameover_false(mut gameover: ResMut<NextState<GameOver>>) {
 
 fn nest_destroyed(nests: Query<(), With<Nest>>) -> bool {
     nests.iter().count() < 2
+}
+
+mod debug_ui {
+    use bevy::{ecs::system::RunSystemOnce, prelude::*};
+    use bevy_egui::{
+        egui::{self, Ui},
+        EguiContextPass, EguiContexts, EguiPlugin,
+    };
+    use strum::IntoEnumIterator;
+
+    use crate::{
+        deckbar::{Card, PushToDeckbar},
+        global::in_debug,
+    };
+
+    use super::save_level;
+
+    pub fn debug_ui_plugin(app: &mut App) {
+        app.add_plugins(EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
+        .add_systems(EguiContextPass, create_debug_window.run_if(in_debug));
+    }
+
+    fn create_debug_window(mut contexts: EguiContexts, mut commands: Commands) {
+        egui::Window::new("DEBUG UI").show(contexts.ctx_mut(), |ui| {
+            create_push_to_deckbar_btns(ui, &mut commands);
+            if ui.button("Save level").clicked() {
+                commands.queue(move |world: &mut World| {
+                    let _ = world.run_system_once(save_level);
+                })
+            }
+        });
+    }
+
+    fn create_push_to_deckbar_btns(ui: &mut Ui, commands: &mut Commands) {
+        for card in Card::iter() {
+            if card.is_empty() {
+                continue;
+            }
+
+            let push_to_deck_btn = ui.button("Push ".to_string() + &card.to_string());
+            if push_to_deck_btn.clicked() {
+                commands.queue(PushToDeckbar(card));
+            }
+        }
+    }
 }
 
 mod game_messages {

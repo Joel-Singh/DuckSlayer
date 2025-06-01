@@ -5,6 +5,7 @@ use bevy::{
     render::texture::TRANSPARENT_IMAGE_HANDLE,
     ui::FocusPolicy,
 };
+use strum_macros::EnumIter;
 
 use crate::global::*;
 
@@ -17,7 +18,7 @@ pub struct DeckBarRoot;
 #[derive(Component)]
 struct HoverSprite;
 
-#[derive(Component, Clone, Copy, Debug)]
+#[derive(Component, Clone, Copy, Debug, EnumIter)]
 pub enum Card {
     Empty,
     Farmer,
@@ -30,6 +31,15 @@ impl Card {
         match self {
             Card::Empty => true,
             _ => false,
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Card::Empty => "Empty".to_string(),
+            Card::Farmer => "Farmer".to_string(),
+            Card::Quakka => "Quakka".to_string(),
+            Card::Waterball => "Waterball".to_string(),
         }
     }
 }
