@@ -28,7 +28,6 @@ pub enum GameOver {
 struct LevelRes {
     troops: Vec<(Card, Vec2)>,
     nest_locations: Vec<Vec2>,
-    bridge_locations: Vec<Vec2>,
     starting_deckbar: Vec<Card>,
 }
 
@@ -41,7 +40,6 @@ impl Default for LevelRes {
                 (NEST_SECOND_X, NEST_Y).into(),
             ],
             starting_deckbar: vec![Card::Farmer],
-            bridge_locations: vec![BRIDGE_LOCATIONS.0, BRIDGE_LOCATIONS.1],
         };
     }
 }
@@ -52,7 +50,6 @@ impl LevelRes {
             troops: Vec::new(),
             nest_locations: Vec::new(),
             starting_deckbar: Vec::new(),
-            bridge_locations: Vec::new(),
         };
     }
 }
@@ -68,6 +65,7 @@ pub fn manage_level(app: &mut App) {
             OnEnter(GameState::InGame),
             (
                 spawn_arena_background,
+                spawn_bridge_locations,
                 spawn_entities_from_level.run_if(not_in_editor),
                 show_deckbar,
                 set_message("[Space] to start level").run_if(not_in_editor),
@@ -120,6 +118,24 @@ fn spawn_arena_background(mut commands: Commands, asset_server: Res<AssetServer>
     ));
 }
 
+fn spawn_bridge_locations(mut commands: Commands) {
+    commands.spawn((
+        Bridge,
+        Transform {
+            translation: BRIDGE_LOCATIONS.0.extend(0.0),
+            ..default()
+        },
+    ));
+
+    commands.spawn((
+        Bridge,
+        Transform {
+            translation: BRIDGE_LOCATIONS.1.extend(0.0),
+            ..default()
+        },
+    ));
+}
+
 fn save_level(
     mut level: ResMut<LevelRes>,
     level_entities: Query<(&Transform, Has<Quakka>, Has<Farmer>, Has<Nest>), With<LevelEntity>>,
@@ -158,16 +174,6 @@ fn spawn_entities_from_level(
 
     for nest_position in &level.nest_locations {
         spawn_nest(*nest_position, &mut commands, &asset_server);
-    }
-
-    for bridge_position in &level.bridge_locations {
-        commands.spawn((
-            Bridge,
-            Transform {
-                translation: bridge_position.extend(0.0),
-                ..default()
-            },
-        ));
     }
 
     for card in &level.starting_deckbar {
