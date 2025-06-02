@@ -3,7 +3,7 @@ use game_messages::set_message;
 use DuckSlayer::delete_all;
 
 use crate::{
-    deckbar::{clear_deckbar, push_to_deckbar, show_deckbar, Card, DeckBarRoot, PushToDeckbar},
+    deckbar::{clear_deckbar, show_deckbar, Card, DeckBarRoot, PushToDeckbar},
     global::{
         GameState, BRIDGE_LOCATIONS, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_STARTING_POSITION,
     },
