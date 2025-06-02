@@ -60,6 +60,8 @@ pub const NEST_Y: f32 = -312.;
 pub const NEST_ATTACK_DISTANCE: f32 = 500.;
 pub const NEST_DAMAGE: f32 = 10.;
 
+pub const BRIDGE_LOCATIONS: (Vec2, Vec2) = (Vec2::new(-392.0, -4.0), Vec2::new(165.0, -8.0));
+
 pub fn global(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
         .init_resource::<CursorWorldCoords>()

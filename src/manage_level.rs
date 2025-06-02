@@ -4,7 +4,9 @@ use DuckSlayer::delete_all;
 
 use crate::{
     deckbar::{clear_deckbar, push_to_deckbar, show_deckbar, Card, DeckBarRoot, PushToDeckbar},
-    global::{GameState, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_STARTING_POSITION},
+    global::{
+        GameState, BRIDGE_LOCATIONS, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_STARTING_POSITION,
+    },
     troops::{spawn_nest, troop_bundles::spawn_troop, Bridge, Farmer, Nest, Quakka},
 };
 
@@ -25,6 +27,7 @@ pub enum GameOver {
 struct LevelRes {
     troops: Vec<(Card, Vec2)>,
     nest_locations: Vec<Vec2>,
+    bridge_locations: Vec<Vec2>,
     starting_deckbar: Vec<Card>,
 }
 
@@ -36,7 +39,8 @@ impl Default for LevelRes {
                 (NEST_FIRST_X, NEST_Y).into(),
                 (NEST_SECOND_X, NEST_Y).into(),
             ],
-            starting_deckbar: vec![Card::Farmer, Card::Waterball],
+            starting_deckbar: vec![Card::Farmer],
+            bridge_locations: vec![BRIDGE_LOCATIONS.0, BRIDGE_LOCATIONS.1],
         };
     }
 }
@@ -47,6 +51,7 @@ impl LevelRes {
             troops: Vec::new(),
             nest_locations: Vec::new(),
             starting_deckbar: Vec::new(),
+            bridge_locations: Vec::new(),
         };
     }
 }
@@ -60,10 +65,9 @@ pub fn manage_level(app: &mut App) {
         .add_systems(
             OnEnter(GameState::InGame),
             (
-                spawn_entities,
                 spawn_arena_background,
+                spawn_entities_from_level,
                 show_deckbar,
-                push_to_deckbar(Card::Farmer),
                 set_message("[Space] to start level"),
             ),
         )
@@ -109,35 +113,6 @@ fn spawn_arena_background(mut commands: Commands, asset_server: Res<AssetServer>
     ));
 }
 
-fn spawn_entities(asset_server: Res<AssetServer>, mut commands: Commands) {
-    spawn_troop(
-        Card::Quakka,
-        QUAKKA_STARTING_POSITION,
-        &mut commands,
-        &asset_server,
-    );
-
-    spawn_nest((NEST_FIRST_X, NEST_Y).into(), &mut commands, &asset_server);
-
-    spawn_nest((NEST_SECOND_X, NEST_Y).into(), &mut commands, &asset_server);
-
-    commands.spawn((
-        Bridge,
-        Transform {
-            translation: Vec3::new(-392.0, -4.0, 0.),
-            ..default()
-        },
-    ));
-
-    commands.spawn((
-        Bridge,
-        Transform {
-            translation: Vec3::new(165.0, -8.0, 0.),
-            ..default()
-        },
-    ));
-}
-
 fn save_level(
     mut level: ResMut<LevelRes>,
     level_entities: Query<(&Transform, Has<Quakka>, Has<Farmer>, Has<Nest>), With<LevelEntity>>,
@@ -176,6 +151,16 @@ fn spawn_entities_from_level(
 
     for nest_position in &level.nest_locations {
         spawn_nest(*nest_position, &mut commands, &asset_server);
+    }
+
+    for bridge_position in &level.bridge_locations {
+        commands.spawn((
+            Bridge,
+            Transform {
+                translation: bridge_position.extend(0.0),
+                ..default()
+            },
+        ));
     }
 
     for card in &level.starting_deckbar {
