@@ -1,5 +1,6 @@
 use bevy::{prelude::*, window::WindowResolution};
 
+mod asset_load_schedule;
 mod back_btn;
 mod card;
 mod deckbar;
@@ -30,6 +31,7 @@ fn main() {
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
+        .add_plugins(asset_load_schedule::asset_load_schedule)
         .add_plugins(titlescreen::titlescreen)
         .add_plugins(global::global)
         .add_plugins(card::card)

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use DuckSlayer::delete_all;
 
-use crate::global::*;
+use crate::{asset_load_schedule::AssetLoad, global::*};
 
 #[derive(Component)]
 struct TitleScreen;
@@ -14,8 +14,16 @@ struct PlayBtn;
 #[require(Button)]
 struct EditorBtn;
 
+#[derive(Resource, Default)]
+struct ImageHandles {
+    play_btn: Handle<Image>,
+    editor_btn: Handle<Image>,
+    background: Handle<Image>,
+}
+
 pub fn titlescreen(app: &mut App) {
-    app.add_systems(OnEnter(GameState::TitleScreen), spawn_titlescreen)
+    app.add_systems(AssetLoad, load_images)
+        .add_systems(OnEnter(GameState::TitleScreen), spawn_titlescreen)
         .add_systems(
             FixedUpdate,
             (start_game_on_click, start_editor_on_click).run_if(in_state(GameState::TitleScreen)),
@@ -23,12 +31,33 @@ pub fn titlescreen(app: &mut App) {
         .add_systems(OnExit(GameState::TitleScreen), delete_all::<TitleScreen>);
 }
 
-fn spawn_titlescreen(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn load_images(world: &mut World) {
+    world.insert_resource(ImageHandles {
+        play_btn: world.load_asset("play-btn.png"),
+        editor_btn: world.load_asset("editor-btn.png"),
+        background: world.load_asset("title_screen.png"),
+    })
+}
+
+fn spawn_titlescreen(mut commands: Commands, handles: Res<ImageHandles>) {
     let button_style = Node {
         width: Val::Px(BTN_SIZE.0),
         height: Val::Px(BTN_SIZE.1),
         ..default()
     };
+
+    commands.spawn((
+        Sprite {
+            image: handles.background.clone(),
+            ..default()
+        },
+        Transform {
+            // -0.5 so it's in the back and clicks are registered to Nodes
+            translation: Vec3::new(0., 0., -0.5),
+            ..default()
+        },
+        TitleScreen,
+    ));
 
     commands.spawn((
         Node {
@@ -43,28 +72,15 @@ fn spawn_titlescreen(mut commands: Commands, asset_server: Res<AssetServer>) {
         children![
             (
                 PlayBtn,
-                ImageNode::new(asset_server.load("play-btn.png")),
+                ImageNode::new(handles.play_btn.clone()),
                 button_style.clone()
             ),
             (
                 EditorBtn,
-                ImageNode::new(asset_server.load("editor-btn.png")),
+                ImageNode::new(handles.editor_btn.clone()),
                 button_style.clone()
             )
         ],
-    ));
-
-    commands.spawn((
-        Sprite {
-            image: asset_server.load("title_screen.png"),
-            ..default()
-        },
-        Transform {
-            // -0.5 so it's in the back and clicks are registered to Nodes
-            translation: Vec3::new(0., 0., -0.5),
-            ..default()
-        },
-        TitleScreen,
     ));
 }
 
