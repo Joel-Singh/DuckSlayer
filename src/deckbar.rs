@@ -161,27 +161,6 @@ fn update_card_image(
     }
 }
 
-pub fn push_to_deckbar(card: Card) -> ScheduleConfigs<ScheduleSystem> {
-    (move |mut commands: Commands,
-           card_node: Single<&Children, With<DeckBarRoot>>,
-           card_q: Query<&Card>| {
-        let mut empty_card_node: Option<Entity> = None;
-        for card_node in card_node.into_iter() {
-            let card = card_q.get(*card_node).unwrap();
-
-            if card.is_empty() {
-                empty_card_node = Some(*card_node);
-                break;
-            }
-        }
-
-        if let Some(empty_card_node) = empty_card_node {
-            commands.entity(empty_card_node).insert(card);
-        }
-    })
-    .into_configs()
-}
-
 fn highlight_card_on_hover(
     mut interaction_query: Query<
         (&Interaction, &mut ImageNode),
