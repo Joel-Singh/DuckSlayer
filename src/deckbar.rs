@@ -1,9 +1,5 @@
 use bevy::{
-    color::palettes::css::*,
-    ecs::{schedule::ScheduleConfigs, system::ScheduleSystem},
-    prelude::*,
-    render::texture::TRANSPARENT_IMAGE_HANDLE,
-    ui::FocusPolicy,
+    color::palettes::css::*, prelude::*, render::texture::TRANSPARENT_IMAGE_HANDLE, ui::FocusPolicy,
 };
 use strum_macros::EnumIter;
 
