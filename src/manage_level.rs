@@ -298,7 +298,8 @@ mod editor_ui {
                 continue;
             }
 
-            let push_to_deck_btn = ui.button("Push ".to_string() + &card.to_string());
+            let push_to_deck_btn =
+                ui.button("Add ".to_string() + &card.to_string() + &" to the deck".to_string());
             if push_to_deck_btn.clicked() {
                 commands.queue(PushToDeckbar(card));
             }
