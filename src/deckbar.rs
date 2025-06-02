@@ -136,7 +136,7 @@ fn update_card_image(
 fn highlight_card_on_hover(
     mut interaction_query: Query<
         (&Interaction, &mut ImageNode),
-        (Changed<Interaction>, With<Button>),
+        (Changed<Interaction>, (With<Button>, With<Card>)),
     >,
 ) {
     for (interaction, mut image_node) in &mut interaction_query {
