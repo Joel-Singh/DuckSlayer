@@ -1,7 +1,8 @@
+use crate::card::Card;
+
 use bevy::{
     color::palettes::css::*, prelude::*, render::texture::TRANSPARENT_IMAGE_HANDLE, ui::FocusPolicy,
 };
-use strum_macros::EnumIter;
 
 use crate::global::*;
 
@@ -13,34 +14,6 @@ pub struct DeckBarRoot;
 
 #[derive(Component)]
 struct HoverSprite;
-
-#[derive(Component, Clone, Copy, Debug, EnumIter)]
-pub enum Card {
-    Empty,
-    Farmer,
-    Quakka,
-    Waterball,
-    Nest,
-}
-
-impl Card {
-    pub fn is_empty(&self) -> bool {
-        match self {
-            Card::Empty => true,
-            _ => false,
-        }
-    }
-
-    pub fn to_string(&self) -> String {
-        match self {
-            Card::Empty => "Empty".to_string(),
-            Card::Farmer => "Farmer".to_string(),
-            Card::Quakka => "Quakka".to_string(),
-            Card::Waterball => "Waterball".to_string(),
-            Card::Nest => "Nest".to_string(),
-        }
-    }
-}
 
 pub fn deckbar(app: &mut App) {
     app.add_systems(Startup, (initialize_deckbar, spawn_hover_sprite))
@@ -202,40 +175,15 @@ fn hover_sprite_when_card_selected(
     };
 
     if let Some(selected_card) = selected_card {
-        match selected_card.into_inner() {
-            Card::Farmer => {
-                commands.entity(*hover_sprite).insert(Sprite {
-                    image: asset_server.load("farmer.png"),
-                    custom_size: Some(FARMER_SIZE),
-                    color: Color::linear_rgba(1., 1., 1., 0.5),
-                    ..default()
-                });
-            }
-            Card::Quakka => {
-                commands.entity(*hover_sprite).insert(Sprite {
-                    image: asset_server.load("quakka.png"),
-                    custom_size: Some(QUAKKA_SIZE),
-                    color: Color::linear_rgba(1., 1., 1., 0.5),
-                    ..default()
-                });
-            }
-            Card::Waterball => {
-                commands.entity(*hover_sprite).insert(Sprite {
-                    image: asset_server.load("waterball.png"),
-                    custom_size: Some(WATERBALL_SIZE),
-                    color: Color::linear_rgba(1., 1., 1., 0.5),
-                    ..default()
-                });
-            }
-            Card::Nest => {
-                commands.entity(*hover_sprite).insert(Sprite {
-                    image: asset_server.load("nest.png"),
-                    custom_size: Some(NEST_SIZE),
-                    color: Color::linear_rgba(1., 1., 1., 0.5),
-                    ..default()
-                });
-            }
-            Card::Empty => hide_hover_sprite(),
+        let selected_card = selected_card.into_inner();
+
+        if selected_card.is_empty() {
+            hide_hover_sprite();
+        } else {
+            commands.entity(*hover_sprite).insert(Sprite {
+                color: Color::linear_rgba(1., 1., 1., 0.5),
+                ..selected_card.get_sprite(&asset_server)
+            });
         }
     } else {
         hide_hover_sprite()

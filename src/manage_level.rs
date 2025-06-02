@@ -3,12 +3,13 @@ use game_messages::set_message;
 use DuckSlayer::delete_all;
 
 use crate::{
-    deckbar::{clear_deckbar, show_deckbar, Card, DeckBarRoot, PushToDeckbar},
+    card::{spawn_troop, Card},
+    deckbar::{clear_deckbar, show_deckbar, DeckBarRoot, PushToDeckbar},
     global::{
         in_editor, not_in_editor, GameState, BRIDGE_LOCATIONS, NEST_FIRST_X, NEST_SECOND_X, NEST_Y,
         QUAKKA_STARTING_POSITION,
     },
-    troops::{troop_bundles::spawn_troop, Bridge, Farmer, Nest, NestDestroyed, Quakka},
+    troops::{Bridge, Farmer, Nest, NestDestroyed, Quakka},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -259,7 +260,8 @@ mod editor_ui {
     use DuckSlayer::delete_all;
 
     use crate::{
-        deckbar::{clear_deckbar, Card, PushToDeckbar},
+        card::Card,
+        deckbar::{clear_deckbar, PushToDeckbar},
         global::in_editor,
     };
 
@@ -313,9 +315,7 @@ mod debug_ui {
     use strum::IntoEnumIterator;
 
     use crate::{
-        deckbar::{Card, PushToDeckbar},
-        global::in_debug,
-        troops::IsTroopDebugOverlayEnabled,
+        card::Card, deckbar::PushToDeckbar, global::in_debug, troops::IsTroopDebugOverlayEnabled,
     };
 
     use super::save_level;

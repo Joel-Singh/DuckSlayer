@@ -1,14 +1,5 @@
-use bevy::ecs::component::HookContext;
-use bevy::ecs::world::DeferredWorld;
-use bevy::{color::palettes::css::*, prelude::*};
-use debug::debug;
-use nest::nest_plugin;
-use nest::nest_shoot;
-
-pub use nest::Nest;
-use troop_bundles::spawn_troop;
-
-use crate::deckbar::Card;
+use crate::card::spawn_troop;
+use crate::card::Card;
 use crate::global::{in_editor, WATERBALL_DAMAGE, WATERBALL_RADIUS};
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
@@ -16,6 +7,14 @@ use crate::{
     deckbar::{DeleteSelectedCard, SelectedCard},
     global::{CursorWorldCoords, GameState, FARMER_SPEED, QUAKKA_HIT_DISTANCE, QUAKKA_SPEED},
 };
+
+use bevy::ecs::component::HookContext;
+use bevy::ecs::world::DeferredWorld;
+use bevy::{color::palettes::css::*, prelude::*};
+use debug::debug;
+use nest::nest_plugin;
+use nest::nest_shoot;
+pub use nest::Nest;
 
 #[derive(Component)]
 #[require(LevelEntity, NestTarget, WaterballTarget)]
@@ -56,7 +55,7 @@ pub struct Health {
 struct HealthBar;
 
 #[derive(Component)]
-struct GoingToBridge;
+pub struct GoingToBridge;
 
 #[derive(Event)]
 pub struct NestDestroyed;
@@ -333,130 +332,6 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
             panic!("Attack cooldown should be once");
         }
         attacker.cooldown.tick(time.delta());
-    }
-}
-
-pub mod troop_bundles {
-    use super::{Attacker, Farmer, GoingToBridge, Health, Nest, Quakka, Waterball};
-    use crate::{
-        deckbar::Card,
-        global::{
-            FARMER_SIZE, NEST_DAMAGE, NEST_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE, WATERBALL_DAMAGE,
-            WATERBALL_SIZE,
-        },
-    };
-    use bevy::prelude::*;
-    use std::time::Duration;
-
-    pub fn spawn_troop(
-        card: Card,
-        position: Vec2,
-        commands: &mut Commands,
-        asset_server: &Res<AssetServer>,
-    ) {
-        match card {
-            Card::Farmer => {
-                commands.spawn(farmer_bundle(position, asset_server));
-            }
-            Card::Quakka => {
-                commands.spawn(quakka_bundle(position, asset_server));
-            }
-            Card::Waterball => {
-                commands.spawn(waterball_bundle(position, asset_server));
-            }
-            Card::Nest => {
-                commands.spawn(nest_bundle(position, asset_server));
-            }
-            Card::Empty => warn!("Cannot spawn an empty card bundle"),
-        }
-    }
-
-    fn quakka_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
-        (
-            Sprite {
-                image: asset_server.load("quakka.png"),
-                custom_size: Some(QUAKKA_SIZE),
-                ..default()
-            },
-            Transform {
-                translation: position.extend(0.0),
-                ..default()
-            },
-            Health {
-                current_health: 100.0,
-                max_health: 100.0,
-                healthbar_height: 60.,
-            },
-            Quakka,
-            Attacker {
-                cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-                damage: QUAKKA_DAMAGE,
-            },
-        )
-    }
-
-    fn farmer_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
-        (
-            Sprite {
-                image: asset_server.load("farmer.png"),
-                custom_size: Some(FARMER_SIZE),
-                ..default()
-            },
-            Transform {
-                translation: position.extend(0.),
-                ..default()
-            },
-            Farmer,
-            GoingToBridge,
-            Health {
-                current_health: 100.0,
-                max_health: 100.0,
-                healthbar_height: 60.,
-            },
-        )
-    }
-
-    fn waterball_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
-        (
-            Waterball,
-            Sprite {
-                image: asset_server.load("waterball.png"),
-                custom_size: Some(WATERBALL_SIZE),
-                ..default()
-            },
-            Transform {
-                translation: position.extend(0.0),
-                ..default()
-            },
-            Attacker {
-                cooldown: Timer::new(Duration::from_secs_f32(0.1), TimerMode::Once),
-                damage: WATERBALL_DAMAGE,
-            },
-        )
-    }
-
-    fn nest_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
-        (
-            Sprite {
-                image: asset_server.load("nest.png"),
-                custom_size: Some(NEST_SIZE),
-                ..default()
-            },
-            Transform {
-                translation: position.extend(0.0),
-                ..default()
-            },
-            Health {
-                current_health: 100.0,
-                max_health: 100.0,
-                healthbar_height: 60.,
-            },
-            Nest::default(),
-            Attacker {
-                cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-                damage: NEST_DAMAGE,
-            },
-        )
     }
 }
 

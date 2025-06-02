@@ -1,5 +1,6 @@
 use bevy::{prelude::*, window::WindowResolution};
 
+mod card;
 mod deckbar;
 mod game_messages;
 mod global;
