@@ -8,7 +8,7 @@ use crate::{
         in_editor, not_in_editor, GameState, BRIDGE_LOCATIONS, NEST_FIRST_X, NEST_SECOND_X, NEST_Y,
         QUAKKA_STARTING_POSITION,
     },
-    troops::{spawn_nest, troop_bundles::spawn_troop, Bridge, Farmer, Nest, Quakka},
+    troops::{spawn_nest, troop_bundles::spawn_troop, Bridge, Farmer, Nest, NestDestroyed, Quakka},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -88,7 +88,7 @@ pub fn manage_level(app: &mut App) {
                     .run_if(input_just_pressed(KeyCode::KeyZ))),
                 unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
                 toggle_pause.run_if(input_just_pressed(KeyCode::Space).and(in_editor)),
-                set_gameover_true.run_if(nest_destroyed.and(not_in_editor)),
+                gameover_on_nest_destruction.run_if(not_in_editor),
             )
                 .run_if(in_state(GameState::InGame)),
         )
@@ -193,16 +193,17 @@ fn toggle_pause(mut is_paused_mut: ResMut<NextState<IsPaused>>, is_paused: Res<S
     }
 }
 
-fn set_gameover_true(mut gameover: ResMut<NextState<GameOver>>) {
-    gameover.set(GameOver::True);
+fn gameover_on_nest_destruction(
+    mut gameover: ResMut<NextState<GameOver>>,
+    mut nest_destroyed_evs: EventReader<NestDestroyed>,
+) {
+    for _ in nest_destroyed_evs.read() {
+        gameover.set(GameOver::True);
+    }
 }
 
 fn set_gameover_false(mut gameover: ResMut<NextState<GameOver>>) {
     gameover.set(GameOver::False);
-}
-
-fn nest_destroyed(nests: Query<(), With<Nest>>) -> bool {
-    nests.iter().count() < 2
 }
 
 mod debug_ui {

@@ -59,6 +59,9 @@ struct HealthBar;
 #[derive(Component)]
 struct GoingToBridge;
 
+#[derive(Event)]
+pub struct NestDestroyed;
+
 #[derive(Component)]
 pub struct Bridge;
 
@@ -92,6 +95,7 @@ pub fn troops(app: &mut App) {
             )
                 .run_if(in_state(GameState::InGame)),
         )
+        .add_event::<NestDestroyed>()
         .add_plugins(nest_plugin)
         .add_plugins(debug);
 }
@@ -231,10 +235,19 @@ fn explode_waterballs(
     }
 }
 
-fn delete_dead_entities(healths: Query<(&Health, Entity)>, mut commands: Commands) {
+fn delete_dead_entities(
+    healths: Query<(&Health, Entity)>,
+    mut commands: Commands,
+    nests: Query<Has<Nest>>,
+    mut nest_destroyed_ev: EventWriter<NestDestroyed>,
+) {
     for (health, e) in healths.iter() {
         if health.current_health <= 0.0 {
             commands.entity(e).despawn();
+
+            if nests.get(e).unwrap_or_default() {
+                nest_destroyed_ev.write(NestDestroyed);
+            }
         }
     }
 }
