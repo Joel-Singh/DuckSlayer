@@ -8,7 +8,7 @@ mod global;
 mod manage_level;
 mod titlescreen;
 
-use bevy_egui::{EguiGlobalSettings, EguiPlugin};
+use bevy_egui::EguiPlugin;
 use std::env;
 
 fn main() {
