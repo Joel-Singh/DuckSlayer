@@ -52,13 +52,13 @@ pub const WATERBALL_RADIUS: f32 = 50.;
 pub const WATERBALL_SIZE: Vec2 = Vec2::new(WATERBALL_RADIUS * 2., WATERBALL_RADIUS * 2.);
 pub const WATERBALL_DAMAGE: f32 = 30.0;
 
+pub const QUAKKA_STARTING_POSITION: Vec2 = Vec2::new(-391., 104.);
+
 pub const NEST_FIRST_X: f32 = -388.;
 pub const NEST_SECOND_X: f32 = 173.;
 pub const NEST_Y: f32 = -312.;
 pub const NEST_ATTACK_DISTANCE: f32 = 500.;
 pub const NEST_DAMAGE: f32 = 10.;
-
-pub const QUAKKA_STARTING_POSITION: Vec2 = Vec2::new(-391., 104.);
 
 pub fn global(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
