@@ -8,7 +8,7 @@ use crate::{
         in_editor, not_in_editor, GameState, BRIDGE_LOCATIONS, NEST_FIRST_X, NEST_SECOND_X, NEST_Y,
         QUAKKA_STARTING_POSITION,
     },
-    troops::{spawn_nest, troop_bundles::spawn_troop, Bridge, Farmer, Nest, NestDestroyed, Quakka},
+    troops::{troop_bundles::spawn_troop, Bridge, Farmer, Nest, NestDestroyed, Quakka},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -34,11 +34,12 @@ struct LevelRes {
 impl Default for LevelRes {
     fn default() -> Self {
         return LevelRes {
-            troops: vec![(Card::Quakka, QUAKKA_STARTING_POSITION)],
-            nest_locations: vec![
-                (NEST_FIRST_X, NEST_Y).into(),
-                (NEST_SECOND_X, NEST_Y).into(),
+            troops: vec![
+                (Card::Quakka, QUAKKA_STARTING_POSITION),
+                (Card::Nest, (NEST_FIRST_X, NEST_Y).into()),
+                (Card::Nest, (NEST_SECOND_X, NEST_Y).into()),
             ],
+            nest_locations: vec![],
             starting_deckbar: vec![Card::Farmer],
         };
     }
@@ -170,10 +171,6 @@ fn spawn_entities_from_level(
 ) {
     for (card, position) in &level.troops {
         spawn_troop(*card, *position, &mut commands, &asset_server);
-    }
-
-    for nest_position in &level.nest_locations {
-        spawn_nest(*nest_position, &mut commands, &asset_server);
     }
 
     for card in &level.starting_deckbar {

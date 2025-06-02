@@ -20,6 +20,7 @@ pub enum Card {
     Farmer,
     Quakka,
     Waterball,
+    Nest,
 }
 
 impl Card {
@@ -36,6 +37,7 @@ impl Card {
             Card::Farmer => "Farmer".to_string(),
             Card::Quakka => "Quakka".to_string(),
             Card::Waterball => "Waterball".to_string(),
+            Card::Nest => "Nest".to_string(),
         }
     }
 }
@@ -146,6 +148,7 @@ fn update_card_image(
             Card::Farmer => asset_server.load("farmer_mugshot.png"),
             Card::Quakka => asset_server.load("quakka_mugshot.png"),
             Card::Waterball => asset_server.load("waterball_mugshot.png"),
+            Card::Nest => asset_server.load("nest_mugshot.png"),
             Card::Empty => TRANSPARENT_IMAGE_HANDLE,
         };
 
@@ -220,6 +223,14 @@ fn hover_sprite_when_card_selected(
                 commands.entity(*hover_sprite).insert(Sprite {
                     image: asset_server.load("waterball.png"),
                     custom_size: Some(WATERBALL_SIZE),
+                    color: Color::linear_rgba(1., 1., 1., 0.5),
+                    ..default()
+                });
+            }
+            Card::Nest => {
+                commands.entity(*hover_sprite).insert(Sprite {
+                    image: asset_server.load("nest.png"),
+                    custom_size: Some(NEST_SIZE),
                     color: Color::linear_rgba(1., 1., 1., 0.5),
                     ..default()
                 });

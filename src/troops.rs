@@ -5,7 +5,6 @@ use debug::debug;
 use nest::nest_plugin;
 use nest::nest_shoot;
 
-pub use nest::spawn_nest;
 pub use nest::Nest;
 use troop_bundles::spawn_troop;
 
@@ -338,10 +337,13 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
 }
 
 pub mod troop_bundles {
-    use super::{Attacker, Farmer, GoingToBridge, Health, Quakka, Waterball};
+    use super::{Attacker, Farmer, GoingToBridge, Health, Nest, Quakka, Waterball};
     use crate::{
         deckbar::Card,
-        global::{FARMER_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE, WATERBALL_DAMAGE, WATERBALL_SIZE},
+        global::{
+            FARMER_SIZE, NEST_DAMAGE, NEST_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE, WATERBALL_DAMAGE,
+            WATERBALL_SIZE,
+        },
     };
     use bevy::prelude::*;
     use std::time::Duration;
@@ -361,6 +363,9 @@ pub mod troop_bundles {
             }
             Card::Waterball => {
                 commands.spawn(waterball_bundle(position, asset_server));
+            }
+            Card::Nest => {
+                commands.spawn(nest_bundle(position, asset_server));
             }
             Card::Empty => warn!("Cannot spawn an empty card bundle"),
         }
@@ -429,6 +434,30 @@ pub mod troop_bundles {
             },
         )
     }
+
+    fn nest_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
+        (
+            Sprite {
+                image: asset_server.load("nest.png"),
+                custom_size: Some(NEST_SIZE),
+                ..default()
+            },
+            Transform {
+                translation: position.extend(0.0),
+                ..default()
+            },
+            Health {
+                current_health: 100.0,
+                max_health: 100.0,
+                healthbar_height: 60.,
+            },
+            Nest::default(),
+            Attacker {
+                cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
+                damage: NEST_DAMAGE,
+            },
+        )
+    }
 }
 
 mod nest {
@@ -438,7 +467,6 @@ mod nest {
         manage_level::LevelEntity,
     };
     use bevy::prelude::*;
-    use std::time::Duration;
 
     #[derive(Component, Default)]
     #[require(QuakkaTarget, LevelEntity)]
@@ -453,30 +481,6 @@ mod nest {
 
     pub fn nest_plugin(app: &mut App) {
         app.add_systems(FixedUpdate, (spawn_eggs, render_eggs));
-    }
-
-    pub fn spawn_nest(translation: Vec2, commands: &mut Commands, asset_server: &Res<AssetServer>) {
-        commands.spawn((
-            Sprite {
-                image: asset_server.load("nest.png"),
-                custom_size: Some(Vec2::new(50., 50.)),
-                ..default()
-            },
-            Transform {
-                translation: translation.extend(0.0),
-                ..default()
-            },
-            Health {
-                current_health: 100.0,
-                max_health: 100.0,
-                healthbar_height: 60.,
-            },
-            Nest::default(),
-            Attacker {
-                cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-                damage: NEST_DAMAGE,
-            },
-        ));
     }
 
     pub fn nest_shoot(
