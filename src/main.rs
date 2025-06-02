@@ -6,14 +6,12 @@ mod game_messages;
 mod global;
 mod manage_level;
 mod titlescreen;
-mod troops;
 
 use bevy_egui::EguiPlugin;
 use deckbar::*;
 use global::*;
 use manage_level::*;
 use titlescreen::*;
-use troops::*;
 
 use std::env;
 
@@ -37,8 +35,8 @@ fn main() {
             enable_multipass_for_primary_context: true,
         })
         .add_plugins(titlescreen)
-        .add_plugins(troops)
         .add_plugins(global)
+        .add_plugins(card::plugin)
         .add_plugins(deckbar)
         .add_plugins(manage_level)
         .add_systems(Startup, setup_camera)

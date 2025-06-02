@@ -1,4 +1,4 @@
-use crate::card::spawn_troop;
+use crate::card::spawn_card;
 use crate::card::Card;
 use crate::global::{in_editor, WATERBALL_DAMAGE, WATERBALL_RADIUS};
 use crate::manage_level::IsPaused;
@@ -66,7 +66,7 @@ pub struct Bridge;
 #[derive(Component)]
 pub struct Arena;
 
-pub fn troops(app: &mut App) {
+pub fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_arena_area)
         .add_systems(
             FixedUpdate,
@@ -89,7 +89,7 @@ pub fn troops(app: &mut App) {
                     nest_shoot,
                 )
                     .run_if(in_state(IsPaused::False)),
-                spawn_troop_on_click.run_if(in_state(IsPaused::False).or(in_editor)),
+                spawn_card_on_click.run_if(in_state(IsPaused::False).or(in_editor)),
             )
                 .run_if(in_state(GameState::InGame)),
         )
@@ -119,10 +119,10 @@ fn update_healthbars(
     mut materials: ResMut<Assets<ColorMaterial>>,
     health: Query<&Health>,
 ) {
-    for (healthbar, troop) in healthbar_q.iter_mut() {
-        let health = health.get(troop.parent());
+    for (healthbar, card) in healthbar_q.iter_mut() {
+        let health = health.get(card.parent());
         if health.is_err() {
-            panic!("Health component not on troop!");
+            panic!("Health component not on card!");
         }
 
         let health = health.unwrap();
@@ -296,7 +296,7 @@ fn farmer_go_up(
     }
 }
 
-fn spawn_troop_on_click(
+fn spawn_card_on_click(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     interaction_q: Query<&Interaction, (With<Arena>, Changed<Interaction>)>,
@@ -318,7 +318,7 @@ fn spawn_troop_on_click(
 
         if let Some(selected_card) = selected_card {
             if !selected_card.is_empty() {
-                spawn_troop(*selected_card, mouse_coords.0, &mut commands, &asset_server);
+                spawn_card(*selected_card, mouse_coords.0, &mut commands, &asset_server);
             }
 
             commands.queue(DeleteSelectedCard::default());
@@ -454,7 +454,7 @@ mod nest {
     }
 }
 
-pub use debug::IsTroopDebugOverlayEnabled;
+pub use debug::IsSpawnedCardDebugOverlayEnabled;
 
 mod debug {
     use crate::global::{in_debug, NEST_ATTACK_DISTANCE};
@@ -463,11 +463,11 @@ mod debug {
     use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
 
     #[derive(Resource, PartialEq)]
-    pub struct IsTroopDebugOverlayEnabled(pub bool);
+    pub struct IsSpawnedCardDebugOverlayEnabled(pub bool);
 
-    impl Default for IsTroopDebugOverlayEnabled {
+    impl Default for IsSpawnedCardDebugOverlayEnabled {
         fn default() -> Self {
-            IsTroopDebugOverlayEnabled(false)
+            IsSpawnedCardDebugOverlayEnabled(false)
         }
     }
 
@@ -475,9 +475,9 @@ mod debug {
         app.add_systems(
             FixedUpdate,
             (show_bridge_points, show_nest_attack_radius)
-                .run_if(in_debug.and(resource_equals(IsTroopDebugOverlayEnabled(true)))),
+                .run_if(in_debug.and(resource_equals(IsSpawnedCardDebugOverlayEnabled(true)))),
         )
-        .init_resource::<IsTroopDebugOverlayEnabled>();
+        .init_resource::<IsSpawnedCardDebugOverlayEnabled>();
     }
 
     fn show_bridge_points(mut draw: Gizmos, bridges: Query<&Transform, With<Bridge>>) {

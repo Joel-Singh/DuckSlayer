@@ -3,13 +3,12 @@ use game_messages::set_message;
 use DuckSlayer::delete_all;
 
 use crate::{
-    card::{spawn_troop, Card},
+    card::{spawn_card, Bridge, Card, Farmer, Nest, NestDestroyed, Quakka},
     deckbar::{clear_deckbar, show_deckbar, DeckBarRoot, PushToDeckbar},
     global::{
         in_editor, not_in_editor, GameState, BRIDGE_LOCATIONS, NEST_FIRST_X, NEST_SECOND_X, NEST_Y,
         QUAKKA_STARTING_POSITION,
     },
-    troops::{Bridge, Farmer, Nest, NestDestroyed, Quakka},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -27,7 +26,7 @@ pub enum GameOver {
 
 #[derive(Resource)]
 struct LevelRes {
-    troops: Vec<(Card, Vec2)>,
+    cards: Vec<(Card, Vec2)>,
     nest_locations: Vec<Vec2>,
     starting_deckbar: Vec<Card>,
 }
@@ -35,7 +34,7 @@ struct LevelRes {
 impl Default for LevelRes {
     fn default() -> Self {
         return LevelRes {
-            troops: vec![
+            cards: vec![
                 (Card::Quakka, QUAKKA_STARTING_POSITION),
                 (Card::Nest, (NEST_FIRST_X, NEST_Y).into()),
                 (Card::Nest, (NEST_SECOND_X, NEST_Y).into()),
@@ -49,7 +48,7 @@ impl Default for LevelRes {
 impl LevelRes {
     fn clear(&mut self) {
         *self = LevelRes {
-            troops: Vec::new(),
+            cards: Vec::new(),
             nest_locations: Vec::new(),
             starting_deckbar: Vec::new(),
         };
@@ -149,11 +148,11 @@ fn save_level(
     for (transform, is_quakka, is_farmer, is_nest) in level_entities {
         if is_quakka {
             level
-                .troops
+                .cards
                 .push((Card::Quakka, transform.translation.truncate()));
         } else if is_farmer {
             level
-                .troops
+                .cards
                 .push((Card::Farmer, transform.translation.truncate()));
         } else if is_nest {
             level.nest_locations.push(transform.translation.truncate());
@@ -170,8 +169,8 @@ fn spawn_entities_from_level(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    for (card, position) in &level.troops {
-        spawn_troop(*card, *position, &mut commands, &asset_server);
+    for (card, position) in &level.cards {
+        spawn_card(*card, *position, &mut commands, &asset_server);
     }
 
     for card in &level.starting_deckbar {
@@ -315,7 +314,9 @@ mod debug_ui {
     use strum::IntoEnumIterator;
 
     use crate::{
-        card::Card, deckbar::PushToDeckbar, global::in_debug, troops::IsTroopDebugOverlayEnabled,
+        card::{Card, IsSpawnedCardDebugOverlayEnabled},
+        deckbar::PushToDeckbar,
+        global::in_debug,
     };
 
     use super::save_level;
@@ -333,10 +334,10 @@ mod debug_ui {
                 })
             }
 
-            if ui.button("Toggle Troop Debug Overlay").clicked() {
+            if ui.button("Toggle Spawned Card Debug Overlay").clicked() {
                 commands.queue(move |world: &mut World| {
                     let mut is_overlay_enabled = world
-                        .get_resource_mut::<IsTroopDebugOverlayEnabled>()
+                        .get_resource_mut::<IsSpawnedCardDebugOverlayEnabled>()
                         .unwrap();
 
                     is_overlay_enabled.0 = !is_overlay_enabled.0;

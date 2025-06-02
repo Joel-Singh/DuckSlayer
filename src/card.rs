@@ -1,15 +1,18 @@
-use bevy::prelude::*;
-use strum_macros::EnumIter;
+mod card_behaviors;
 
-use crate::{
-    global::{
-        FARMER_SIZE, NEST_DAMAGE, NEST_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE, WATERBALL_DAMAGE,
-        WATERBALL_SIZE,
-    },
-    troops::{Attacker, Farmer, GoingToBridge, Health, Nest, Quakka, Waterball},
+use crate::global::{
+    FARMER_SIZE, NEST_DAMAGE, NEST_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE, WATERBALL_DAMAGE,
+    WATERBALL_SIZE,
 };
+use bevy::prelude::*;
 
+use card_behaviors::{Attacker, GoingToBridge, Health};
+
+pub use card_behaviors::{
+    Bridge, Farmer, IsSpawnedCardDebugOverlayEnabled, Nest, NestDestroyed, Quakka, Waterball,
+};
 use std::time::Duration;
+use strum_macros::EnumIter;
 
 #[derive(Component, Clone, Copy, Debug, EnumIter)]
 pub enum Card {
@@ -18,6 +21,10 @@ pub enum Card {
     Quakka,
     Waterball,
     Nest,
+}
+
+pub fn plugin(app: &mut App) {
+    app.add_plugins(card_behaviors::plugin);
 }
 
 impl Card {
@@ -71,7 +78,7 @@ impl Card {
     }
 }
 
-pub fn spawn_troop(
+pub fn spawn_card(
     card: Card,
     position: Vec2,
     commands: &mut Commands,
