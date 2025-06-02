@@ -8,11 +8,6 @@ mod manage_level;
 mod titlescreen;
 
 use bevy_egui::EguiPlugin;
-use deckbar::*;
-use global::*;
-use manage_level::*;
-use titlescreen::*;
-
 use std::env;
 
 fn main() {
@@ -34,11 +29,11 @@ fn main() {
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
-        .add_plugins(titlescreen)
-        .add_plugins(global)
+        .add_plugins(titlescreen::plugin)
+        .add_plugins(global::plugin)
         .add_plugins(card::plugin)
-        .add_plugins(deckbar)
-        .add_plugins(manage_level)
+        .add_plugins(deckbar::plugin)
+        .add_plugins(manage_level::plugin)
         .add_systems(Startup, setup_camera)
         .run();
 }

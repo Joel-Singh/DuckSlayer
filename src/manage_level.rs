@@ -58,7 +58,7 @@ impl LevelRes {
 #[derive(Component, Default)]
 pub struct LevelEntity;
 
-pub fn manage_level(app: &mut App) {
+pub fn plugin(app: &mut App) {
     app.add_plugins(game_messages::game_messages)
         .add_plugins(debug_ui::debug_ui_plugin)
         .add_plugins(editor_ui::editor_ui_plugin)

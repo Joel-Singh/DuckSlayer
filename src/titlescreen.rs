@@ -14,7 +14,7 @@ struct PlayBtn;
 #[require(Button)]
 struct EditorBtn;
 
-pub fn titlescreen(app: &mut App) {
+pub fn plugin(app: &mut App) {
     app.add_systems(Startup, spawn_titlescreen)
         .add_systems(
             FixedUpdate,

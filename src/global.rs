@@ -84,7 +84,7 @@ pub const BRIDGE_LOCATIONS: (Vec2, Vec2) = (Vec2::new(-392.0, -4.0), Vec2::new(1
 // LHS is image size
 pub const BTN_SIZE: (f32, f32) = (360. / 3.0, 160. / 3.0);
 
-pub fn global(app: &mut App) {
+pub fn plugin(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
         .init_resource::<CursorWorldCoords>()
         .init_resource::<IsDebug>()
