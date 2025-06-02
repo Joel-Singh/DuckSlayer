@@ -273,7 +273,7 @@ mod editor_ui {
     }
 
     fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
-        egui::Window::new("Editor Window").show(contexts.ctx_mut(), |ui| {
+        egui::Window::new("Editor").show(contexts.ctx_mut(), |ui| {
             create_push_to_deckbar_btns(ui, &mut commands);
             if ui.button("Save Level to memory").clicked() {
                 commands.queue(move |world: &mut World| {
