@@ -29,11 +29,11 @@ fn main() {
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
-        .add_plugins(titlescreen::plugin)
-        .add_plugins(global::plugin)
-        .add_plugins(card::plugin)
-        .add_plugins(deckbar::plugin)
-        .add_plugins(manage_level::plugin)
+        .add_plugins(titlescreen::titlescreen)
+        .add_plugins(global::global)
+        .add_plugins(card::card)
+        .add_plugins(deckbar::deckbar)
+        .add_plugins(manage_level::manage_level)
         .add_systems(Startup, setup_camera)
         .run();
 }

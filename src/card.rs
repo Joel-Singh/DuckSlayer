@@ -23,8 +23,8 @@ pub enum Card {
     Nest,
 }
 
-pub fn plugin(app: &mut App) {
-    app.add_plugins(card_behaviors::plugin);
+pub fn card(app: &mut App) {
+    app.add_plugins(card_behaviors::card_behaviors);
 }
 
 impl Card {

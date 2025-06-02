@@ -15,7 +15,7 @@ pub struct DeckBarRoot;
 #[derive(Component)]
 struct HoverSprite;
 
-pub fn plugin(app: &mut App) {
+pub fn deckbar(app: &mut App) {
     app.add_systems(Startup, (initialize_deckbar, spawn_hover_sprite))
         .add_systems(
             FixedUpdate,

@@ -66,7 +66,7 @@ pub struct Bridge;
 #[derive(Component)]
 pub struct Arena;
 
-pub fn plugin(app: &mut App) {
+pub fn card_behaviors(app: &mut App) {
     app.add_systems(Startup, spawn_arena_area)
         .add_systems(
             FixedUpdate,
