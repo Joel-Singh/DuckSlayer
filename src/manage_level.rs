@@ -63,6 +63,7 @@ pub struct LevelEntity;
 pub fn manage_level(app: &mut App) {
     app.add_plugins(game_messages::game_messages)
         .add_plugins(debug_ui::debug_ui_plugin)
+        .add_plugins(editor_ui::editor_ui_plugin)
         .add_systems(
             OnEnter(GameState::InGame),
             (
@@ -245,11 +246,65 @@ mod game_messages {
     }
 }
 
+mod editor_ui {
+    use bevy::{ecs::system::RunSystemOnce, prelude::*};
+    use bevy_egui::{
+        egui::{self, Ui},
+        EguiContextPass, EguiContexts,
+    };
+    use strum::IntoEnumIterator;
+    use DuckSlayer::delete_all;
+
+    use crate::{
+        deckbar::{clear_deckbar, Card, PushToDeckbar},
+        global::in_editor,
+    };
+
+    use super::{pause, save_level, spawn_entities_from_level, LevelEntity};
+
+    pub fn editor_ui_plugin(app: &mut App) {
+        app.add_systems(EguiContextPass, create_editor_window.run_if(in_editor));
+    }
+
+    fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
+        egui::Window::new("Editor Window").show(contexts.ctx_mut(), |ui| {
+            create_push_to_deckbar_btns(ui, &mut commands);
+            if ui.button("Save Level to memory").clicked() {
+                commands.queue(move |world: &mut World| {
+                    let _ = world.run_system_once(save_level);
+                })
+            }
+
+            if ui.button("Load level from memory").clicked() {
+                commands.queue(move |world: &mut World| {
+                    let _ = world.run_system_once(delete_all::<LevelEntity>);
+                    let _ = world.run_system_once(clear_deckbar);
+                    let _ = world.run_system_once(spawn_entities_from_level);
+                    let _ = world.run_system_once(pause);
+                })
+            }
+        });
+    }
+
+    fn create_push_to_deckbar_btns(ui: &mut Ui, commands: &mut Commands) {
+        for card in Card::iter() {
+            if card.is_empty() {
+                continue;
+            }
+
+            let push_to_deck_btn = ui.button("Push ".to_string() + &card.to_string());
+            if push_to_deck_btn.clicked() {
+                commands.queue(PushToDeckbar(card));
+            }
+        }
+    }
+}
+
 mod debug_ui {
     use bevy::{ecs::system::RunSystemOnce, prelude::*};
     use bevy_egui::{
         egui::{self, Ui},
-        EguiContextPass, EguiContexts, EguiPlugin,
+        EguiContextPass, EguiContexts,
     };
     use strum::IntoEnumIterator;
 
@@ -262,10 +317,7 @@ mod debug_ui {
     use super::save_level;
 
     pub fn debug_ui_plugin(app: &mut App) {
-        app.add_plugins(EguiPlugin {
-            enable_multipass_for_primary_context: true,
-        })
-        .add_systems(EguiContextPass, create_debug_window.run_if(in_debug));
+        app.add_systems(EguiContextPass, create_debug_window.run_if(in_debug));
     }
 
     fn create_debug_window(mut contexts: EguiContexts, mut commands: Commands) {

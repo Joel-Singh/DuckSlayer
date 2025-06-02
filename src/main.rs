@@ -7,6 +7,7 @@ mod manage_level;
 mod titlescreen;
 mod troops;
 
+use bevy_egui::EguiPlugin;
 use deckbar::*;
 use global::*;
 use manage_level::*;
@@ -31,6 +32,9 @@ fn main() {
                     ..default()
                 }),
         )
+        .add_plugins(EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
         .add_plugins(titlescreen)
         .add_plugins(troops)
         .add_plugins(global)
