@@ -3,11 +3,12 @@ use game_messages::set_message;
 use DuckSlayer::delete_all;
 
 use crate::{
+    back_btn::{hide_back_btn, show_back_btn},
     card::{spawn_card, Bridge, Card, Farmer, Nest, NestDestroyed, Quakka},
-    deckbar::{clear_deckbar, show_deckbar, DeckBarRoot, PushToDeckbar},
+    deckbar::{clear_deckbar, hide_deckbar, show_deckbar, DeckBarRoot, PushToDeckbar},
     global::{
-        in_editor, not_in_editor, GameState, BRIDGE_LOCATIONS, NEST_FIRST_X, NEST_SECOND_X, NEST_Y,
-        QUAKKA_STARTING_POSITION,
+        in_editor, not_in_editor, GameState, IsInEditor, BRIDGE_LOCATIONS, NEST_FIRST_X,
+        NEST_SECOND_X, NEST_Y, QUAKKA_STARTING_POSITION,
     },
 };
 
@@ -58,6 +59,9 @@ impl LevelRes {
 #[derive(Component, Default)]
 pub struct LevelEntity;
 
+#[derive(Component)]
+struct ArenaBackground;
+
 pub fn manage_level(app: &mut App) {
     app.add_plugins(game_messages::game_messages)
         .add_plugins(debug_ui::debug_ui_plugin)
@@ -71,6 +75,7 @@ pub fn manage_level(app: &mut App) {
                 show_deckbar,
                 set_message("[Space] to start level").run_if(not_in_editor),
                 set_message("[Space] to toggle pausing").run_if(in_editor),
+                show_back_btn,
             ),
         )
         .add_systems(
@@ -100,6 +105,19 @@ pub fn manage_level(app: &mut App) {
             OnEnter(GameOver::True),
             (pause, set_message("Gameover: nest destroyed")),
         )
+        .add_systems(
+            OnExit(GameState::InGame),
+            (
+                delete_all::<ArenaBackground>,
+                delete_all::<Bridge>,
+                delete_all::<LevelEntity>,
+                set_in_editor_false,
+                hide_deckbar,
+                hide_back_btn,
+                set_message(""),
+                pause,
+            ),
+        )
         .insert_state::<IsPaused>(IsPaused::True)
         .init_state::<GameOver>()
         .init_resource::<LevelRes>();
@@ -116,6 +134,7 @@ fn spawn_arena_background(mut commands: Commands, asset_server: Res<AssetServer>
             translation: Vec3::new(0., 0., -0.5),
             ..default()
         },
+        ArenaBackground,
     ));
 }
 
@@ -184,6 +203,10 @@ fn unpause(mut is_paused: ResMut<NextState<IsPaused>>) {
 
 fn pause(mut is_paused: ResMut<NextState<IsPaused>>) {
     is_paused.set(IsPaused::True);
+}
+
+fn set_in_editor_false(mut is_in_editor: ResMut<NextState<IsInEditor>>) {
+    is_in_editor.set(IsInEditor::False);
 }
 
 fn toggle_pause(mut is_paused_mut: ResMut<NextState<IsPaused>>, is_paused: Res<State<IsPaused>>) {
@@ -271,23 +294,25 @@ mod editor_ui {
     }
 
     fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
-        egui::Window::new("Editor").show(contexts.ctx_mut(), |ui| {
-            create_push_to_deckbar_btns(ui, &mut commands);
-            if ui.button("Save Level to memory").clicked() {
-                commands.queue(move |world: &mut World| {
-                    let _ = world.run_system_once(save_level);
-                })
-            }
+        egui::Window::new("Editor")
+            .default_pos((0., 160.)) // Stop from spawning ontop of back btn
+            .show(contexts.ctx_mut(), |ui| {
+                create_push_to_deckbar_btns(ui, &mut commands);
+                if ui.button("Save Level to memory").clicked() {
+                    commands.queue(move |world: &mut World| {
+                        let _ = world.run_system_once(save_level);
+                    })
+                }
 
-            if ui.button("Load level from memory").clicked() {
-                commands.queue(move |world: &mut World| {
-                    let _ = world.run_system_once(delete_all::<LevelEntity>);
-                    let _ = world.run_system_once(clear_deckbar);
-                    let _ = world.run_system_once(spawn_entities_from_level);
-                    let _ = world.run_system_once(pause);
-                })
-            }
-        });
+                if ui.button("Load level from memory").clicked() {
+                    commands.queue(move |world: &mut World| {
+                        let _ = world.run_system_once(delete_all::<LevelEntity>);
+                        let _ = world.run_system_once(clear_deckbar);
+                        let _ = world.run_system_once(spawn_entities_from_level);
+                        let _ = world.run_system_once(pause);
+                    })
+                }
+            });
     }
 
     fn create_push_to_deckbar_btns(ui: &mut Ui, commands: &mut Commands) {

@@ -76,6 +76,10 @@ pub fn show_deckbar(mut deck_bar: Single<&mut Node, With<DeckBarRoot>>) {
     deck_bar.display = Display::Flex;
 }
 
+pub fn hide_deckbar(mut deck_bar: Single<&mut Node, With<DeckBarRoot>>) {
+    deck_bar.display = Display::None;
+}
+
 fn remove_selected_card_style(
     trigger: Trigger<OnRemove, SelectedCard>,
     mut node_q: Query<&mut Node>,

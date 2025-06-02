@@ -15,7 +15,7 @@ struct PlayBtn;
 struct EditorBtn;
 
 pub fn titlescreen(app: &mut App) {
-    app.add_systems(Startup, spawn_titlescreen)
+    app.add_systems(OnEnter(GameState::TitleScreen), spawn_titlescreen)
         .add_systems(
             FixedUpdate,
             (start_game_on_click, start_editor_on_click).run_if(in_state(GameState::TitleScreen)),

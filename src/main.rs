@@ -1,5 +1,6 @@
 use bevy::{prelude::*, window::WindowResolution};
 
+mod back_btn;
 mod card;
 mod deckbar;
 mod game_messages;
@@ -7,7 +8,7 @@ mod global;
 mod manage_level;
 mod titlescreen;
 
-use bevy_egui::EguiPlugin;
+use bevy_egui::{EguiGlobalSettings, EguiPlugin};
 use std::env;
 
 fn main() {
@@ -34,6 +35,7 @@ fn main() {
         .add_plugins(card::card)
         .add_plugins(deckbar::deckbar)
         .add_plugins(manage_level::manage_level)
+        .add_plugins(back_btn::back_btn)
         .add_systems(Startup, setup_camera)
         .run();
 }
