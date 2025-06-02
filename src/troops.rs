@@ -10,7 +10,7 @@ pub use nest::Nest;
 use troop_bundles::spawn_troop;
 
 use crate::deckbar::Card;
-use crate::global::{WATERBALL_DAMAGE, WATERBALL_RADIUS};
+use crate::global::{in_editor, WATERBALL_DAMAGE, WATERBALL_RADIUS};
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
 use crate::{
@@ -79,15 +79,18 @@ pub fn troops(app: &mut App) {
         .add_systems(
             FixedUpdate,
             (
-                farmer_go_to_bridge,
-                farmer_go_up,
-                spawn_troop_on_click,
-                tick_attacker_cooldowns,
-                quakka_chase_and_attack,
-                explode_waterballs,
-                nest_shoot,
+                (
+                    farmer_go_to_bridge,
+                    farmer_go_up,
+                    tick_attacker_cooldowns,
+                    quakka_chase_and_attack,
+                    explode_waterballs,
+                    nest_shoot,
+                )
+                    .run_if(in_state(IsPaused::False)),
+                spawn_troop_on_click.run_if(in_state(IsPaused::False).or(in_editor)),
             )
-                .run_if(in_state(GameState::InGame).and(in_state(IsPaused::False))),
+                .run_if(in_state(GameState::InGame)),
         )
         .add_plugins(nest_plugin)
         .add_plugins(debug);
@@ -248,14 +251,18 @@ fn farmer_go_to_bridge(
     for farmer in farmers.iter_mut() {
         let (mut farmer_transform, farmer_e) = farmer;
         let farmer_translation = farmer_transform.translation;
-        let bridge = bridges
-            .iter()
-            .max_by(|a, b| {
-                let a_distance = farmer_translation.distance(a.translation);
-                let b_distance = farmer_translation.distance(b.translation);
-                b_distance.partial_cmp(&a_distance).unwrap()
-            })
-            .unwrap();
+        let bridge = bridges.iter().max_by(|a, b| {
+            let a_distance = farmer_translation.distance(a.translation);
+            let b_distance = farmer_translation.distance(b.translation);
+            b_distance.partial_cmp(&a_distance).unwrap()
+        });
+
+        if bridge.is_none() {
+            warn!("No bridge found for farmer");
+            return;
+        }
+
+        let bridge = bridge.unwrap();
 
         let mut difference = bridge.translation - farmer_translation;
 

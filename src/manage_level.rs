@@ -5,7 +5,8 @@ use DuckSlayer::delete_all;
 use crate::{
     deckbar::{clear_deckbar, show_deckbar, Card, DeckBarRoot, PushToDeckbar},
     global::{
-        GameState, BRIDGE_LOCATIONS, NEST_FIRST_X, NEST_SECOND_X, NEST_Y, QUAKKA_STARTING_POSITION,
+        in_editor, not_in_editor, GameState, BRIDGE_LOCATIONS, NEST_FIRST_X, NEST_SECOND_X, NEST_Y,
+        QUAKKA_STARTING_POSITION,
     },
     troops::{spawn_nest, troop_bundles::spawn_troop, Bridge, Farmer, Nest, Quakka},
 };
@@ -66,9 +67,10 @@ pub fn manage_level(app: &mut App) {
             OnEnter(GameState::InGame),
             (
                 spawn_arena_background,
-                spawn_entities_from_level,
+                spawn_entities_from_level.run_if(not_in_editor),
                 show_deckbar,
-                set_message("[Space] to start level"),
+                set_message("[Space] to start level").run_if(not_in_editor),
+                set_message("[Space] to toggle pausing").run_if(in_editor),
             ),
         )
         .add_systems(
@@ -85,11 +87,15 @@ pub fn manage_level(app: &mut App) {
                     .chain()
                     .run_if(input_just_pressed(KeyCode::KeyZ))),
                 unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
-                set_gameover_true.run_if(nest_destroyed),
+                toggle_pause.run_if(input_just_pressed(KeyCode::Space).and(in_editor)),
+                set_gameover_true.run_if(nest_destroyed.and(not_in_editor)),
             )
                 .run_if(in_state(GameState::InGame)),
         )
-        .add_systems(OnEnter(IsPaused::False), set_message(""))
+        .add_systems(
+            OnEnter(IsPaused::False),
+            set_message("").run_if(not_in_editor),
+        )
         .add_systems(
             OnEnter(GameOver::True),
             (pause, set_message("Gameover: nest destroyed")),
@@ -174,6 +180,17 @@ fn unpause(mut is_paused: ResMut<NextState<IsPaused>>) {
 
 fn pause(mut is_paused: ResMut<NextState<IsPaused>>) {
     is_paused.set(IsPaused::True);
+}
+
+fn toggle_pause(mut is_paused_mut: ResMut<NextState<IsPaused>>, is_paused: Res<State<IsPaused>>) {
+    match **is_paused {
+        IsPaused::True => {
+            is_paused_mut.set(IsPaused::False);
+        }
+        IsPaused::False => {
+            is_paused_mut.set(IsPaused::True);
+        }
+    }
 }
 
 fn set_gameover_true(mut gameover: ResMut<NextState<GameOver>>) {

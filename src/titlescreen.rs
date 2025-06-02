@@ -18,7 +18,7 @@ pub fn titlescreen(app: &mut App) {
     app.add_systems(Startup, spawn_titlescreen)
         .add_systems(
             FixedUpdate,
-            start_game_on_click.run_if(in_state(GameState::TitleScreen)),
+            (start_game_on_click, start_editor_on_click).run_if(in_state(GameState::TitleScreen)),
         )
         .add_systems(OnExit(GameState::TitleScreen), delete_all::<TitleScreen>);
 }
@@ -75,6 +75,19 @@ fn start_game_on_click(
     for interaction in interactions.iter() {
         if let Interaction::Pressed = interaction {
             game_state.set(GameState::InGame);
+        }
+    }
+}
+
+fn start_editor_on_click(
+    interactions: Query<&Interaction, (Changed<Interaction>, With<EditorBtn>)>,
+    mut game_state: ResMut<NextState<GameState>>,
+    mut is_in_editor: ResMut<NextState<IsInEditor>>,
+) {
+    for interaction in interactions.iter() {
+        if let Interaction::Pressed = interaction {
+            game_state.set(GameState::InGame);
+            is_in_editor.set(IsInEditor::True);
         }
     }
 }

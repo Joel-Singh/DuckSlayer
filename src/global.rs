@@ -8,6 +8,24 @@ pub enum GameState {
     InGame,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
+pub enum IsInEditor {
+    True,
+    #[default]
+    False,
+}
+
+pub fn in_editor(is_in_editor: Res<State<IsInEditor>>) -> bool {
+    match **is_in_editor {
+        IsInEditor::True => true,
+        IsInEditor::False => false,
+    }
+}
+
+pub fn not_in_editor(is_in_editor: Res<State<IsInEditor>>) -> bool {
+    !in_editor(is_in_editor)
+}
+
 #[derive(Resource, PartialEq)]
 pub struct IsDebug(pub bool);
 
@@ -69,7 +87,8 @@ pub fn global(app: &mut App) {
     app.add_systems(FixedUpdate, update_cursor_world_coords)
         .init_resource::<CursorWorldCoords>()
         .init_resource::<IsDebug>()
-        .init_state::<GameState>();
+        .init_state::<GameState>()
+        .init_state::<IsInEditor>();
 }
 
 fn update_cursor_world_coords(
