@@ -1,9 +1,11 @@
 mod debug_ui;
 mod editor_ui;
 mod game_messages;
+mod level;
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use game_messages::set_message;
+use level::Level;
 use DuckSlayer::delete_all;
 
 use crate::{
@@ -11,8 +13,7 @@ use crate::{
     card::{spawn_card, Bridge, Card, Farmer, Nest, NestDestroyed, Quakka},
     deckbar::{clear_deckbar, hide_deckbar, show_deckbar, DeckBarRoot, PushToDeckbar},
     global::{
-        in_editor, not_in_editor, GameState, IsInEditor, BRIDGE_LOCATIONS, NEST_POSITIONS,
-        QUAKKA_STARTING_POSITION,
+        in_editor, not_in_editor, GameState, IsInEditor, BRIDGE_LOCATIONS,
     },
 };
 
@@ -27,36 +28,6 @@ pub enum GameOver {
     True,
     #[default]
     False,
-}
-
-struct Level {
-    cards: Vec<(Card, Vec2)>,
-    nest_locations: Vec<Vec2>,
-    starting_deckbar: Vec<Card>,
-}
-
-impl Default for Level {
-    fn default() -> Self {
-        Level {
-            cards: vec![
-                (Card::Quakka, QUAKKA_STARTING_POSITION),
-                (Card::Nest, NEST_POSITIONS.0.into()),
-                (Card::Nest, NEST_POSITIONS.1.into()),
-            ],
-            nest_locations: vec![],
-            starting_deckbar: vec![Card::Farmer],
-        }
-    }
-}
-
-impl Level {
-    fn clear(&mut self) {
-        *self = Level {
-            cards: Vec::new(),
-            nest_locations: Vec::new(),
-            starting_deckbar: Vec::new(),
-        };
-    }
 }
 
 #[derive(Resource, Default)]
