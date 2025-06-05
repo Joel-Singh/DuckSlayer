@@ -53,7 +53,7 @@ fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
             }
 
             if ui.button("Save current Level from memory").clicked() {
-                commands.queue(SaveLevelWithFileDialog {});
+                commands.queue(SaveLevelWithFileDialog);
             }
         });
 }
@@ -81,7 +81,6 @@ fn spawn_nests_in_default_positions(mut commands: Commands, asset_server: Res<As
 #[derive(Component)]
 struct SelectedFile(Task<Option<PathBuf>>);
 
-#[derive(Default)]
 pub struct SaveLevelWithFileDialog;
 impl Command for SaveLevelWithFileDialog {
     fn apply(self, world: &mut World) {
