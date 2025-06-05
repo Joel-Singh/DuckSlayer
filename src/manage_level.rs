@@ -12,9 +12,7 @@ use crate::{
     back_btn::{hide_back_btn, show_back_btn},
     card::{spawn_card, Bridge, Card, Farmer, Nest, NestDestroyed, Quakka},
     deckbar::{clear_deckbar, hide_deckbar, show_deckbar, DeckBarRoot, PushToDeckbar},
-    global::{
-        in_editor, not_in_editor, GameState, IsInEditor, BRIDGE_LOCATIONS,
-    },
+    global::{in_editor, not_in_editor, GameState, IsInEditor, BRIDGE_LOCATIONS},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -166,7 +164,9 @@ fn save_level(
                 .cards
                 .push((Card::Farmer, transform.translation.truncate()));
         } else if is_nest {
-            level.nest_locations.push(transform.translation.truncate());
+            level
+                .cards
+                .push((Card::Nest, transform.translation.truncate()));
         }
     }
 
