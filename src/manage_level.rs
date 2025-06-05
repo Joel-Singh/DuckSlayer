@@ -71,7 +71,11 @@ pub fn manage_level(app: &mut App) {
             (
                 spawn_arena_background,
                 spawn_bridge_locations,
-                spawn_entities_from_level.run_if(not_in_editor),
+                (
+                    clear_deckbar,
+                    spawn_entities_from_level.run_if(not_in_editor),
+                )
+                    .chain(),
                 show_deckbar,
                 set_message("[Space] to start level").run_if(not_in_editor),
                 set_message("[Space] to toggle pausing").run_if(in_editor),
