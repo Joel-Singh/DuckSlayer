@@ -78,7 +78,8 @@ pub fn manage_level(app: &mut App) {
                     .chain(),
                 show_deckbar,
                 set_message("[Space] to start level").run_if(not_in_editor),
-                set_message("[Space] to toggle pausing").run_if(in_editor),
+                set_message("[Space] to toggle pausing \n[Click] on spawned cards to delete")
+                    .run_if(in_editor),
                 show_back_btn,
             ),
         )
@@ -101,7 +102,11 @@ pub fn manage_level(app: &mut App) {
                         .run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
                 )
                     .run_if(not_in_editor),
-                toggle_pause.run_if(input_just_pressed(KeyCode::Space).and(in_editor)),
+                (
+                    toggle_pause.run_if(input_just_pressed(KeyCode::Space)),
+                    delete_level_entities_on_click,
+                )
+                    .run_if(in_editor),
             )
                 .run_if(in_state(GameState::InGame)),
         )
@@ -188,6 +193,20 @@ fn save_level(
 
     for card_e in deck.into_inner() {
         level.starting_deckbar.push(*cards.get(*card_e).unwrap());
+    }
+}
+
+fn delete_level_entities_on_click(
+    level_entities: Query<Entity, Added<LevelEntity>>,
+    mut commands: Commands,
+) {
+    for level_entity in level_entities {
+        commands.entity(level_entity).insert(Pickable::default());
+        commands.entity(level_entity).observe(
+            |trigger: Trigger<Pointer<Click>>, mut commands: Commands| {
+                commands.entity(trigger.target()).despawn();
+            },
+        );
     }
 }
 
