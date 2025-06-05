@@ -4,14 +4,15 @@ mod game_messages;
 mod level;
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+use editor_ui::get_current_level;
 use game_messages::set_message;
 use level::Level;
 use DuckSlayer::delete_all;
 
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
-    card::{spawn_card, Bridge, Card, Farmer, Nest, NestDestroyed, Quakka},
-    deckbar::{clear_deckbar, hide_deckbar, show_deckbar, DeckBarRoot, PushToDeckbar},
+    card::{spawn_card, Bridge, NestDestroyed},
+    deckbar::{clear_deckbar, hide_deckbar, show_deckbar, PushToDeckbar},
     global::{in_editor, not_in_editor, GameState, IsInEditor, BRIDGE_LOCATIONS},
 };
 
@@ -144,35 +145,11 @@ fn spawn_bridge_locations(mut commands: Commands) {
     ));
 }
 
-fn save_level(
-    mut level: ResMut<LevelRes>,
-    level_entities: Query<(&Transform, Has<Quakka>, Has<Farmer>, Has<Nest>), With<LevelEntity>>,
-    cards: Query<&Card>,
-    deck: Single<&Children, With<DeckBarRoot>>,
-) {
-    let level = &mut level.0;
+fn save_level_to_resource(world: &mut World) {
+    let current_level = get_current_level(world);
+    let mut level_res = world.get_resource_mut::<LevelRes>().unwrap();
 
-    level.clear();
-
-    for (transform, is_quakka, is_farmer, is_nest) in level_entities {
-        if is_quakka {
-            level
-                .cards
-                .push((Card::Quakka, transform.translation.truncate()));
-        } else if is_farmer {
-            level
-                .cards
-                .push((Card::Farmer, transform.translation.truncate()));
-        } else if is_nest {
-            level
-                .cards
-                .push((Card::Nest, transform.translation.truncate()));
-        }
-    }
-
-    for card_e in deck.into_inner() {
-        level.starting_deckbar.push(*cards.get(*card_e).unwrap());
-    }
+    level_res.0 = current_level;
 }
 
 fn delete_level_entities_on_click(
@@ -211,6 +188,14 @@ fn unpause(mut is_paused: ResMut<NextState<IsPaused>>) {
 
 fn pause(mut is_paused: ResMut<NextState<IsPaused>>) {
     is_paused.set(IsPaused::True);
+}
+
+struct Pause;
+impl Command for Pause {
+    fn apply(self, world: &mut World) -> () {
+        let mut is_paused = world.get_resource_mut::<NextState<IsPaused>>().unwrap();
+        is_paused.set(IsPaused::True);
+    }
 }
 
 fn set_in_editor_false(mut is_in_editor: ResMut<NextState<IsInEditor>>) {

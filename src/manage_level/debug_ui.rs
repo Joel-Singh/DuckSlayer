@@ -1,4 +1,4 @@
-use bevy::{ecs::system::RunSystemOnce, prelude::*};
+use bevy::prelude::*;
 use bevy_egui::{
     egui::{self, Ui},
     EguiContextPass, EguiContexts,
@@ -11,8 +11,6 @@ use crate::{
     global::in_debug,
 };
 
-use super::save_level;
-
 pub fn debug_ui_plugin(app: &mut App) {
     app.add_systems(EguiContextPass, create_debug_window.run_if(in_debug));
 }
@@ -20,12 +18,6 @@ pub fn debug_ui_plugin(app: &mut App) {
 fn create_debug_window(mut contexts: EguiContexts, mut commands: Commands) {
     egui::Window::new("DEBUG UI").show(contexts.ctx_mut(), |ui| {
         create_push_to_deckbar_btns(ui, &mut commands);
-        if ui.button("Save level").clicked() {
-            commands.queue(move |world: &mut World| {
-                let _ = world.run_system_once(save_level);
-            })
-        }
-
         if ui.button("Toggle Spawned Card Debug Overlay").clicked() {
             commands.queue(move |world: &mut World| {
                 let mut is_overlay_enabled = world

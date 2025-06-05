@@ -13,12 +13,14 @@ use strum::IntoEnumIterator;
 use DuckSlayer::delete_all;
 
 use crate::{
-    card::{spawn_card, Card},
-    deckbar::{clear_deckbar, PushToDeckbar},
+    card::{spawn_card, Card, Farmer, Nest, Quakka},
+    deckbar::{clear_deckbar, DeckBarRoot, PushToDeckbar},
     global::{in_editor, NEST_POSITIONS},
 };
 
-use super::{pause, save_level, spawn_entities_from_level, LevelEntity, LevelRes};
+use super::{
+    level::Level, pause, save_level_to_resource, spawn_entities_from_level, LevelEntity, Pause,
+};
 
 pub fn editor_ui_plugin(app: &mut App) {
     app.add_systems(EguiContextPass, create_editor_window.run_if(in_editor))
@@ -39,7 +41,7 @@ fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
 
             if ui.button("Save Level to memory").clicked() {
                 commands.queue(move |world: &mut World| {
-                    let _ = world.run_system_once(save_level);
+                    let _ = world.run_system_once(save_level_to_resource);
                 })
             }
 
@@ -52,8 +54,9 @@ fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
                 })
             }
 
-            if ui.button("Save current Level from memory").clicked() {
+            if ui.button("Save current layout").clicked() {
                 commands.queue(SaveLevelWithFileDialog);
+                commands.queue(Pause);
             }
         });
 }
@@ -95,23 +98,60 @@ impl Command for SaveLevelWithFileDialog {
     }
 }
 
-fn save_level_on_file_chosen(
-    mut commands: Commands,
-    mut tasks: Query<(Entity, &mut SelectedFile)>,
-    level: Res<LevelRes>,
-) {
-    let level = &level.0;
+fn save_level_on_file_chosen(world: &mut World) {
+    let level = get_current_level(world);
 
-    for (entity, mut selected_file) in tasks.iter_mut() {
+    let mut tasks = world.query::<(Entity, &mut SelectedFile)>();
+    let mut finished_entities: Vec<Entity> = Vec::new();
+
+    for (e, mut selected_file) in tasks.iter_mut(world) {
         if let Some(result) = future::block_on(future::poll_once(&mut selected_file.0)) {
             if let Some(file) = result {
-                let result = std::fs::write(file, serde_json::to_string_pretty(level).unwrap());
+                let result = std::fs::write(file, serde_json::to_string_pretty(&level).unwrap());
                 if let Err(_) = result {
                     warn!("Something has gone wrong saving the level");
                 };
             };
 
-            commands.entity(entity).remove::<SelectedFile>();
+            finished_entities.push(e);
         }
     }
+
+    for e in finished_entities {
+        world.entity_mut(e).despawn();
+    }
+}
+
+pub fn get_current_level(world: &mut World) -> Level {
+    let mut level = Level::default();
+
+    let mut cards = world.query::<(&Transform, Has<Quakka>, Has<Farmer>, Has<Nest>)>();
+    for (transform, is_quakka, is_farmer, is_nest) in cards.iter(world) {
+        if is_quakka {
+            level
+                .cards
+                .push((Card::Quakka, transform.translation.truncate()));
+        } else if is_farmer {
+            level
+                .cards
+                .push((Card::Farmer, transform.translation.truncate()));
+        } else if is_nest {
+            level
+                .cards
+                .push((Card::Nest, transform.translation.truncate()));
+        }
+    }
+
+    let deck = world
+        .query_filtered::<&Children, With<DeckBarRoot>>()
+        .single(world)
+        .unwrap()
+        .iter()
+        .map(|e| world.get::<Card>(e).unwrap());
+
+    for card in deck {
+        level.starting_deckbar.push(*card);
+    }
+
+    level
 }
