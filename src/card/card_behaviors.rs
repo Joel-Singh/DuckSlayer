@@ -293,22 +293,15 @@ fn spawn_card_on_click(
     is_pointer_over_ui: Res<IsPointerOverUi>,
     selected_card: Option<Single<&Card, With<SelectedCard>>>,
 ) {
-    let selected_card: Option<&Card> = {
-        if let Some(selected_card) = selected_card {
-            Some(selected_card.into_inner())
-        } else {
-            None
-        }
+    let Some(selected_card) = selected_card.map(Single::into_inner) else {
+        mousebtn_evr.clear();
+        return;
     };
 
     for ev in mousebtn_evr.read() {
         if ev.state != ButtonState::Pressed {
-            return;
+            continue;
         }
-
-        let Some(selected_card) = selected_card else {
-            return;
-        };
 
         if !selected_card.is_empty() && !is_pointer_over_ui.0 {
             spawn_card(*selected_card, mouse_coords.0, &mut commands, &asset_server);
