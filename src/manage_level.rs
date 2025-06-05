@@ -95,9 +95,13 @@ pub fn manage_level(app: &mut App) {
                 )
                     .chain()
                     .run_if(input_just_pressed(KeyCode::KeyZ).and(not_in_editor))),
-                unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
-                toggle_pause.run_if(input_just_pressed(KeyCode::Space).and(in_editor)),
                 gameover_on_nest_destruction.run_if(not_in_editor),
+                unpause.run_if(
+                    input_just_pressed(KeyCode::Space)
+                        .and(in_state(GameOver::False))
+                        .and(not_in_editor),
+                ),
+                toggle_pause.run_if(input_just_pressed(KeyCode::Space).and(in_editor)),
             )
                 .run_if(in_state(GameState::InGame)),
         )
