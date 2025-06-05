@@ -63,7 +63,7 @@ pub fn manage_level(app: &mut App) {
             (
                 (
                     gameover_on_nest_destruction,
-                    ((
+                    (
                         delete_all::<LevelEntity>,
                         clear_deckbar,
                         spawn_entities_from_level_res,
@@ -72,7 +72,7 @@ pub fn manage_level(app: &mut App) {
                         set_message("[Space] to start level"),
                     )
                         .chain()
-                        .run_if(input_just_pressed(KeyCode::KeyZ))),
+                        .run_if(input_just_pressed(KeyCode::KeyZ)),
                     unpause
                         .run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
                 )
