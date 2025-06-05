@@ -19,7 +19,7 @@ use crate::{
 };
 
 use super::{
-    level::Level, pause, save_level_to_resource, spawn_entities_from_level, LevelEntity, Pause,
+    level::Level, pause, save_level_to_resource, spawn_entities_from_level_res, LevelEntity, Pause,
 };
 
 pub fn editor_ui_plugin(app: &mut App) {
@@ -49,7 +49,7 @@ fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
                 commands.queue(move |world: &mut World| {
                     let _ = world.run_system_once(delete_all::<LevelEntity>);
                     let _ = world.run_system_once(clear_deckbar);
-                    let _ = world.run_system_once(spawn_entities_from_level);
+                    let _ = world.run_system_once(spawn_entities_from_level_res);
                     let _ = world.run_system_once(pause);
                 })
             }

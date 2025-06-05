@@ -49,7 +49,7 @@ pub fn manage_level(app: &mut App) {
                 spawn_bridge_locations,
                 (
                     clear_deckbar,
-                    spawn_entities_from_level.run_if(not_in_editor),
+                    spawn_entities_from_level_res.run_if(not_in_editor),
                 )
                     .chain(),
                 show_deckbar,
@@ -67,7 +67,7 @@ pub fn manage_level(app: &mut App) {
                     ((
                         delete_all::<LevelEntity>,
                         clear_deckbar,
-                        spawn_entities_from_level,
+                        spawn_entities_from_level_res,
                         pause,
                         set_gameover_false,
                         set_message("[Space] to start level"),
@@ -166,7 +166,7 @@ fn delete_level_entities_on_click(
     }
 }
 
-fn spawn_entities_from_level(
+fn spawn_entities_from_level_res(
     level: Res<LevelRes>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
