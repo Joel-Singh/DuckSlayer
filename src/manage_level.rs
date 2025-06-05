@@ -29,16 +29,15 @@ pub enum GameOver {
     False,
 }
 
-#[derive(Resource)]
-struct LevelRes {
+struct Level {
     cards: Vec<(Card, Vec2)>,
     nest_locations: Vec<Vec2>,
     starting_deckbar: Vec<Card>,
 }
 
-impl Default for LevelRes {
+impl Default for Level {
     fn default() -> Self {
-        return LevelRes {
+        Level {
             cards: vec![
                 (Card::Quakka, QUAKKA_STARTING_POSITION),
                 (Card::Nest, NEST_POSITIONS.0.into()),
@@ -46,19 +45,22 @@ impl Default for LevelRes {
             ],
             nest_locations: vec![],
             starting_deckbar: vec![Card::Farmer],
-        };
+        }
     }
 }
 
-impl LevelRes {
+impl Level {
     fn clear(&mut self) {
-        *self = LevelRes {
+        *self = Level {
             cards: Vec::new(),
             nest_locations: Vec::new(),
             starting_deckbar: Vec::new(),
         };
     }
 }
+
+#[derive(Resource, Default)]
+struct LevelRes(Level);
 
 #[derive(Component, Default)]
 pub struct LevelEntity;
@@ -179,6 +181,8 @@ fn save_level(
     cards: Query<&Card>,
     deck: Single<&Children, With<DeckBarRoot>>,
 ) {
+    let level = &mut level.0;
+
     level.clear();
 
     for (transform, is_quakka, is_farmer, is_nest) in level_entities {
@@ -219,6 +223,8 @@ fn spawn_entities_from_level(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
+    let level = &level.0;
+
     for (card, position) in &level.cards {
         spawn_card(*card, *position, &mut commands, &asset_server);
     }
