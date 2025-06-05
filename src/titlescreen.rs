@@ -35,7 +35,7 @@ fn load_images(world: &mut World) {
     world.insert_resource(ImageHandles {
         play_btn: world.load_asset("play-btn.png"),
         editor_btn: world.load_asset("editor-btn.png"),
-        background: world.load_asset("title_screen.png"),
+        background: world.load_asset("titlescreen.png"),
     })
 }
 

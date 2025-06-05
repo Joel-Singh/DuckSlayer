@@ -130,7 +130,7 @@ pub fn manage_level(app: &mut App) {
 fn spawn_arena_background(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Sprite {
-            image: asset_server.load("arena_background.png"),
+            image: asset_server.load("arena-background.png"),
             ..default()
         },
         Transform {

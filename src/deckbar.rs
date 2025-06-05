@@ -122,10 +122,10 @@ fn update_card_image(
 
     fn get_image_node(card: &Card, asset_server: &Res<AssetServer>) -> ImageNode {
         let image = match card {
-            Card::Farmer => asset_server.load("farmer_mugshot.png"),
-            Card::Quakka => asset_server.load("quakka_mugshot.png"),
-            Card::Waterball => asset_server.load("waterball_mugshot.png"),
-            Card::Nest => asset_server.load("nest_mugshot.png"),
+            Card::Farmer => asset_server.load("farmer-mugshot.png"),
+            Card::Quakka => asset_server.load("quakka-mugshot.png"),
+            Card::Waterball => asset_server.load("waterball-mugshot.png"),
+            Card::Nest => asset_server.load("nest-mugshot.png"),
             Card::Empty => TRANSPARENT_IMAGE_HANDLE,
         };
 
