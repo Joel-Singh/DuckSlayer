@@ -1,6 +1,6 @@
 use crate::card::spawn_card;
 use crate::card::Card;
-use crate::global::{in_editor, WATERBALL_DAMAGE, WATERBALL_RADIUS};
+use crate::global::{WATERBALL_DAMAGE, WATERBALL_RADIUS};
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
 use crate::{
@@ -89,7 +89,7 @@ pub fn card_behaviors(app: &mut App) {
                     nest_shoot,
                 )
                     .run_if(in_state(IsPaused::False)),
-                spawn_card_on_click.run_if(in_state(IsPaused::False).or(in_editor)),
+                spawn_card_on_click,
             )
                 .run_if(in_state(GameState::InGame)),
         )
