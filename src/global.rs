@@ -49,6 +49,9 @@ pub fn in_debug(is_debug: Res<IsDebug>) -> bool {
 #[derive(Resource, Default)]
 pub struct CursorWorldCoords(pub Vec2);
 
+#[derive(Resource, Default)]
+pub struct IsPointerOverUi(pub bool);
+
 pub const SCREEN_WIDTH: f32 = 1366.0;
 
 pub const DECK_WIDTH: f32 = 0.1 * SCREEN_WIDTH;
@@ -84,11 +87,15 @@ pub const BRIDGE_LOCATIONS: (Vec2, Vec2) = (Vec2::new(-392.0, -4.0), Vec2::new(1
 pub const BTN_SIZE: (f32, f32) = (360. / 3.0, 160. / 3.0);
 
 pub fn global(app: &mut App) {
-    app.add_systems(FixedUpdate, update_cursor_world_coords)
-        .init_resource::<CursorWorldCoords>()
-        .init_resource::<IsDebug>()
-        .init_state::<GameState>()
-        .init_state::<IsInEditor>();
+    app.add_systems(
+        FixedPreUpdate,
+        (update_cursor_world_coords, update_is_pointer_over_ui),
+    )
+    .init_resource::<CursorWorldCoords>()
+    .init_resource::<IsDebug>()
+    .init_resource::<IsPointerOverUi>()
+    .init_state::<GameState>()
+    .init_state::<IsInEditor>();
 }
 
 fn update_cursor_world_coords(
@@ -104,5 +111,14 @@ fn update_cursor_world_coords(
         {
             cursor_world_coords_res.0 = cursor_world_coords;
         }
+    }
+}
+
+fn update_is_pointer_over_ui(
+    mut is_pointer_over_ui: ResMut<IsPointerOverUi>,
+    interaction_query: Query<&Interaction, (With<Node>, Changed<Interaction>)>,
+) {
+    if interaction_query.iter().count() > 0 {
+        is_pointer_over_ui.0 = interaction_query.iter().any(|i| *i != Interaction::None);
     }
 }

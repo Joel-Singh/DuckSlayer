@@ -1,8 +1,6 @@
 use crate::card::Card;
 
-use bevy::{
-    color::palettes::css::*, prelude::*, render::texture::TRANSPARENT_IMAGE_HANDLE, ui::FocusPolicy,
-};
+use bevy::{color::palettes::css::*, prelude::*, render::texture::TRANSPARENT_IMAGE_HANDLE};
 
 use crate::global::*;
 
@@ -49,7 +47,8 @@ fn initialize_deckbar(mut commands: Commands) {
                 ..default()
             },
             BorderColor(RED.into()),
-            FocusPolicy::Block,
+            BackgroundColor(GREY.into()),
+            Button, // So that it is taken into account for is_pointer_over_ui
         ))
         .with_children(|parent| {
             fn get_empty_card_node_bundle() -> impl Bundle {

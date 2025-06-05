@@ -1,5 +1,6 @@
 use crate::card::spawn_card;
 use crate::card::Card;
+use crate::global::IsPointerOverUi;
 use crate::global::{WATERBALL_DAMAGE, WATERBALL_RADIUS};
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
@@ -10,6 +11,8 @@ use crate::{
 
 use bevy::ecs::component::HookContext;
 use bevy::ecs::world::DeferredWorld;
+use bevy::input::mouse::MouseButtonInput;
+use bevy::input::ButtonState;
 use bevy::{color::palettes::css::*, prelude::*};
 use debug::debug;
 use nest::nest_plugin;
@@ -67,35 +70,34 @@ pub struct Bridge;
 pub struct Arena;
 
 pub fn card_behaviors(app: &mut App) {
-    app.add_systems(Startup, spawn_arena_area)
-        .add_systems(
-            FixedUpdate,
-            (
-                delete_dead_entities.run_if(in_state(IsPaused::False)),
-                update_healthbars,
-            )
-                .chain()
-                .run_if(in_state(GameState::InGame)),
+    app.add_systems(
+        FixedUpdate,
+        (
+            delete_dead_entities.run_if(in_state(IsPaused::False)),
+            update_healthbars,
         )
-        .add_systems(
-            FixedUpdate,
+            .chain()
+            .run_if(in_state(GameState::InGame)),
+    )
+    .add_systems(
+        FixedUpdate,
+        (
             (
-                (
-                    farmer_go_to_bridge,
-                    farmer_go_up,
-                    tick_attacker_cooldowns,
-                    quakka_chase_and_attack,
-                    explode_waterballs,
-                    nest_shoot,
-                )
-                    .run_if(in_state(IsPaused::False)),
-                spawn_card_on_click,
+                farmer_go_to_bridge,
+                farmer_go_up,
+                tick_attacker_cooldowns,
+                quakka_chase_and_attack,
+                explode_waterballs,
+                nest_shoot,
             )
-                .run_if(in_state(GameState::InGame)),
+                .run_if(in_state(IsPaused::False)),
+            spawn_card_on_click,
         )
-        .add_event::<NestDestroyed>()
-        .add_plugins(nest_plugin)
-        .add_plugins(debug);
+            .run_if(in_state(GameState::InGame)),
+    )
+    .add_event::<NestDestroyed>()
+    .add_plugins(nest_plugin)
+    .add_plugins(debug);
 }
 
 fn initialize_healthbar(mut world: DeferredWorld, context: HookContext) {
@@ -136,19 +138,6 @@ fn update_healthbars(
             .entity(healthbar)
             .insert_if_new(MeshMaterial2d(materials.add(Color::from(RED))));
     }
-}
-
-fn spawn_arena_area(mut commands: Commands) {
-    commands.spawn((
-        Arena,
-        Node {
-            width: Val::Vw(100.0),
-            height: Val::Vh(100.0),
-            ..default()
-        },
-        Button,
-        GlobalZIndex(-1),
-    ));
 }
 
 fn quakka_chase_and_attack(
@@ -298,9 +287,10 @@ fn farmer_go_up(
 
 fn spawn_card_on_click(
     mut commands: Commands,
+    mut mousebtn_evr: EventReader<MouseButtonInput>,
     asset_server: Res<AssetServer>,
-    interaction_q: Query<&Interaction, (With<Arena>, Changed<Interaction>)>,
     mouse_coords: Res<CursorWorldCoords>,
+    is_pointer_over_ui: Res<IsPointerOverUi>,
     selected_card: Option<Single<&Card, With<SelectedCard>>>,
 ) {
     let selected_card: Option<&Card> = {
@@ -311,16 +301,17 @@ fn spawn_card_on_click(
         }
     };
 
-    for interaction in interaction_q {
-        if *interaction != Interaction::Pressed {
+    for ev in mousebtn_evr.read() {
+        if ev.state != ButtonState::Pressed {
             return;
         }
 
-        if let Some(selected_card) = selected_card {
-            if !selected_card.is_empty() {
-                spawn_card(*selected_card, mouse_coords.0, &mut commands, &asset_server);
-            }
+        let Some(selected_card) = selected_card else {
+            return;
+        };
 
+        if !selected_card.is_empty() && !is_pointer_over_ui.0 {
+            spawn_card(*selected_card, mouse_coords.0, &mut commands, &asset_server);
             commands.queue(DeleteSelectedCard::default());
         }
     }
