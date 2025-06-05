@@ -290,9 +290,9 @@ mod editor_ui {
     use DuckSlayer::delete_all;
 
     use crate::{
-        card::Card,
+        card::{spawn_card, Card},
         deckbar::{clear_deckbar, PushToDeckbar},
-        global::in_editor,
+        global::{in_editor, NEST_POSITIONS},
     };
 
     use super::{pause, save_level, spawn_entities_from_level, LevelEntity};
@@ -306,6 +306,13 @@ mod editor_ui {
             .default_pos((0., 160.)) // Stop from spawning ontop of back btn
             .show(contexts.ctx_mut(), |ui| {
                 create_push_to_deckbar_btns(ui, &mut commands);
+
+                if ui.button("Spawn nests in default positions").clicked() {
+                    commands.queue(move |world: &mut World| {
+                        let _ = world.run_system_once(spawn_nests_in_default_positions);
+                    })
+                }
+
                 if ui.button("Save Level to memory").clicked() {
                     commands.queue(move |world: &mut World| {
                         let _ = world.run_system_once(save_level);
@@ -334,6 +341,12 @@ mod editor_ui {
             if push_to_deck_btn.clicked() {
                 commands.queue(PushToDeckbar(card));
             }
+        }
+    }
+
+    fn spawn_nests_in_default_positions(mut commands: Commands, asset_server: Res<AssetServer>) {
+        for pos in [NEST_POSITIONS.0, NEST_POSITIONS.1] {
+            spawn_card(Card::Nest, pos.into(), &mut commands, &asset_server);
         }
     }
 }
