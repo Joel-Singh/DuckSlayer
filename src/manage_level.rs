@@ -53,7 +53,7 @@ pub fn manage_level(app: &mut App) {
                 load_from_level_res().run_if(not_in_editor),
                 show_deckbar,
                 set_message("[Space] to start level").run_if(not_in_editor),
-                set_message("[Space] to toggle pausing \n[Click] on spawned cards to delete")
+                set_message("[Space] to toggle pausing \n[Click] on spawned cards to delete\n[Z] to load level from memory")
                     .run_if(in_editor),
                 show_back_btn,
             ),
@@ -76,6 +76,9 @@ pub fn manage_level(app: &mut App) {
                 )
                     .run_if(not_in_editor),
                 (
+                    (load_from_level_res(), pause)
+                        .chain()
+                        .run_if(input_just_pressed(KeyCode::KeyZ)),
                     toggle_pause.run_if(input_just_pressed(KeyCode::Space)),
                     delete_level_entities_on_click,
                 )
@@ -170,21 +173,21 @@ fn load_from_level_res() -> ScheduleConfigs<ScheduleSystem> {
         spawn_entities_from_level_res,
     )
         .chain();
+}
 
-    fn spawn_entities_from_level_res(
-        level: Res<LevelRes>,
-        mut commands: Commands,
-        asset_server: Res<AssetServer>,
-    ) {
-        let level = &level.0;
+fn spawn_entities_from_level_res(
+    level: Res<LevelRes>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    let level = &level.0;
 
-        for (card, position) in &level.cards {
-            spawn_card(*card, *position, &mut commands, &asset_server);
-        }
+    for (card, position) in &level.cards {
+        spawn_card(*card, *position, &mut commands, &asset_server);
+    }
 
-        for card in &level.starting_deckbar {
-            commands.queue(PushToDeckbar(*card));
-        }
+    for card in &level.starting_deckbar {
+        commands.queue(PushToDeckbar(*card));
     }
 }
 
