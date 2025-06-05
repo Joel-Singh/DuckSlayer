@@ -3,7 +3,11 @@ mod editor_ui;
 mod game_messages;
 mod level;
 
-use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+use bevy::{
+    ecs::{schedule::ScheduleConfigs, system::ScheduleSystem},
+    input::common_conditions::input_just_pressed,
+    prelude::*,
+};
 use game_messages::set_message;
 use level::{get_current_level, Level};
 use DuckSlayer::delete_all;
@@ -46,11 +50,7 @@ pub fn manage_level(app: &mut App) {
             (
                 spawn_arena_background,
                 spawn_bridge_locations,
-                (
-                    clear_deckbar,
-                    spawn_entities_from_level_res.run_if(not_in_editor),
-                )
-                    .chain(),
+                load_from_level_res().run_if(not_in_editor),
                 show_deckbar,
                 set_message("[Space] to start level").run_if(not_in_editor),
                 set_message("[Space] to toggle pausing \n[Click] on spawned cards to delete")
@@ -64,9 +64,7 @@ pub fn manage_level(app: &mut App) {
                 (
                     gameover_on_nest_destruction,
                     (
-                        delete_all::<LevelEntity>,
-                        clear_deckbar,
-                        spawn_entities_from_level_res,
+                        load_from_level_res(),
                         pause,
                         set_gameover_false,
                         set_message("[Space] to start level"),
@@ -165,19 +163,28 @@ fn delete_level_entities_on_click(
     }
 }
 
-fn spawn_entities_from_level_res(
-    level: Res<LevelRes>,
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    let level = &level.0;
+fn load_from_level_res() -> ScheduleConfigs<ScheduleSystem> {
+    return (
+        clear_deckbar,
+        delete_all::<LevelEntity>,
+        spawn_entities_from_level_res,
+    )
+        .chain();
 
-    for (card, position) in &level.cards {
-        spawn_card(*card, *position, &mut commands, &asset_server);
-    }
+    fn spawn_entities_from_level_res(
+        level: Res<LevelRes>,
+        mut commands: Commands,
+        asset_server: Res<AssetServer>,
+    ) {
+        let level = &level.0;
 
-    for card in &level.starting_deckbar {
-        commands.queue(PushToDeckbar(*card));
+        for (card, position) in &level.cards {
+            spawn_card(*card, *position, &mut commands, &asset_server);
+        }
+
+        for card in &level.starting_deckbar {
+            commands.queue(PushToDeckbar(*card));
+        }
     }
 }
 
