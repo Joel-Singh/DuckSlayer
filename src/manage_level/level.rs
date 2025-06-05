@@ -32,8 +32,4 @@ impl Level {
             starting_deckbar: Vec::new(),
         };
     }
-
-    pub fn print_to_out(&self) {
-        println!("{}", serde_json::to_string_pretty(&self).unwrap());
-    }
 }
