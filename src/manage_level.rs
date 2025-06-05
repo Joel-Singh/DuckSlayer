@@ -62,7 +62,6 @@ pub fn manage_level(app: &mut App) {
             FixedUpdate,
             (
                 (
-                    gameover_on_nest_destruction,
                     (
                         load_from_level_res(),
                         pause,
@@ -71,6 +70,7 @@ pub fn manage_level(app: &mut App) {
                     )
                         .chain()
                         .run_if(input_just_pressed(KeyCode::KeyZ)),
+                    gameover_on_nest_destruction,
                     unpause
                         .run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
                 )
