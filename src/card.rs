@@ -11,10 +11,11 @@ use card_behaviors::{Attacker, GoingToBridge, Health};
 pub use card_behaviors::{
     Bridge, Farmer, IsSpawnedCardDebugOverlayEnabled, Nest, NestDestroyed, Quakka, Waterball,
 };
+use serde::Serialize;
 use std::time::Duration;
 use strum_macros::EnumIter;
 
-#[derive(Component, Clone, Copy, Debug, EnumIter)]
+#[derive(Component, Clone, Copy, Debug, EnumIter, Serialize)]
 pub enum Card {
     Empty,
     Farmer,

@@ -1,10 +1,12 @@
 use bevy::prelude::*;
+use serde::Serialize;
 
 use crate::{
     card::Card,
     global::{NEST_POSITIONS, QUAKKA_STARTING_POSITION},
 };
 
+#[derive(Serialize)]
 pub struct Level {
     pub cards: Vec<(Card, Vec2)>,
     pub nest_locations: Vec<Vec2>,
@@ -32,5 +34,9 @@ impl Level {
             nest_locations: Vec::new(),
             starting_deckbar: Vec::new(),
         };
+    }
+
+    pub fn print_to_out(&self) {
+        println!("{}", serde_json::to_string_pretty(&self).unwrap());
     }
 }

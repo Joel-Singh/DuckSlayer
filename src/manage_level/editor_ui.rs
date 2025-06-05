@@ -12,7 +12,7 @@ use crate::{
     global::{in_editor, NEST_POSITIONS},
 };
 
-use super::{pause, save_level, spawn_entities_from_level, LevelEntity};
+use super::{pause, save_level, spawn_entities_from_level, LevelEntity, LevelRes};
 
 pub fn editor_ui_plugin(app: &mut App) {
     app.add_systems(EguiContextPass, create_editor_window.run_if(in_editor));
@@ -42,6 +42,13 @@ fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
                     let _ = world.run_system_once(clear_deckbar);
                     let _ = world.run_system_once(spawn_entities_from_level);
                     let _ = world.run_system_once(pause);
+                })
+            }
+
+            if ui.button("Print saved level to out").clicked() {
+                commands.queue(move |world: &mut World| {
+                    let level = world.get_resource::<LevelRes>().unwrap();
+                    level.0.print_to_out();
                 })
             }
         });

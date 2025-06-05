@@ -8,6 +8,8 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_egui",
+ "serde",
+ "serde_json",
  "strum 0.27.1",
  "strum_macros 0.27.1",
 ]
