@@ -7,8 +7,8 @@ use crate::{
     card::{spawn_card, Bridge, Card, Farmer, Nest, NestDestroyed, Quakka},
     deckbar::{clear_deckbar, hide_deckbar, show_deckbar, DeckBarRoot, PushToDeckbar},
     global::{
-        in_editor, not_in_editor, GameState, IsInEditor, BRIDGE_LOCATIONS, NEST_FIRST_X,
-        NEST_SECOND_X, NEST_Y, QUAKKA_STARTING_POSITION,
+        in_editor, not_in_editor, GameState, IsInEditor, BRIDGE_LOCATIONS, NEST_POSITIONS,
+        QUAKKA_STARTING_POSITION,
     },
 };
 
@@ -37,8 +37,8 @@ impl Default for LevelRes {
         return LevelRes {
             cards: vec![
                 (Card::Quakka, QUAKKA_STARTING_POSITION),
-                (Card::Nest, (NEST_FIRST_X, NEST_Y).into()),
-                (Card::Nest, (NEST_SECOND_X, NEST_Y).into()),
+                (Card::Nest, NEST_POSITIONS.0.into()),
+                (Card::Nest, NEST_POSITIONS.1.into()),
             ],
             nest_locations: vec![],
             starting_deckbar: vec![Card::Farmer],

@@ -72,9 +72,8 @@ pub const WATERBALL_DAMAGE: f32 = 30.0;
 
 pub const QUAKKA_STARTING_POSITION: Vec2 = Vec2::new(-391., 104.);
 
-pub const NEST_FIRST_X: f32 = -388.;
-pub const NEST_SECOND_X: f32 = 173.;
-pub const NEST_Y: f32 = -312.;
+pub const NEST_POSITIONS: ((f32, f32), (f32, f32)) = ((-388., -312.), (173., -312.));
+
 pub const NEST_ATTACK_DISTANCE: f32 = 500.;
 pub const NEST_DAMAGE: f32 = 10.;
 pub const NEST_SIZE: (f32, f32) = (50., 50.);
