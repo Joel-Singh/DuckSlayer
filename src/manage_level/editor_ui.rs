@@ -13,13 +13,14 @@ use strum::IntoEnumIterator;
 use DuckSlayer::delete_all;
 
 use crate::{
-    card::{spawn_card, Card, Farmer, Nest, Quakka},
-    deckbar::{clear_deckbar, DeckBarRoot, PushToDeckbar},
+    card::{spawn_card, Card},
+    deckbar::{clear_deckbar, PushToDeckbar},
     global::{in_editor, NEST_POSITIONS},
 };
 
 use super::{
-    level::Level, pause, save_level_to_resource, spawn_entities_from_level_res, LevelEntity, Pause,
+    level::get_current_level, pause, save_level_to_resource, spawn_entities_from_level_res,
+    LevelEntity, Pause,
 };
 
 pub fn editor_ui_plugin(app: &mut App) {
@@ -120,38 +121,4 @@ fn save_level_on_file_chosen(world: &mut World) {
     for e in finished_entities {
         world.entity_mut(e).despawn();
     }
-}
-
-pub fn get_current_level(world: &mut World) -> Level {
-    let mut level = Level::default();
-
-    let mut cards = world.query::<(&Transform, Has<Quakka>, Has<Farmer>, Has<Nest>)>();
-    for (transform, is_quakka, is_farmer, is_nest) in cards.iter(world) {
-        if is_quakka {
-            level
-                .cards
-                .push((Card::Quakka, transform.translation.truncate()));
-        } else if is_farmer {
-            level
-                .cards
-                .push((Card::Farmer, transform.translation.truncate()));
-        } else if is_nest {
-            level
-                .cards
-                .push((Card::Nest, transform.translation.truncate()));
-        }
-    }
-
-    let deck = world
-        .query_filtered::<&Children, With<DeckBarRoot>>()
-        .single(world)
-        .unwrap()
-        .iter()
-        .map(|e| world.get::<Card>(e).unwrap());
-
-    for card in deck {
-        level.starting_deckbar.push(*card);
-    }
-
-    level
 }

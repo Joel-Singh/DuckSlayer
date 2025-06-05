@@ -4,9 +4,8 @@ mod game_messages;
 mod level;
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
-use editor_ui::get_current_level;
 use game_messages::set_message;
-use level::Level;
+use level::{get_current_level, Level};
 use DuckSlayer::delete_all;
 
 use crate::{
