@@ -74,7 +74,7 @@ fn start_game_on_click(
 ) {
     for interaction in interactions.iter() {
         if let Interaction::Pressed = interaction {
-            game_state.set(GameState::InGame);
+            game_state.set(GameState::LevelSelect);
         }
     }
 }

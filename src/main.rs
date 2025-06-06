@@ -1,4 +1,5 @@
 use bevy::{prelude::*, window::WindowResolution};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 mod asset_load_schedule;
 mod back_btn;
@@ -6,6 +7,7 @@ mod card;
 mod deckbar;
 mod game_messages;
 mod global;
+mod level_select;
 mod manage_level;
 mod titlescreen;
 
@@ -38,6 +40,7 @@ fn main() {
         .add_plugins(deckbar::deckbar)
         .add_plugins(manage_level::manage_level)
         .add_plugins(back_btn::back_btn)
+        .add_plugins(level_select::level_select)
         .add_systems(Startup, setup_camera)
         .run();
 }

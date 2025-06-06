@@ -8,6 +8,7 @@ pub enum GameState {
     #[default]
     TitleScreen,
     InGame,
+    LevelSelect,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
