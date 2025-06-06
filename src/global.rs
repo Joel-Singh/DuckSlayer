@@ -1,6 +1,8 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use std::env;
 
+use crate::asset_load_schedule::AssetLoad;
+
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
 pub enum GameState {
     #[default]
@@ -47,6 +49,14 @@ pub fn in_debug(is_debug: Res<IsDebug>) -> bool {
 }
 
 #[derive(Resource, Default)]
+pub struct ImageHandles {
+    pub play_btn: Handle<Image>,
+    pub editor_btn: Handle<Image>,
+    pub titlescreen_background: Handle<Image>,
+    pub arena_background: Handle<Image>,
+}
+
+#[derive(Resource, Default)]
 pub struct CursorWorldCoords(pub Vec2);
 
 #[derive(Resource, Default)]
@@ -87,15 +97,16 @@ pub const BRIDGE_LOCATIONS: (Vec2, Vec2) = (Vec2::new(-392.0, -4.0), Vec2::new(1
 pub const BTN_SIZE: (f32, f32) = (360. / 3.0, 160. / 3.0);
 
 pub fn global(app: &mut App) {
-    app.add_systems(
-        FixedPreUpdate,
-        (update_cursor_world_coords, update_is_pointer_over_ui),
-    )
-    .init_resource::<CursorWorldCoords>()
-    .init_resource::<IsDebug>()
-    .init_resource::<IsPointerOverUi>()
-    .init_state::<GameState>()
-    .init_state::<IsInEditor>();
+    app.add_systems(AssetLoad, load_images)
+        .add_systems(
+            FixedPreUpdate,
+            (update_cursor_world_coords, update_is_pointer_over_ui),
+        )
+        .init_resource::<CursorWorldCoords>()
+        .init_resource::<IsDebug>()
+        .init_resource::<IsPointerOverUi>()
+        .init_state::<GameState>()
+        .init_state::<IsInEditor>();
 }
 
 fn update_cursor_world_coords(
@@ -121,4 +132,13 @@ fn update_is_pointer_over_ui(
     if interaction_query.iter().count() > 0 {
         is_pointer_over_ui.0 = interaction_query.iter().any(|i| *i != Interaction::None);
     }
+}
+
+fn load_images(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.insert_resource(ImageHandles {
+        play_btn: asset_server.load("play-btn.png"),
+        editor_btn: asset_server.load("editor-btn.png"),
+        titlescreen_background: asset_server.load("titlescreen.png"),
+        arena_background: asset_server.load("arena-background.png"),
+    })
 }

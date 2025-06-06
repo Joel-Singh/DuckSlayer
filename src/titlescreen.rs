@@ -14,29 +14,13 @@ struct PlayBtn;
 #[require(Button)]
 struct EditorBtn;
 
-#[derive(Resource, Default)]
-struct ImageHandles {
-    play_btn: Handle<Image>,
-    editor_btn: Handle<Image>,
-    background: Handle<Image>,
-}
-
 pub fn titlescreen(app: &mut App) {
-    app.add_systems(AssetLoad, load_images)
-        .add_systems(OnEnter(GameState::TitleScreen), spawn_titlescreen)
+    app.add_systems(OnEnter(GameState::TitleScreen), spawn_titlescreen)
         .add_systems(
             FixedUpdate,
             (start_game_on_click, start_editor_on_click).run_if(in_state(GameState::TitleScreen)),
         )
         .add_systems(OnExit(GameState::TitleScreen), delete_all::<TitleScreen>);
-}
-
-fn load_images(world: &mut World) {
-    world.insert_resource(ImageHandles {
-        play_btn: world.load_asset("play-btn.png"),
-        editor_btn: world.load_asset("editor-btn.png"),
-        background: world.load_asset("titlescreen.png"),
-    })
 }
 
 fn spawn_titlescreen(mut commands: Commands, handles: Res<ImageHandles>) {
@@ -48,7 +32,7 @@ fn spawn_titlescreen(mut commands: Commands, handles: Res<ImageHandles>) {
 
     commands.spawn((
         Sprite {
-            image: handles.background.clone(),
+            image: handles.titlescreen_background.clone(),
             ..default()
         },
         Transform {

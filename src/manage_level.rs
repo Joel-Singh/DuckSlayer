@@ -16,7 +16,7 @@ use crate::{
     back_btn::{hide_back_btn, show_back_btn},
     card::{spawn_card, Bridge, NestDestroyed},
     deckbar::{clear_deckbar, hide_deckbar, show_deckbar, PushToDeckbar},
-    global::{in_editor, not_in_editor, GameState, IsInEditor, BRIDGE_LOCATIONS},
+    global::{in_editor, not_in_editor, GameState, ImageHandles, IsInEditor, BRIDGE_LOCATIONS},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -112,10 +112,10 @@ pub fn manage_level(app: &mut App) {
         .init_resource::<LevelRes>();
 }
 
-fn spawn_arena_background(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_arena_background(mut commands: Commands, image_handles: Res<ImageHandles>) {
     commands.spawn((
         Sprite {
-            image: asset_server.load("arena-background.png"),
+            image: image_handles.arena_background.clone(),
             ..default()
         },
         Transform {
