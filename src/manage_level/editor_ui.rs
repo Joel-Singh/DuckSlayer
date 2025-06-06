@@ -19,8 +19,8 @@ use crate::{
 };
 
 use super::{
-    level::get_current_level, load_from_level_res, pause, save_level_to_resource,
-    spawn_entities_from_level_res, LevelEntity, Pause,
+    level::get_current_level, pause, save_level_to_resource, spawn_entities_from_level_res,
+    LevelEntity, Pause,
 };
 
 pub fn editor_ui_plugin(app: &mut App) {
