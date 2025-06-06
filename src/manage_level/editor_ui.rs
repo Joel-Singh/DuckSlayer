@@ -83,7 +83,7 @@ fn spawn_nests_in_default_positions(mut commands: Commands, asset_server: Res<As
 }
 
 #[derive(Component)]
-struct SelectedFile(Task<Option<PathBuf>>);
+struct SelectedFileForSaving(Task<Option<PathBuf>>);
 pub struct SaveLevelWithFileDialog;
 impl Command for SaveLevelWithFileDialog {
     fn apply(self, world: &mut World) {
@@ -94,14 +94,14 @@ impl Command for SaveLevelWithFileDialog {
                 .add_filter("JSON", &["json"])
                 .save_file()
         });
-        world.spawn(SelectedFile(task));
+        world.spawn(SelectedFileForSaving(task));
     }
 }
 
 fn save_level_on_file_chosen(world: &mut World) {
     let level = get_current_level(world);
 
-    let mut tasks = world.query::<(Entity, &mut SelectedFile)>();
+    let mut tasks = world.query::<(Entity, &mut SelectedFileForSaving)>();
     let mut finished_entities: Vec<Entity> = Vec::new();
 
     for (e, mut selected_file) in tasks.iter_mut(world) {
