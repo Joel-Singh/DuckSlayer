@@ -9,7 +9,7 @@ use bevy::{
     prelude::*,
 };
 use game_messages::set_message;
-use level::{get_current_level, Level};
+use level::Level;
 use DuckSlayer::delete_all;
 
 use crate::{
@@ -146,7 +146,7 @@ fn spawn_bridge_locations(mut commands: Commands) {
 }
 
 fn save_level_to_resource(world: &mut World) {
-    let current_level = get_current_level(world);
+    let current_level = Level::get_current(world);
     let mut level_res = world.get_resource_mut::<LevelRes>().unwrap();
 
     level_res.0 = current_level;

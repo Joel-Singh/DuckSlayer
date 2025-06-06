@@ -25,7 +25,7 @@ impl Level {
         }
     }
 
-    pub fn get_current_level(world: &mut World) -> Level {
+    pub fn get_current(world: &mut World) -> Level {
         let mut level = Level::default();
 
         let mut cards = world.query::<(&Transform, Has<Quakka>, Has<Farmer>, Has<Nest>)>();

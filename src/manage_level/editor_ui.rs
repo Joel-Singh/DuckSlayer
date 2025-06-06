@@ -19,8 +19,8 @@ use crate::{
 };
 
 use super::{
-    level::{get_current_level, Level},
-    pause, save_level_to_resource, spawn_entities_from_level_res, LevelEntity, LevelRes, Pause,
+    level::Level, pause, save_level_to_resource, spawn_entities_from_level_res, LevelEntity,
+    LevelRes, Pause,
 };
 
 pub fn editor_ui_plugin(app: &mut App) {
@@ -106,7 +106,7 @@ impl Command for SaveLevelWithFileDialog {
 
         world.spawn(PickingFile(task)).observe(
             |trigger: Trigger<FinishedPickingFile>, world: &mut World| {
-                let level = get_current_level(world);
+                let level = Level::get_current(world);
                 let picked_file = &trigger.0;
 
                 let result =
