@@ -1,4 +1,7 @@
+use std::path::PathBuf;
+
 use bevy::prelude::*;
+use bevy_common_assets::json::JsonAssetPlugin;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -7,7 +10,7 @@ use crate::{
     global::{NEST_POSITIONS, QUAKKA_STARTING_POSITION},
 };
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Asset, TypePath)]
 pub struct Level {
     pub cards: Vec<(Card, Vec2)>,
     pub starting_deckbar: Vec<Card>,
@@ -22,6 +25,15 @@ impl Level {
                 (Card::Nest, NEST_POSITIONS.1.into()),
             ],
             starting_deckbar: vec![Card::Farmer],
+        }
+    }
+
+    pub fn get_from_file(file: Vec<u8>) -> Level {
+        if let Ok(level) = serde_json::from_str(&String::from_utf8(file).unwrap()) {
+            level
+        } else {
+            warn!("Error converting file into level");
+            Level::default()
         }
     }
 
@@ -58,4 +70,8 @@ impl Level {
 
         level
     }
+}
+
+pub fn level_plugin(app: &mut App) {
+    app.add_plugins(JsonAssetPlugin::<Level>::new(&[]));
 }
