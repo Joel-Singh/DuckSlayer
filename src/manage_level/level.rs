@@ -13,14 +13,16 @@ pub struct Level {
     pub starting_deckbar: Vec<Card>,
 }
 
-pub fn get_first_level() -> Level {
-    Level {
-        cards: vec![
-            (Card::Quakka, QUAKKA_STARTING_POSITION),
-            (Card::Nest, NEST_POSITIONS.0.into()),
-            (Card::Nest, NEST_POSITIONS.1.into()),
-        ],
-        starting_deckbar: vec![Card::Farmer],
+impl Level {
+    pub fn get_first_level() -> Level {
+        Level {
+            cards: vec![
+                (Card::Quakka, QUAKKA_STARTING_POSITION),
+                (Card::Nest, NEST_POSITIONS.0.into()),
+                (Card::Nest, NEST_POSITIONS.1.into()),
+            ],
+            starting_deckbar: vec![Card::Farmer],
+        }
     }
 }
 
