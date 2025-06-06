@@ -84,7 +84,6 @@ fn spawn_nests_in_default_positions(mut commands: Commands, asset_server: Res<As
 
 #[derive(Component)]
 struct SelectedFile(Task<Option<PathBuf>>);
-
 pub struct SaveLevelWithFileDialog;
 impl Command for SaveLevelWithFileDialog {
     fn apply(self, world: &mut World) {
