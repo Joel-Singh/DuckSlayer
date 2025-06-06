@@ -19,13 +19,13 @@ use crate::{
 };
 
 use super::{
-    level::get_current_level, pause, save_level_to_resource, spawn_entities_from_level_res,
-    LevelEntity, Pause,
+    level::{get_current_level, Level},
+    pause, save_level_to_resource, spawn_entities_from_level_res, LevelEntity, LevelRes, Pause,
 };
 
 pub fn editor_ui_plugin(app: &mut App) {
     app.add_systems(EguiContextPass, create_editor_window.run_if(in_editor))
-        .add_systems(FixedUpdate, save_level_on_file_chosen);
+        .add_systems(FixedUpdate, poll_filepicker_completion);
 }
 
 fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
@@ -55,9 +55,14 @@ fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
                 })
             }
 
-            if ui.button("Save current layout").clicked() {
+            if ui.button("Save current level to file").clicked() {
                 commands.queue(SaveLevelWithFileDialog);
                 commands.queue(Pause);
+            }
+
+            if ui.button("Load level from file").clicked() {
+                commands.queue(Pause);
+                commands.queue(LoadLevelWithFileDialog);
             }
         });
 }
@@ -83,7 +88,11 @@ fn spawn_nests_in_default_positions(mut commands: Commands, asset_server: Res<As
 }
 
 #[derive(Component)]
-struct SelectedFileForSaving(Task<Option<PathBuf>>);
+struct PickingFile(Task<Option<PathBuf>>);
+
+#[derive(Event)]
+struct FinishedPickingFile(PathBuf);
+
 pub struct SaveLevelWithFileDialog;
 impl Command for SaveLevelWithFileDialog {
     fn apply(self, world: &mut World) {
@@ -94,30 +103,70 @@ impl Command for SaveLevelWithFileDialog {
                 .add_filter("JSON", &["json"])
                 .save_file()
         });
-        world.spawn(SelectedFileForSaving(task));
-    }
-}
 
-fn save_level_on_file_chosen(world: &mut World) {
-    let level = get_current_level(world);
+        world.spawn(PickingFile(task)).observe(
+            |trigger: Trigger<FinishedPickingFile>, world: &mut World| {
+                let level = get_current_level(world);
+                let picked_file = &trigger.0;
 
-    let mut tasks = world.query::<(Entity, &mut SelectedFileForSaving)>();
-    let mut finished_entities: Vec<Entity> = Vec::new();
+                let result =
+                    std::fs::write(picked_file, serde_json::to_string_pretty(&level).unwrap());
 
-    for (e, mut selected_file) in tasks.iter_mut(world) {
-        if let Some(result) = future::block_on(future::poll_once(&mut selected_file.0)) {
-            if let Some(file) = result {
-                let result = std::fs::write(file, serde_json::to_string_pretty(&level).unwrap());
                 if let Err(_) = result {
                     warn!("Something has gone wrong saving the level");
                 };
-            };
 
-            finished_entities.push(e);
+                world.entity_mut(trigger.target()).despawn();
+            },
+        );
+    }
+}
+
+fn poll_filepicker_completion(
+    mut tasks: Query<(Entity, &mut PickingFile)>,
+    mut commands: Commands,
+) {
+    for (e, mut selected_file) in tasks.iter_mut() {
+        if let Some(result) = future::block_on(future::poll_once(&mut selected_file.0)) {
+            if let Some(file) = result {
+                commands.entity(e).trigger(FinishedPickingFile(file));
+            } else {
+                warn!("File picker failed");
+            };
         }
     }
+}
 
-    for e in finished_entities {
-        world.entity_mut(e).despawn();
+pub struct LoadLevelWithFileDialog;
+impl Command for LoadLevelWithFileDialog {
+    fn apply(self, world: &mut World) {
+        let thread_pool = AsyncComputeTaskPool::get();
+        let task = thread_pool
+            .spawn(async move { FileDialog::new().add_filter("JSON", &["json"]).pick_file() });
+
+        world.spawn(PickingFile(task)).observe(
+            |trigger: Trigger<FinishedPickingFile>, world: &mut World| {
+                let mut level_res = world.resource_mut::<LevelRes>();
+                let file = &trigger.0;
+
+                if let Ok(file) = std::fs::read(file) {
+                    let level_from_file =
+                        serde_json::from_str::<Level>(&String::from_utf8(file).unwrap());
+
+                    if let Ok(level_from_file) = level_from_file {
+                        level_res.0 = level_from_file;
+                        let _ = world.run_system_once(delete_all::<LevelEntity>);
+                        let _ = world.run_system_once(clear_deckbar);
+                        let _ = world.run_system_once(spawn_entities_from_level_res);
+                    } else {
+                        warn!("Couldn't load level from file");
+                    }
+                } else {
+                    warn!("Couldn't read file when loading level");
+                }
+
+                world.entity_mut(trigger.target()).despawn();
+            },
+        );
     }
 }

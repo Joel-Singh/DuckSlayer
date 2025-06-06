@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     card::{Card, Farmer, Nest, Quakka},
@@ -7,7 +7,7 @@ use crate::{
     global::{NEST_POSITIONS, QUAKKA_STARTING_POSITION},
 };
 
-#[derive(Serialize, Default)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct Level {
     pub cards: Vec<(Card, Vec2)>,
     pub starting_deckbar: Vec<Card>,
