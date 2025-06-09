@@ -141,7 +141,7 @@ fn start_loading_level_on_btn_press(
 }
 
 fn load_levels(
-    mut loading_level: Option<ResMut<LoadingLevel>>,
+    loading_level: Option<ResMut<LoadingLevel>>,
     mut commands: Commands,
     mut level_assets: ResMut<Assets<Level>>,
     mut level: ResMut<LevelRes>,

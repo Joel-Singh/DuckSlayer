@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use DuckSlayer::delete_all;
 
-use crate::{asset_load_schedule::AssetLoad, global::*};
+use crate::global::*;
 
 #[derive(Component)]
 struct TitleScreen;

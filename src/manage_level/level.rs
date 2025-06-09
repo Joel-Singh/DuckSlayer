@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 
 use bevy::prelude::*;
 use bevy_common_assets::json::JsonAssetPlugin;
@@ -7,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use crate::{
     card::{Card, Farmer, Nest, Quakka},
     deckbar::DeckBarRoot,
-    global::{NEST_POSITIONS, QUAKKA_STARTING_POSITION},
 };
 
 #[derive(Serialize, Deserialize, Default, Asset, TypePath)]
@@ -17,17 +15,6 @@ pub struct Level {
 }
 
 impl Level {
-    pub fn get_first_level() -> Level {
-        Level {
-            cards: vec![
-                (Card::Quakka, QUAKKA_STARTING_POSITION),
-                (Card::Nest, NEST_POSITIONS.0.into()),
-                (Card::Nest, NEST_POSITIONS.1.into()),
-            ],
-            starting_deckbar: vec![Card::Farmer],
-        }
-    }
-
     pub fn get_current(world: &mut World) -> Level {
         let mut level = Level::default();
 

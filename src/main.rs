@@ -1,5 +1,4 @@
 use bevy::{prelude::*, window::WindowResolution};
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 mod asset_load_schedule;
 mod back_btn;
