@@ -1,4 +1,7 @@
+use std::path::PathBuf;
+
 use bevy::prelude::*;
+use bevy_common_assets::json::JsonAssetPlugin;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -7,7 +10,7 @@ use crate::{
     global::{NEST_POSITIONS, QUAKKA_STARTING_POSITION},
 };
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Asset, TypePath)]
 pub struct Level {
     pub cards: Vec<(Card, Vec2)>,
     pub starting_deckbar: Vec<Card>,
@@ -58,4 +61,8 @@ impl Level {
 
         level
     }
+}
+
+pub fn level_plugin(app: &mut App) {
+    app.add_plugins(JsonAssetPlugin::<Level>::new(&[]));
 }

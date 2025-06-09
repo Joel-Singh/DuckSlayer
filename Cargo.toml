@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.16.1", features = ["bevy_dev_tools"] }
 bevy-inspector-egui = "0.31.0"
+bevy_common_assets = { version = "0.13.0", features = [ "json" ] }
 bevy_egui = "0.34.1"
 rfd = "0.15.3"
 serde = { version = "1.0.219", features = [ "derive" ] }

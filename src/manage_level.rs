@@ -9,7 +9,7 @@ use bevy::{
     prelude::*,
 };
 use game_messages::set_message;
-use level::Level;
+pub use level::Level;
 use DuckSlayer::delete_all;
 
 use crate::{
@@ -33,7 +33,7 @@ pub enum GameOver {
 }
 
 #[derive(Resource, Default)]
-struct LevelRes(Level);
+pub struct LevelRes(pub Level);
 
 #[derive(Component, Default)]
 pub struct LevelEntity;
@@ -45,6 +45,7 @@ pub fn manage_level(app: &mut App) {
     app.add_plugins(game_messages::game_messages)
         .add_plugins(debug_ui::debug_ui_plugin)
         .add_plugins(editor_ui::editor_ui_plugin)
+        .add_plugins(level::level_plugin)
         .add_systems(
             OnEnter(GameState::InGame),
             (
