@@ -35,6 +35,10 @@ impl Card {
             _ => false,
         }
     }
+    
+    pub fn is_not_empty(&self) -> bool {
+        !self.is_empty()
+    }
 
     pub fn to_string(&self) -> String {
         match self {
