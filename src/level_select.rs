@@ -8,6 +8,7 @@ use bevy::{
 use DuckSlayer::delete_all;
 
 use crate::{
+    back_btn::{hide_back_btn, show_back_btn},
     global::GameState,
     manage_level::{Level, LevelRes},
 };
@@ -48,10 +49,13 @@ struct LevelSelectBtn(Option<SelectableLevel>);
 pub fn level_select(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::LevelSelect),
-        (spawn_title, spawn_level_select_btns),
+        (spawn_title, spawn_level_select_btns, show_back_btn),
     )
     .add_systems(FixedUpdate, (start_loading_level_on_btn_press, load_levels))
-    .add_systems(OnExit(GameState::LevelSelect), delete_all::<ForCleanup>);
+    .add_systems(
+            OnExit(GameState::LevelSelect),
+            (delete_all::<ForCleanup>, hide_back_btn)
+    );
 }
 
 fn spawn_level_select_btns(mut commands: Commands) {
@@ -69,6 +73,7 @@ fn spawn_level_select_btns(mut commands: Commands) {
             },
             BackgroundColor(BLUE_300.into()),
             Name::new("Level Select Buttons Container"),
+            ZIndex(-1)
         ))
         .id();
 
@@ -120,7 +125,6 @@ fn spawn_title(mut commands: Commands) {
             margin: UiRect::horizontal(Val::Auto).with_top(Val::Vh(10.)),
             ..default()
         },
-        ZIndex(1),
     ));
 }
 
