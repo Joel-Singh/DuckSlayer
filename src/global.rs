@@ -67,28 +67,16 @@ pub const SCREEN_WIDTH: f32 = 1366.0;
 
 pub const DECK_WIDTH: f32 = 0.1 * SCREEN_WIDTH;
 
-pub const FARMER_FILE_DIMENSIONS: (f32, f32) = (1399., 1238.);
-pub const FARMER_CUSTOM_WIDTH: f32 = 60.;
-pub const FARMER_SIZE: (f32, f32) = (
-    FARMER_FILE_DIMENSIONS.0 * (FARMER_CUSTOM_WIDTH / FARMER_FILE_DIMENSIONS.0),
-    FARMER_FILE_DIMENSIONS.1 * (FARMER_CUSTOM_WIDTH / FARMER_FILE_DIMENSIONS.0),
-);
 pub const FARMER_SPEED: f32 = 25.0;
 
 pub const QUAKKA_SPEED: f32 = 75.0;
 pub const QUAKKA_HIT_DISTANCE: f32 = 50.0;
 pub const QUAKKA_DAMAGE: f32 = 60.0;
-pub const QUAKKA_SIZE: (f32, f32) = (100.0, 100.0);
-
-pub const WATERBALL_RADIUS: f32 = 50.;
-pub const WATERBALL_SIZE: (f32, f32) = (WATERBALL_RADIUS * 2., WATERBALL_RADIUS * 2.);
-pub const WATERBALL_DAMAGE: f32 = 30.0;
 
 pub const NEST_POSITIONS: ((f32, f32), (f32, f32)) = ((-388., -312.), (173., -312.));
 
 pub const NEST_ATTACK_DISTANCE: f32 = 500.;
 pub const NEST_DAMAGE: f32 = 10.;
-pub const NEST_SIZE: (f32, f32) = (50., 50.);
 
 pub const BRIDGE_LOCATIONS: (Vec2, Vec2) = (Vec2::new(-392.0, -4.0), Vec2::new(165.0, -8.0));
 

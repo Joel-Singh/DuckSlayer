@@ -1,6 +1,5 @@
 use crate::card::Card;
 use crate::global::IsPointerOverUi;
-use crate::global::{WATERBALL_DAMAGE, WATERBALL_RADIUS};
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
 use crate::{
@@ -23,7 +22,9 @@ pub use nest::Nest;
 pub struct Quakka;
 
 #[derive(Component)]
-pub struct Waterball;
+pub struct Waterball {
+    pub radius: f32,
+}
 
 #[derive(Component, Default)]
 pub struct WaterballTarget;
@@ -181,14 +182,14 @@ fn quakka_chase_and_attack(
 
 fn explode_waterballs(
     mut waterball_targets: Query<Entity, With<WaterballTarget>>,
-    waterballs: Query<Entity, With<Waterball>>,
+    waterballs: Query<(Entity, &Waterball)>,
     mut health_q: Query<&mut Health>,
     mut attacker_q: Query<&mut Attacker, With<Waterball>>,
     transform_q: Query<&Transform>,
 
     mut commands: Commands,
 ) {
-    for waterball_e in waterballs {
+    for (waterball_e, waterball) in waterballs {
         let waterball_attacker = attacker_q.get_mut(waterball_e).unwrap();
 
         if !waterball_attacker.cooldown.finished() {
@@ -205,7 +206,7 @@ fn explode_waterballs(
                     transform_q.get(waterball_e).unwrap().translation.truncate();
 
                 let is_in_explosion_distance =
-                    waterball_position.distance(target_position) < WATERBALL_RADIUS;
+                    waterball_position.distance(target_position) < waterball.radius;
                 if !is_in_explosion_distance {
                     continue;
                 }
@@ -213,7 +214,7 @@ fn explode_waterballs(
 
             let target_health = health_q.get_mut(target);
             if let Ok(mut target_health) = target_health {
-                target_health.current_health -= WATERBALL_DAMAGE;
+                target_health.current_health -= waterball_attacker.damage;
             }
         }
 

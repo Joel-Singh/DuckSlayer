@@ -1,4 +1,4 @@
-use crate::card::Card;
+use crate::card::{Card, CardConsts};
 
 use bevy::{
     color::palettes::css::*,
@@ -174,6 +174,8 @@ fn hover_sprite_when_card_selected(
     selected_card: Option<Single<&Card, With<SelectedCard>>>,
     asset_server: Res<AssetServer>,
     cursor_world_coords: Res<CursorWorldCoords>,
+
+    card_consts: Res<CardConsts>,
 ) {
     let mut hide_hover_sprite = || {
         commands.entity(*hover_sprite).insert(Sprite {
@@ -190,7 +192,7 @@ fn hover_sprite_when_card_selected(
         } else {
             commands.entity(*hover_sprite).insert(Sprite {
                 color: Color::linear_rgba(1., 1., 1., 0.5),
-                ..selected_card.get_sprite(&asset_server)
+                ..selected_card.get_sprite(&asset_server, &card_consts)
             });
         }
     } else {

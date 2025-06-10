@@ -1,9 +1,7 @@
 mod card_behaviors;
+mod card_constants;
 
-use crate::global::{
-    FARMER_SIZE, NEST_DAMAGE, NEST_SIZE, QUAKKA_DAMAGE, QUAKKA_SIZE, WATERBALL_DAMAGE,
-    WATERBALL_SIZE,
-};
+use crate::global::{NEST_DAMAGE, QUAKKA_DAMAGE};
 use bevy::prelude::*;
 
 use card_behaviors::{Attacker, GoingToBridge, Health};
@@ -11,6 +9,7 @@ use card_behaviors::{Attacker, GoingToBridge, Health};
 pub use card_behaviors::{
     Bridge, Farmer, IsSpawnedCardDebugOverlayEnabled, Nest, NestDestroyed, Quakka, Waterball,
 };
+pub use card_constants::CardConsts;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use strum_macros::EnumIter;
@@ -25,7 +24,8 @@ pub enum Card {
 }
 
 pub fn card(app: &mut App) {
-    app.add_plugins(card_behaviors::card_behaviors);
+    app.add_plugins(card_behaviors::card_behaviors)
+        .add_plugins(card_constants::card_constants);
 }
 
 impl Card {
@@ -50,15 +50,15 @@ impl Card {
         }
     }
 
-    pub fn get_sprite_size(&self) -> (f32, f32) {
+    pub fn get_sprite_size(&self, consts: &CardConsts) -> (f32, f32) {
         match self {
             Card::Empty => {
                 panic!()
             }
-            Card::Farmer => FARMER_SIZE,
-            Card::Quakka => QUAKKA_SIZE,
-            Card::Waterball => WATERBALL_SIZE,
-            Card::Nest => NEST_SIZE,
+            Card::Farmer => consts.farmer.size,
+            Card::Quakka => consts.quakka.size,
+            Card::Waterball => consts.waterball.size,
+            Card::Nest => consts.nest.size,
         }
     }
 
@@ -74,10 +74,10 @@ impl Card {
         }
     }
 
-    pub fn get_sprite(&self, asset_server: &AssetServer) -> Sprite {
+    pub fn get_sprite(&self, asset_server: &AssetServer, card_consts: &CardConsts) -> Sprite {
         Sprite {
             image: asset_server.load(self.get_sprite_filepath()),
-            custom_size: Some(self.get_sprite_size().into()),
+            custom_size: Some(self.get_sprite_size(card_consts).into()),
             ..default()
         }
     }
@@ -97,28 +97,33 @@ impl SpawnCard {
 impl Command for SpawnCard {
     fn apply(self, world: &mut World) {
         let asset_server = world.resource::<AssetServer>();
+        let card_consts = world.resource::<CardConsts>();
 
         match self.card {
             Card::Farmer => {
-                world.spawn(farmer_bundle(self.position, asset_server));
+                world.spawn(farmer_bundle(self.position, asset_server, card_consts));
             }
             Card::Quakka => {
-                world.spawn(quakka_bundle(self.position, asset_server));
+                world.spawn(quakka_bundle(self.position, asset_server, card_consts));
             }
             Card::Waterball => {
-                world.spawn(waterball_bundle(self.position, asset_server));
+                world.spawn(waterball_bundle(self.position, asset_server, card_consts));
             }
             Card::Nest => {
-                world.spawn(nest_bundle(self.position, asset_server));
+                world.spawn(nest_bundle(self.position, asset_server, card_consts));
             }
             Card::Empty => warn!("Cannot spawn an empty card bundle"),
         }
     }
 }
 
-fn quakka_bundle(position: Vec2, asset_server: &AssetServer) -> impl Bundle {
+fn quakka_bundle(
+    position: Vec2,
+    asset_server: &AssetServer,
+    card_consts: &CardConsts,
+) -> impl Bundle {
     (
-        Card::Quakka.get_sprite(asset_server),
+        Card::Quakka.get_sprite(asset_server, card_consts),
         Transform {
             translation: position.extend(0.0),
             ..default()
@@ -136,9 +141,13 @@ fn quakka_bundle(position: Vec2, asset_server: &AssetServer) -> impl Bundle {
     )
 }
 
-fn farmer_bundle(position: Vec2, asset_server: &AssetServer) -> impl Bundle {
+fn farmer_bundle(
+    position: Vec2,
+    asset_server: &AssetServer,
+    card_consts: &CardConsts,
+) -> impl Bundle {
     (
-        Card::Farmer.get_sprite(asset_server),
+        Card::Farmer.get_sprite(asset_server, card_consts),
         Transform {
             translation: position.extend(0.),
             ..default()
@@ -153,24 +162,34 @@ fn farmer_bundle(position: Vec2, asset_server: &AssetServer) -> impl Bundle {
     )
 }
 
-fn waterball_bundle(position: Vec2, asset_server: &AssetServer) -> impl Bundle {
+fn waterball_bundle(
+    position: Vec2,
+    asset_server: &AssetServer,
+    card_consts: &CardConsts,
+) -> impl Bundle {
     (
-        Card::Waterball.get_sprite(asset_server),
-        Waterball,
+        Card::Waterball.get_sprite(asset_server, card_consts),
+        Waterball {
+            radius: card_consts.waterball.radius,
+        },
         Transform {
             translation: position.extend(0.0),
             ..default()
         },
         Attacker {
             cooldown: Timer::new(Duration::from_secs_f32(0.1), TimerMode::Once),
-            damage: WATERBALL_DAMAGE,
+            damage: card_consts.waterball.damage,
         },
     )
 }
 
-fn nest_bundle(position: Vec2, asset_server: &AssetServer) -> impl Bundle {
+fn nest_bundle(
+    position: Vec2,
+    asset_server: &AssetServer,
+    card_consts: &CardConsts,
+) -> impl Bundle {
     (
-        Card::Nest.get_sprite(asset_server),
+        Card::Nest.get_sprite(asset_server, card_consts),
         Transform {
             translation: position.extend(0.0),
             ..default()
