@@ -4,7 +4,7 @@ use bevy::{
     tasks::{futures_lite::future, AsyncComputeTaskPool, Task},
 };
 use bevy_egui::{
-    egui::{self, Ui},
+    egui::{self, Slider, Ui},
     EguiContextPass, EguiContexts,
 };
 use rfd::FileDialog;
@@ -13,7 +13,7 @@ use strum::IntoEnumIterator;
 use DuckSlayer::delete_all;
 
 use crate::{
-    card::{Card, SpawnCard},
+    card::{Card, CardConsts, SpawnCard},
     deckbar::{clear_deckbar, PushToDeckbar},
     global::{in_editor, NEST_POSITIONS},
 };
@@ -23,12 +23,21 @@ use super::{
     LevelRes, Pause,
 };
 
+#[derive(Resource, Default)]
+struct IsConstantsWindowOpen(bool);
+
 pub fn editor_ui_plugin(app: &mut App) {
     app.add_systems(EguiContextPass, create_editor_window.run_if(in_editor))
-        .add_systems(FixedUpdate, poll_filepicker_completion);
+        .add_systems(FixedUpdate, poll_filepicker_completion)
+        .init_resource::<IsConstantsWindowOpen>();
 }
 
-fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
+fn create_editor_window(
+    mut contexts: EguiContexts,
+    mut card_consts: ResMut<CardConsts>,
+    mut is_constants_window_open: ResMut<IsConstantsWindowOpen>,
+    mut commands: Commands,
+) {
     egui::Window::new("Editor")
         .default_pos((0., 160.)) // Stop from spawning ontop of back btn
         .show(contexts.ctx_mut(), |ui| {
@@ -64,7 +73,27 @@ fn create_editor_window(mut contexts: EguiContexts, mut commands: Commands) {
                 commands.queue(Pause);
                 commands.queue(LoadLevelWithFileDialog);
             }
+
+            if ui.button("Toggle constants window").clicked() {
+                is_constants_window_open.0 = !is_constants_window_open.0;
+            }
         });
+
+    if is_constants_window_open.0 {
+        egui::Window::new("Constants Editor")
+            .enabled(is_constants_window_open.0)
+            .default_pos((0., 400.))
+            .show(contexts.ctx_mut(), |ui| {
+                let const_edit =
+                    |ui: &mut Ui, desc: &'static str, constant: &mut f32, max_val: f32| {
+                        ui.add(Slider::new(constant, 0.0..=max_val).text(desc));
+                    };
+
+                ui.heading("Waterball");
+                const_edit(ui, "Radius", &mut card_consts.waterball.radius, 250.);
+                const_edit(ui, "Damage", &mut card_consts.waterball.damage, 250.);
+            });
+    }
 }
 
 fn create_push_to_deckbar_btns(ui: &mut Ui, commands: &mut Commands) {
