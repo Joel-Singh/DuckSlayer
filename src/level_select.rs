@@ -53,8 +53,8 @@ pub fn level_select(app: &mut App) {
     )
     .add_systems(FixedUpdate, (start_loading_level_on_btn_press, load_levels))
     .add_systems(
-            OnExit(GameState::LevelSelect),
-            (delete_all::<ForCleanup>, hide_back_btn)
+        OnExit(GameState::LevelSelect),
+        (delete_all::<ForCleanup>, hide_back_btn),
     );
 }
 
@@ -73,7 +73,7 @@ fn spawn_level_select_btns(mut commands: Commands) {
             },
             BackgroundColor(BLUE_300.into()),
             Name::new("Level Select Buttons Container"),
-            ZIndex(-1)
+            ZIndex(-1),
         ))
         .id();
 
@@ -131,7 +131,7 @@ fn spawn_title(mut commands: Commands) {
 fn start_loading_level_on_btn_press(
     btn_interactions: Query<(&Interaction, &LevelSelectBtn), Changed<Interaction>>,
     asset_server: Res<AssetServer>,
-    mut commands: Commands
+    mut commands: Commands,
 ) {
     for (interaction, LevelSelectBtn(level)) in btn_interactions {
         let Some(level) = level else {
@@ -149,7 +149,7 @@ fn load_levels(
     mut commands: Commands,
     mut level_assets: ResMut<Assets<Level>>,
     mut level: ResMut<LevelRes>,
-    mut game_state: ResMut<NextState<GameState>>
+    mut game_state: ResMut<NextState<GameState>>,
 ) {
     let Some(loading_level) = loading_level else {
         return;

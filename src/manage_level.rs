@@ -15,7 +15,7 @@ use DuckSlayer::delete_all;
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
     card::{spawn_card, Bridge, NestDestroyed},
-    deckbar::{clear_deckbar, hide_deckbar, show_deckbar, PushToDeckbar, select_card},
+    deckbar::{clear_deckbar, hide_deckbar, select_card, show_deckbar, PushToDeckbar},
     global::{in_editor, not_in_editor, GameState, ImageHandles, IsInEditor, BRIDGE_LOCATIONS},
 };
 

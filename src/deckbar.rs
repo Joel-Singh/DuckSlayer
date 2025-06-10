@@ -1,8 +1,10 @@
 use crate::card::Card;
 
 use bevy::{
-    color::palettes::css::*, prelude::*, render::texture::TRANSPARENT_IMAGE_HANDLE,
+    color::palettes::css::*,
     ecs::{schedule::ScheduleConfigs, system::ScheduleSystem},
+    prelude::*,
+    render::texture::TRANSPARENT_IMAGE_HANDLE,
 };
 
 use crate::global::*;
@@ -241,21 +243,19 @@ fn select_card_on_click(
     }
 }
 
-pub fn select_card(
-    to_select: usize,
-) -> ScheduleConfigs<ScheduleSystem> {
+pub fn select_card(to_select: usize) -> ScheduleConfigs<ScheduleSystem> {
     if to_select > 3 {
         panic!("Invalid Card deck index");
     }
 
-    (move
-        |old_selected_card: Option<Single<Entity, With<SelectedCard>>>,
-        deck: Single<&Children, With<DeckBarRoot>>,
-        mut commands: Commands,
-        cards: Query<&Card>| {
-
+    (move |old_selected_card: Option<Single<Entity, With<SelectedCard>>>,
+           deck: Single<&Children, With<DeckBarRoot>>,
+           mut commands: Commands,
+           cards: Query<&Card>| {
         if let Some(old_selected_card) = old_selected_card {
-            commands.entity(old_selected_card.into_inner()).remove::<SelectedCard>();
+            commands
+                .entity(old_selected_card.into_inner())
+                .remove::<SelectedCard>();
         }
 
         let mut card: Entity = Entity::PLACEHOLDER;
@@ -269,7 +269,8 @@ pub fn select_card(
         if cards.get(card).unwrap().is_not_empty() {
             commands.entity(card).insert(SelectedCard);
         }
-    }).into_configs()
+    })
+    .into_configs()
 }
 
 #[derive(Default)]

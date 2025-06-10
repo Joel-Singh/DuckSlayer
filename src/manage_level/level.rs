@@ -1,4 +1,3 @@
-
 use bevy::prelude::*;
 use bevy_common_assets::json::JsonAssetPlugin;
 use serde::{Deserialize, Serialize};
