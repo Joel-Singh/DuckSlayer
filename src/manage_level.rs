@@ -15,7 +15,9 @@ use DuckSlayer::delete_all;
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
     card::{Bridge, NestDestroyed, SpawnCard},
-    deckbar::{clear_deckbar, hide_deckbar, select_card, show_deckbar, PushToDeckbar},
+    deckbar::{
+        clear_deckbar, deselect_card, hide_deckbar, select_card, show_deckbar, PushToDeckbar,
+    },
     global::{in_editor, not_in_editor, GameState, ImageHandles, IsInEditor, BRIDGE_LOCATIONS},
 };
 
@@ -88,6 +90,8 @@ pub fn manage_level(app: &mut App) {
                 select_card(1).run_if(input_just_pressed(KeyCode::Digit2)),
                 select_card(2).run_if(input_just_pressed(KeyCode::Digit3)),
                 select_card(3).run_if(input_just_pressed(KeyCode::Digit4)),
+                deselect_card.run_if(input_just_pressed(KeyCode::Escape)),
+                deselect_card.run_if(input_just_pressed(KeyCode::CapsLock)),
             )
                 .run_if(in_state(GameState::InGame)),
         )

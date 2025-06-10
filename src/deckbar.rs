@@ -245,6 +245,17 @@ fn select_card_on_click(
     }
 }
 
+pub fn deselect_card(
+    selected_card: Option<Single<Entity, With<SelectedCard>>>,
+    mut commands: Commands,
+) {
+    if selected_card.is_some() {
+        commands
+            .entity(*selected_card.unwrap())
+            .remove::<SelectedCard>();
+    }
+}
+
 pub fn select_card(to_select: usize) -> ScheduleConfigs<ScheduleSystem> {
     if to_select > 3 {
         panic!("Invalid Card deck index");
