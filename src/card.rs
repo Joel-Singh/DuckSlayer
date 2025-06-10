@@ -57,7 +57,7 @@ impl Card {
             }
             Card::Farmer => consts.farmer.size,
             Card::Quakka => consts.quakka.size,
-            Card::Waterball => consts.waterball.size,
+            Card::Waterball => consts.waterball.size(),
             Card::Nest => consts.nest.size,
         }
     }

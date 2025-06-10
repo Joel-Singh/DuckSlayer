@@ -14,7 +14,6 @@ pub fn card_constants(app: &mut App) {
 
 pub struct WaterballConsts {
     pub radius: f32,
-    pub size: (f32, f32),
     pub damage: f32,
 }
 
@@ -23,9 +22,14 @@ impl Default for WaterballConsts {
         const RADIUS: f32 = 50.;
         WaterballConsts {
             radius: RADIUS,
-            size: (RADIUS * 2., RADIUS * 2.),
             damage: 30.,
         }
+    }
+}
+
+impl WaterballConsts {
+    pub fn size(&self) -> (f32, f32) {
+        (self.radius * 2., self.radius * 2.)
     }
 }
 
