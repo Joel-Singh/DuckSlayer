@@ -137,7 +137,7 @@ impl Command for SaveLevelWithFileDialog {
         let thread_pool = AsyncComputeTaskPool::get();
         let task = thread_pool.spawn(async move {
             FileDialog::new()
-                .set_file_name("level.json")
+                .set_file_name("placeholder.level.json")
                 .add_filter("JSON", &["json"])
                 .save_file()
         });
@@ -179,8 +179,11 @@ pub struct LoadLevelWithFileDialog;
 impl Command for LoadLevelWithFileDialog {
     fn apply(self, world: &mut World) {
         let thread_pool = AsyncComputeTaskPool::get();
-        let task = thread_pool
-            .spawn(async move { FileDialog::new().add_filter("JSON", &["json"]).pick_file() });
+        let task = thread_pool.spawn(async move {
+            FileDialog::new()
+                .add_filter("JSON", &["level.json"])
+                .pick_file()
+        });
 
         world.spawn(PickingFile(task)).observe(
             |trigger: Trigger<FinishedPickingFile>, world: &mut World| {

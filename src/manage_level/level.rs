@@ -50,5 +50,5 @@ impl Level {
 }
 
 pub fn level_plugin(app: &mut App) {
-    app.add_plugins(JsonAssetPlugin::<Level>::new(&[]));
+    app.add_plugins(JsonAssetPlugin::<Level>::new(&["level.json"]));
 }

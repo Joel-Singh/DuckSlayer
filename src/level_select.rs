@@ -27,8 +27,8 @@ enum SelectableLevel {
 impl SelectableLevel {
     pub fn get_file(&self) -> &str {
         match self {
-            SelectableLevel::One => "levels/level_one.json",
-            SelectableLevel::Two => "levels/level_two.json",
+            SelectableLevel::One => "levels/level_one.level.json",
+            SelectableLevel::Two => "levels/level_two.level.json",
         }
     }
 
