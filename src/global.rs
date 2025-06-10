@@ -1,4 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_egui::input::EguiWantsInput;
 use std::env;
 
 use crate::asset_load_schedule::AssetLoad;
@@ -115,10 +116,14 @@ fn update_cursor_world_coords(
 fn update_is_pointer_over_ui(
     mut is_pointer_over_ui: ResMut<IsPointerOverUi>,
     interaction_query: Query<&Interaction, (With<Node>, Changed<Interaction>)>,
+
+    egui_wants_input: Res<EguiWantsInput>,
 ) {
     if interaction_query.iter().count() > 0 {
         is_pointer_over_ui.0 = interaction_query.iter().any(|i| *i != Interaction::None);
     }
+
+    is_pointer_over_ui.0 = is_pointer_over_ui.0 || egui_wants_input.wants_any_pointer_input();
 }
 
 fn load_images(mut commands: Commands, asset_server: Res<AssetServer>) {
