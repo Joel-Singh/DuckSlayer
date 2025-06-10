@@ -15,7 +15,7 @@ use DuckSlayer::delete_all;
 use crate::{
     card::{Card, CardConsts, SpawnCard},
     deckbar::{clear_deckbar, PushToDeckbar},
-    global::{in_editor, NEST_POSITIONS},
+    global::{in_editor, GameState, NEST_POSITIONS},
 };
 
 use super::{
@@ -29,6 +29,7 @@ struct IsConstantsWindowOpen(bool);
 pub fn editor_ui_plugin(app: &mut App) {
     app.add_systems(EguiContextPass, create_editor_window.run_if(in_editor))
         .add_systems(FixedUpdate, poll_filepicker_completion)
+        .add_systems(OnExit(GameState::InGame), cleanup)
         .init_resource::<IsConstantsWindowOpen>();
 }
 
@@ -114,6 +115,14 @@ fn spawn_nests_in_default_positions(mut commands: Commands) {
     for pos in [NEST_POSITIONS.0, NEST_POSITIONS.1] {
         commands.queue(SpawnCard::new(Card::Nest, pos.into()));
     }
+}
+
+fn cleanup(
+    mut is_constants_window_open: ResMut<IsConstantsWindowOpen>,
+    mut card_consts: ResMut<CardConsts>,
+) {
+    is_constants_window_open.0 = false;
+    *card_consts = CardConsts::default();
 }
 
 #[derive(Component)]
