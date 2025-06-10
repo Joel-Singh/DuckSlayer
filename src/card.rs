@@ -74,7 +74,7 @@ impl Card {
         }
     }
 
-    pub fn get_sprite(&self, asset_server: &Res<AssetServer>) -> Sprite {
+    pub fn get_sprite(&self, asset_server: &AssetServer) -> Sprite {
         Sprite {
             image: asset_server.load(self.get_sprite_filepath()),
             custom_size: Some(self.get_sprite_size().into()),
@@ -83,97 +83,107 @@ impl Card {
     }
 }
 
-pub fn spawn_card(
+pub struct SpawnCard {
     card: Card,
     position: Vec2,
-    commands: &mut Commands,
-    asset_server: &Res<AssetServer>,
-) {
-    match card {
-        Card::Farmer => {
-            commands.spawn(farmer_bundle(position, asset_server));
-        }
-        Card::Quakka => {
-            commands.spawn(quakka_bundle(position, asset_server));
-        }
-        Card::Waterball => {
-            commands.spawn(waterball_bundle(position, asset_server));
-        }
-        Card::Nest => {
-            commands.spawn(nest_bundle(position, asset_server));
-        }
-        Card::Empty => warn!("Cannot spawn an empty card bundle"),
-    }
+}
 
-    fn quakka_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
-        (
-            Card::Quakka.get_sprite(asset_server),
-            Transform {
-                translation: position.extend(0.0),
-                ..default()
-            },
-            Health {
-                current_health: 100.0,
-                max_health: 100.0,
-                healthbar_height: 60.,
-            },
-            Quakka,
-            Attacker {
-                cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-                damage: QUAKKA_DAMAGE,
-            },
-        )
+impl SpawnCard {
+    pub fn new(card: Card, position: Vec2) -> SpawnCard {
+        SpawnCard { card, position }
     }
+}
 
-    fn farmer_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
-        (
-            Card::Farmer.get_sprite(asset_server),
-            Transform {
-                translation: position.extend(0.),
-                ..default()
-            },
-            Farmer,
-            GoingToBridge,
-            Health {
-                current_health: 100.0,
-                max_health: 100.0,
-                healthbar_height: 60.,
-            },
-        )
-    }
+impl Command for SpawnCard {
+    fn apply(self, world: &mut World) {
+        let asset_server = world.resource::<AssetServer>();
 
-    fn waterball_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
-        (
-            Card::Waterball.get_sprite(asset_server),
-            Waterball,
-            Transform {
-                translation: position.extend(0.0),
-                ..default()
-            },
-            Attacker {
-                cooldown: Timer::new(Duration::from_secs_f32(0.1), TimerMode::Once),
-                damage: WATERBALL_DAMAGE,
-            },
-        )
+        match self.card {
+            Card::Farmer => {
+                world.spawn(farmer_bundle(self.position, asset_server));
+            }
+            Card::Quakka => {
+                world.spawn(quakka_bundle(self.position, asset_server));
+            }
+            Card::Waterball => {
+                world.spawn(waterball_bundle(self.position, asset_server));
+            }
+            Card::Nest => {
+                world.spawn(nest_bundle(self.position, asset_server));
+            }
+            Card::Empty => warn!("Cannot spawn an empty card bundle"),
+        }
     }
+}
 
-    fn nest_bundle(position: Vec2, asset_server: &Res<AssetServer>) -> impl Bundle {
-        (
-            Card::Nest.get_sprite(asset_server),
-            Transform {
-                translation: position.extend(0.0),
-                ..default()
-            },
-            Health {
-                current_health: 100.0,
-                max_health: 100.0,
-                healthbar_height: 60.,
-            },
-            Nest::default(),
-            Attacker {
-                cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-                damage: NEST_DAMAGE,
-            },
-        )
-    }
+fn quakka_bundle(position: Vec2, asset_server: &AssetServer) -> impl Bundle {
+    (
+        Card::Quakka.get_sprite(asset_server),
+        Transform {
+            translation: position.extend(0.0),
+            ..default()
+        },
+        Health {
+            current_health: 100.0,
+            max_health: 100.0,
+            healthbar_height: 60.,
+        },
+        Quakka,
+        Attacker {
+            cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
+            damage: QUAKKA_DAMAGE,
+        },
+    )
+}
+
+fn farmer_bundle(position: Vec2, asset_server: &AssetServer) -> impl Bundle {
+    (
+        Card::Farmer.get_sprite(asset_server),
+        Transform {
+            translation: position.extend(0.),
+            ..default()
+        },
+        Farmer,
+        GoingToBridge,
+        Health {
+            current_health: 100.0,
+            max_health: 100.0,
+            healthbar_height: 60.,
+        },
+    )
+}
+
+fn waterball_bundle(position: Vec2, asset_server: &AssetServer) -> impl Bundle {
+    (
+        Card::Waterball.get_sprite(asset_server),
+        Waterball,
+        Transform {
+            translation: position.extend(0.0),
+            ..default()
+        },
+        Attacker {
+            cooldown: Timer::new(Duration::from_secs_f32(0.1), TimerMode::Once),
+            damage: WATERBALL_DAMAGE,
+        },
+    )
+}
+
+fn nest_bundle(position: Vec2, asset_server: &AssetServer) -> impl Bundle {
+    (
+        Card::Nest.get_sprite(asset_server),
+        Transform {
+            translation: position.extend(0.0),
+            ..default()
+        },
+        Health {
+            current_health: 100.0,
+            max_health: 100.0,
+            healthbar_height: 60.,
+        },
+        Nest::default(),
+        Attacker {
+            cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
+            damage: NEST_DAMAGE,
+        },
+    )
 }

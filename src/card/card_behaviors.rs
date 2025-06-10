@@ -1,4 +1,3 @@
-use crate::card::spawn_card;
 use crate::card::Card;
 use crate::global::IsPointerOverUi;
 use crate::global::{WATERBALL_DAMAGE, WATERBALL_RADIUS};
@@ -288,7 +287,6 @@ fn farmer_go_up(
 fn spawn_card_on_click(
     mut commands: Commands,
     mut mousebtn_evr: EventReader<MouseButtonInput>,
-    asset_server: Res<AssetServer>,
     mouse_coords: Res<CursorWorldCoords>,
     is_pointer_over_ui: Res<IsPointerOverUi>,
     selected_card: Option<Single<&Card, With<SelectedCard>>>,
@@ -304,7 +302,7 @@ fn spawn_card_on_click(
         }
 
         if !selected_card.is_empty() && !is_pointer_over_ui.0 {
-            spawn_card(*selected_card, mouse_coords.0, &mut commands, &asset_server);
+            commands.queue(SpawnCard::new(*selected_card, mouse_coords.0));
             commands.queue(DeleteSelectedCard::default());
         }
     }
@@ -439,6 +437,8 @@ mod nest {
 }
 
 pub use debug::IsSpawnedCardDebugOverlayEnabled;
+
+use super::SpawnCard;
 
 mod debug {
     use crate::global::{in_debug, NEST_ATTACK_DISTANCE};

@@ -14,7 +14,7 @@ use DuckSlayer::delete_all;
 
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
-    card::{spawn_card, Bridge, NestDestroyed},
+    card::{Bridge, NestDestroyed, SpawnCard},
     deckbar::{clear_deckbar, hide_deckbar, select_card, show_deckbar, PushToDeckbar},
     global::{in_editor, not_in_editor, GameState, ImageHandles, IsInEditor, BRIDGE_LOCATIONS},
 };
@@ -180,15 +180,11 @@ fn load_from_level_res() -> ScheduleConfigs<ScheduleSystem> {
         .chain();
 }
 
-fn spawn_entities_from_level_res(
-    level: Res<LevelRes>,
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
+fn spawn_entities_from_level_res(level: Res<LevelRes>, mut commands: Commands) {
     let level = &level.0;
 
     for (card, position) in &level.cards {
-        spawn_card(*card, *position, &mut commands, &asset_server);
+        commands.queue(SpawnCard::new(*card, *position));
     }
 
     for card in &level.starting_deckbar {

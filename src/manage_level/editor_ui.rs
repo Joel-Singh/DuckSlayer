@@ -13,7 +13,7 @@ use strum::IntoEnumIterator;
 use DuckSlayer::delete_all;
 
 use crate::{
-    card::{spawn_card, Card},
+    card::{Card, SpawnCard},
     deckbar::{clear_deckbar, PushToDeckbar},
     global::{in_editor, NEST_POSITIONS},
 };
@@ -81,9 +81,9 @@ fn create_push_to_deckbar_btns(ui: &mut Ui, commands: &mut Commands) {
     }
 }
 
-fn spawn_nests_in_default_positions(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_nests_in_default_positions(mut commands: Commands) {
     for pos in [NEST_POSITIONS.0, NEST_POSITIONS.1] {
-        spawn_card(Card::Nest, pos.into(), &mut commands, &asset_server);
+        commands.queue(SpawnCard::new(Card::Nest, pos.into()));
     }
 }
 
