@@ -1,7 +1,6 @@
 mod card_behaviors;
 mod card_constants;
 
-use crate::global::NEST_DAMAGE;
 use bevy::prelude::*;
 
 use card_behaviors::{Attacker, GoingToBridge, Health};

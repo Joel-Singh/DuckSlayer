@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_common_assets::json::JsonAssetPlugin;
 use serde::{Deserialize, Serialize};
 
 #[derive(Resource, Default, Serialize, Deserialize, Asset, TypePath)]
