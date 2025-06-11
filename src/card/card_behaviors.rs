@@ -4,7 +4,7 @@ use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
 use crate::{
     deckbar::{DeleteSelectedCard, SelectedCard},
-    global::{CursorWorldCoords, GameState, FARMER_SPEED, QUAKKA_HIT_DISTANCE, QUAKKA_SPEED},
+    global::{CursorWorldCoords, GameState, FARMER_SPEED},
 };
 
 use bevy::ecs::component::HookContext;
@@ -36,7 +36,6 @@ pub struct Farmer;
 #[derive(Component)]
 pub struct Attacker {
     pub cooldown: Timer,
-    pub damage: f32,
 }
 
 #[derive(Component, Default)]
@@ -147,6 +146,8 @@ fn quakka_chase_and_attack(
         (With<QuakkaTarget>, Without<Quakka>),
     >,
     time: Res<Time>,
+
+    card_consts: Res<CardConsts>,
 ) {
     for mut quakka in quakkas.iter_mut() {
         let closest_chaseable = quakka_targets.iter_mut().min_by(|a, b| {
@@ -166,16 +167,16 @@ fn quakka_chase_and_attack(
             .translation
             .distance(closest_chaseable.0.translation);
 
-        let in_attack_distance = distance_to_chaseable < QUAKKA_HIT_DISTANCE;
+        let in_attack_distance = distance_to_chaseable < card_consts.quakka.hit_distance;
 
         if in_attack_distance && quakka.1.cooldown.finished() {
             quakka.1.cooldown.reset();
-            closest_chaseable.2.current_health -= quakka.1.damage;
+            closest_chaseable.2.current_health -= card_consts.quakka.damage;
         } else if !in_attack_distance {
             let mut to_chaseable = closest_chaseable.0.translation - quakka.0.translation;
             to_chaseable = to_chaseable.normalize();
 
-            quakka.0.translation += to_chaseable * time.delta_secs() * QUAKKA_SPEED;
+            quakka.0.translation += to_chaseable * time.delta_secs() * card_consts.quakka.speed;
         }
     }
 }
@@ -188,6 +189,8 @@ fn explode_waterballs(
     transform_q: Query<&Transform>,
 
     mut commands: Commands,
+
+    card_consts: Res<CardConsts>,
 ) {
     for (waterball_e, waterball) in waterballs {
         let waterball_attacker = attacker_q.get_mut(waterball_e).unwrap();
@@ -214,7 +217,7 @@ fn explode_waterballs(
 
             let target_health = health_q.get_mut(target);
             if let Ok(mut target_health) = target_health {
-                target_health.current_health -= waterball_attacker.damage;
+                target_health.current_health -= card_consts.waterball.damage;
             }
         }
 
@@ -439,6 +442,7 @@ mod nest {
 
 pub use debug::IsSpawnedCardDebugOverlayEnabled;
 
+use super::CardConsts;
 use super::SpawnCard;
 
 mod debug {

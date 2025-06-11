@@ -1,7 +1,7 @@
 mod card_behaviors;
 mod card_constants;
 
-use crate::global::{NEST_DAMAGE, QUAKKA_DAMAGE};
+use crate::global::NEST_DAMAGE;
 use bevy::prelude::*;
 
 use card_behaviors::{Attacker, GoingToBridge, Health};
@@ -136,7 +136,6 @@ fn quakka_bundle(
         Quakka,
         Attacker {
             cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-            damage: QUAKKA_DAMAGE,
         },
     )
 }
@@ -178,7 +177,6 @@ fn waterball_bundle(
         },
         Attacker {
             cooldown: Timer::new(Duration::from_secs_f32(0.1), TimerMode::Once),
-            damage: card_consts.waterball.damage,
         },
     )
 }
@@ -202,7 +200,6 @@ fn nest_bundle(
         Nest::default(),
         Attacker {
             cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-            damage: NEST_DAMAGE,
         },
     )
 }

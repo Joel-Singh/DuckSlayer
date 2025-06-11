@@ -70,10 +70,6 @@ pub const DECK_WIDTH: f32 = 0.1 * SCREEN_WIDTH;
 
 pub const FARMER_SPEED: f32 = 25.0;
 
-pub const QUAKKA_SPEED: f32 = 75.0;
-pub const QUAKKA_HIT_DISTANCE: f32 = 50.0;
-pub const QUAKKA_DAMAGE: f32 = 60.0;
-
 pub const NEST_POSITIONS: ((f32, f32), (f32, f32)) = ((-388., -312.), (173., -312.));
 
 pub const NEST_ATTACK_DISTANCE: f32 = 500.;
