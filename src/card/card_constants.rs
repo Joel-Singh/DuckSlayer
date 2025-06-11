@@ -1,6 +1,8 @@
 use bevy::prelude::*;
+use bevy_common_assets::json::JsonAssetPlugin;
+use serde::{Deserialize, Serialize};
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Serialize, Deserialize, Asset, TypePath)]
 pub struct CardConsts {
     pub farmer: FarmerConsts,
     pub quakka: QuakkaConsts,
@@ -12,6 +14,7 @@ pub fn card_constants(app: &mut App) {
     app.init_resource::<CardConsts>();
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct WaterballConsts {
     pub radius: f32,
     pub damage: f32,
@@ -33,6 +36,7 @@ impl WaterballConsts {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct FarmerConsts {
     pub size: (f32, f32),
 }
@@ -50,6 +54,7 @@ impl Default for FarmerConsts {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct QuakkaConsts {
     pub size: (f32, f32),
 }
@@ -60,6 +65,7 @@ impl Default for QuakkaConsts {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct NestConsts {
     pub size: (f32, f32),
 }

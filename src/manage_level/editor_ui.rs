@@ -93,6 +93,16 @@ fn create_editor_window(
                 ui.heading("Waterball");
                 const_edit(ui, "Radius", &mut card_consts.waterball.radius, 250.);
                 const_edit(ui, "Damage", &mut card_consts.waterball.damage, 250.);
+
+                if ui.button("Save current constants to file").clicked() {
+                    commands.queue(Pause);
+                    commands.queue(SaveCardConstsWithFileDialog);
+                }
+
+                if ui.button("Load constants from file").clicked() {
+                    commands.queue(Pause);
+                    commands.queue(LoadCardConstsWithFileDialog);
+                }
             });
     }
 }
@@ -199,6 +209,71 @@ impl Command for LoadLevelWithFileDialog {
                         let _ = world.run_system_once(delete_all::<LevelEntity>);
                         let _ = world.run_system_once(clear_deckbar);
                         let _ = world.run_system_once(spawn_entities_from_level_res);
+                    } else {
+                        warn!("Couldn't load level from file");
+                    }
+                } else {
+                    warn!("Couldn't read file when loading level");
+                }
+
+                world.entity_mut(trigger.target()).despawn();
+            },
+        );
+    }
+}
+
+pub struct SaveCardConstsWithFileDialog;
+impl Command for SaveCardConstsWithFileDialog {
+    fn apply(self, world: &mut World) {
+        let thread_pool = AsyncComputeTaskPool::get();
+        let task = thread_pool.spawn(async move {
+            FileDialog::new()
+                .set_file_name("placeholder.consts.json")
+                .add_filter("JSON", &["consts.json"])
+                .save_file()
+        });
+
+        world.spawn(PickingFile(task)).observe(
+            |trigger: Trigger<FinishedPickingFile>, world: &mut World| {
+                let card_consts = world.resource::<CardConsts>();
+                let picked_file = &trigger.0;
+
+                let result = std::fs::write(
+                    picked_file,
+                    serde_json::to_string_pretty(&card_consts).unwrap(),
+                );
+
+                if let Err(_) = result {
+                    warn!("Something has gone wrong saving the level");
+                };
+
+                world.entity_mut(trigger.target()).despawn();
+            },
+        );
+    }
+}
+
+pub struct LoadCardConstsWithFileDialog;
+impl Command for LoadCardConstsWithFileDialog {
+    fn apply(self, world: &mut World) {
+        let thread_pool = AsyncComputeTaskPool::get();
+        let task = thread_pool.spawn(async move {
+            FileDialog::new()
+                .add_filter("JSON", &["card_consts.json"])
+                .pick_file()
+        });
+
+        world.spawn(PickingFile(task)).observe(
+            |trigger: Trigger<FinishedPickingFile>, world: &mut World| {
+                let mut card_consts = world.resource_mut::<CardConsts>();
+                let file = &trigger.0;
+
+                if let Ok(file) = std::fs::read(file) {
+                    let card_consts_from_file =
+                        serde_json::from_str::<CardConsts>(&String::from_utf8(file).unwrap());
+
+                    if let Ok(card_consts_from_file) = card_consts_from_file {
+                        *card_consts = card_consts_from_file;
                     } else {
                         warn!("Couldn't load level from file");
                     }
