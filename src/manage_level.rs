@@ -56,7 +56,7 @@ pub fn manage_level(app: &mut App) {
                 load_from_level_res().run_if(not_in_editor),
                 show_deckbar,
                 set_message("[Space] to start level").run_if(not_in_editor),
-                set_message("[Space] to toggle pausing \n[Click] on spawned cards to delete\n[Z] to load level from memory")
+                set_message("[Space] to toggle pausing \n[Click] on spawned cards to delete")
                     .run_if(in_editor),
                 show_back_btn,
             ),

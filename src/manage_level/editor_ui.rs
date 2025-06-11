@@ -42,7 +42,9 @@ fn create_editor_window(
     egui::Window::new("Editor")
         .default_pos((0., 160.)) // Stop from spawning ontop of back btn
         .show(contexts.ctx_mut(), |ui| {
-            create_push_to_deckbar_btns(ui, &mut commands);
+            ui.collapsing("Add cards", |ui| {
+                create_push_to_deckbar_btns(ui, &mut commands);
+            });
 
             if ui.button("Spawn nests in default positions").clicked() {
                 commands.queue(move |world: &mut World| {
@@ -50,13 +52,14 @@ fn create_editor_window(
                 })
             }
 
-            if ui.button("Save Level to memory").clicked() {
+            ui.heading("Quick Saving");
+            if ui.button("Quicksave").clicked() {
                 commands.queue(move |world: &mut World| {
                     let _ = world.run_system_once(save_level_to_resource);
                 })
             }
 
-            if ui.button("Load level from memory").clicked() {
+            if ui.button("Load quicksave [z]").clicked() {
                 commands.queue(move |world: &mut World| {
                     let _ = world.run_system_once(delete_all::<LevelEntity>);
                     let _ = world.run_system_once(clear_deckbar);
@@ -65,7 +68,8 @@ fn create_editor_window(
                 })
             }
 
-            if ui.button("Save current level to file").clicked() {
+            ui.heading("Saving to file");
+            if ui.button("Save level to file").clicked() {
                 commands.queue(SaveLevelWithFileDialog);
                 commands.queue(Pause);
             }
@@ -75,6 +79,7 @@ fn create_editor_window(
                 commands.queue(LoadLevelWithFileDialog);
             }
 
+            ui.heading("Toggles");
             if ui.button("Toggle constants window").clicked() {
                 is_constants_window_open.0 = !is_constants_window_open.0;
             }
