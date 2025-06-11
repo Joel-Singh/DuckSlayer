@@ -167,7 +167,7 @@ fn quakka_chase_and_attack(
             .translation
             .distance(closest_chaseable.0.translation);
 
-        let in_attack_distance = distance_to_chaseable < card_consts.quakka.hit_distance;
+        let in_attack_distance = distance_to_chaseable < card_consts.quakka.range;
 
         if in_attack_distance && quakka.1.cooldown.finished() {
             quakka.1.cooldown.reset();
@@ -363,7 +363,7 @@ mod nest {
 
             let dist_to_victim = nest.0.translation.distance(closest_victim.0.translation);
 
-            if dist_to_victim < card_consts.nest.hit_distance {
+            if dist_to_victim < card_consts.nest.range {
                 nest.2.current_victim = Some(closest_victim.2);
 
                 if nest.1.cooldown.finished() {
@@ -486,7 +486,7 @@ mod debug {
         for nest in nests {
             draw.circle_2d(
                 Isometry2d::from_translation(nest.translation.truncate()),
-                card_consts.nest.hit_distance,
+                card_consts.nest.range,
                 PINK_600,
             );
         }

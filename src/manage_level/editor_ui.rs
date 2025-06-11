@@ -101,7 +101,7 @@ fn create_editor_window(
 
                 ui.heading("Nest");
                 const_edit(ui, "Damage", &mut card_consts.nest.damage, 100.);
-                const_edit(ui, "Range", &mut card_consts.nest.hit_distance, 1000.);
+                const_edit(ui, "Range", &mut card_consts.nest.range, 1000.);
 
                 if ui.button("Save current constants to file").clicked() {
                     commands.queue(Pause);

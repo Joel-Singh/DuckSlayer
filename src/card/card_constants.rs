@@ -57,7 +57,7 @@ impl Default for FarmerConsts {
 pub struct QuakkaConsts {
     pub size: (f32, f32),
     pub damage: f32,
-    pub hit_distance: f32,
+    pub range: f32,
     pub speed: f32,
 }
 
@@ -66,7 +66,7 @@ impl Default for QuakkaConsts {
         QuakkaConsts {
             size: (100., 100.),
             damage: 60.0,
-            hit_distance: 50.0,
+            range: 50.0,
             speed: 75.0,
         }
     }
@@ -75,7 +75,7 @@ impl Default for QuakkaConsts {
 #[derive(Serialize, Deserialize)]
 pub struct NestConsts {
     pub size: (f32, f32),
-    pub hit_distance: f32,
+    pub range: f32,
     pub damage: f32,
 }
 
@@ -83,7 +83,7 @@ impl Default for NestConsts {
     fn default() -> Self {
         NestConsts {
             size: (50., 50.),
-            hit_distance: 500.,
+            range: 500.,
             damage: 10.,
         }
     }
