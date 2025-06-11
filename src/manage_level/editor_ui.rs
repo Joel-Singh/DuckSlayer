@@ -184,7 +184,7 @@ fn poll_filepicker_completion(
             if let Some(file) = result {
                 commands.entity(e).trigger(FinishedPickingFile(file));
             } else {
-                warn!("File picker failed");
+                commands.entity(e).despawn();
             };
         }
     }
