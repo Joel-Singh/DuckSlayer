@@ -138,7 +138,7 @@ impl Command for SaveLevelWithFileDialog {
         let task = thread_pool.spawn(async move {
             FileDialog::new()
                 .set_file_name("placeholder.level.json")
-                .add_filter("JSON", &["json"])
+                .add_filter("JSON", &["level.json"])
                 .save_file()
         });
 
