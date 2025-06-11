@@ -323,10 +323,7 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
 
 mod nest {
     use super::{Attacker, Health, NestTarget, QuakkaTarget};
-    use crate::{
-        global::{NEST_ATTACK_DISTANCE, NEST_DAMAGE},
-        manage_level::LevelEntity,
-    };
+    use crate::{card::CardConsts, manage_level::LevelEntity};
     use bevy::prelude::*;
 
     #[derive(Component, Default)]
@@ -347,6 +344,8 @@ mod nest {
     pub fn nest_shoot(
         mut victims: Query<(&Transform, &mut Health, Entity), With<NestTarget>>,
         nests: Query<(&Transform, &mut Attacker, &mut Nest), With<Nest>>,
+
+        card_consts: Res<CardConsts>,
     ) {
         for mut nest in nests {
             let closest_victim = victims.iter_mut().min_by(|a, b| {
@@ -364,12 +363,12 @@ mod nest {
 
             let dist_to_victim = nest.0.translation.distance(closest_victim.0.translation);
 
-            if dist_to_victim < NEST_ATTACK_DISTANCE {
+            if dist_to_victim < card_consts.nest.hit_distance {
                 nest.2.current_victim = Some(closest_victim.2);
 
                 if nest.1.cooldown.finished() {
                     nest.1.cooldown.reset();
-                    closest_victim.1.current_health -= NEST_DAMAGE;
+                    closest_victim.1.current_health -= card_consts.nest.damage;
                 }
             } else {
                 nest.2.current_victim = None;
@@ -446,7 +445,7 @@ use super::CardConsts;
 use super::SpawnCard;
 
 mod debug {
-    use crate::global::{in_debug, NEST_ATTACK_DISTANCE};
+    use crate::{card::CardConsts, global::in_debug};
 
     use super::{nest::Nest, Bridge};
     use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
@@ -479,11 +478,15 @@ mod debug {
         }
     }
 
-    fn show_nest_attack_radius(mut draw: Gizmos, nests: Query<&Transform, With<Nest>>) {
+    fn show_nest_attack_radius(
+        mut draw: Gizmos,
+        nests: Query<&Transform, With<Nest>>,
+        card_consts: Res<CardConsts>,
+    ) {
         for nest in nests {
             draw.circle_2d(
                 Isometry2d::from_translation(nest.translation.truncate()),
-                NEST_ATTACK_DISTANCE,
+                card_consts.nest.hit_distance,
                 PINK_600,
             );
         }

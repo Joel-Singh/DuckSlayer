@@ -75,10 +75,16 @@ impl Default for QuakkaConsts {
 #[derive(Serialize, Deserialize)]
 pub struct NestConsts {
     pub size: (f32, f32),
+    pub hit_distance: f32,
+    pub damage: f32,
 }
 
 impl Default for NestConsts {
     fn default() -> Self {
-        NestConsts { size: (50., 50.) }
+        NestConsts {
+            size: (50., 50.),
+            hit_distance: 500.,
+            damage: 10.,
+        }
     }
 }

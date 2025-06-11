@@ -72,9 +72,6 @@ pub const FARMER_SPEED: f32 = 25.0;
 
 pub const NEST_POSITIONS: ((f32, f32), (f32, f32)) = ((-388., -312.), (173., -312.));
 
-pub const NEST_ATTACK_DISTANCE: f32 = 500.;
-pub const NEST_DAMAGE: f32 = 10.;
-
 pub const BRIDGE_LOCATIONS: (Vec2, Vec2) = (Vec2::new(-392.0, -4.0), Vec2::new(165.0, -8.0));
 
 // LHS is image size
