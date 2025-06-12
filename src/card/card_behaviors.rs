@@ -64,9 +64,6 @@ pub struct NestDestroyed;
 #[derive(Component)]
 pub struct Bridge;
 
-#[derive(Component)]
-pub struct Arena;
-
 pub fn card_behaviors(app: &mut App) {
     app.add_systems(
         FixedUpdate,
