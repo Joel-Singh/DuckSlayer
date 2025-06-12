@@ -1,24 +1,22 @@
 mod debug_ui;
 mod editor_ui;
+mod game_controls;
 mod game_messages;
 mod level;
 
 use bevy::{
     ecs::{schedule::ScheduleConfigs, system::ScheduleSystem},
-    input::common_conditions::input_just_pressed,
     prelude::*,
 };
-use game_messages::set_message;
+pub use game_messages::set_message;
 pub use level::Level;
 use DuckSlayer::delete_all;
 
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
     card::{Bridge, NestDestroyed, SpawnCard},
-    deckbar::{
-        clear_deckbar, deselect_card, hide_deckbar, select_card, show_deckbar, PushToDeckbar,
-    },
-    global::{in_editor, not_in_editor, GameState, ImageHandles, IsInEditor, BRIDGE_LOCATIONS},
+    deckbar::{clear_deckbar, hide_deckbar, show_deckbar, PushToDeckbar},
+    global::{not_in_editor, GameState, ImageHandles, IsInEditor, BRIDGE_LOCATIONS},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -48,6 +46,7 @@ pub fn manage_level(app: &mut App) {
         .add_plugins(debug_ui::debug_ui_plugin)
         .add_plugins(editor_ui::editor_ui_plugin)
         .add_plugins(level::level_plugin)
+        .add_plugins(game_controls::game_controls_plugin)
         .add_systems(
             OnEnter(GameState::InGame),
             (
@@ -55,44 +54,12 @@ pub fn manage_level(app: &mut App) {
                 spawn_bridge_locations,
                 load_from_level_res().run_if(not_in_editor),
                 show_deckbar,
-                set_message("[Space] to start level").run_if(not_in_editor),
-                set_message("[Space] to toggle pausing \n[Click] on spawned cards to delete")
-                    .run_if(in_editor),
                 show_back_btn,
             ),
         )
         .add_systems(
             FixedUpdate,
-            (
-                (
-                    (
-                        load_from_level_res(),
-                        pause,
-                        set_gameover_false,
-                        set_message("[Space] to start level"),
-                    )
-                        .chain()
-                        .run_if(input_just_pressed(KeyCode::KeyZ)),
-                    gameover_on_nest_destruction,
-                    unpause
-                        .run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
-                )
-                    .run_if(not_in_editor),
-                (
-                    (load_from_level_res(), pause)
-                        .chain()
-                        .run_if(input_just_pressed(KeyCode::KeyZ)),
-                    toggle_pause.run_if(input_just_pressed(KeyCode::Space)),
-                    delete_level_entities_on_click,
-                )
-                    .run_if(in_editor),
-                select_card(0).run_if(input_just_pressed(KeyCode::Digit1)),
-                select_card(1).run_if(input_just_pressed(KeyCode::Digit2)),
-                select_card(2).run_if(input_just_pressed(KeyCode::Digit3)),
-                select_card(3).run_if(input_just_pressed(KeyCode::Digit4)),
-                deselect_card.run_if(input_just_pressed(KeyCode::Escape)),
-                deselect_card.run_if(input_just_pressed(KeyCode::CapsLock)),
-            )
+            (gameover_on_nest_destruction.run_if(not_in_editor))
                 .run_if(in_state(GameState::InGame)),
         )
         .add_systems(
@@ -159,20 +126,6 @@ fn save_level_to_resource(world: &mut World) {
     let mut level_res = world.get_resource_mut::<LevelRes>().unwrap();
 
     level_res.0 = current_level;
-}
-
-fn delete_level_entities_on_click(
-    level_entities: Query<Entity, Added<LevelEntity>>,
-    mut commands: Commands,
-) {
-    for level_entity in level_entities {
-        commands.entity(level_entity).insert(Pickable::default());
-        commands.entity(level_entity).observe(
-            |trigger: Trigger<Pointer<Click>>, mut commands: Commands| {
-                commands.entity(trigger.target()).despawn();
-            },
-        );
-    }
 }
 
 fn load_from_level_res() -> ScheduleConfigs<ScheduleSystem> {
