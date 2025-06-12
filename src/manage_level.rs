@@ -10,11 +10,12 @@ use bevy::{
 };
 pub use game_messages::set_message;
 pub use level::Level;
+use strum::IntoEnumIterator;
 use DuckSlayer::delete_all;
 
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
-    card::{Bridge, NestDestroyed, SpawnCard},
+    card::{Bridge, Card, NestDestroyed, SpawnCard},
     deckbar::{clear_deckbar, hide_deckbar, show_deckbar, PushToDeckbar},
     global::{not_in_editor, GameState, ImageHandles, IsInEditor, BRIDGE_LOCATIONS},
 };
@@ -41,6 +42,9 @@ pub struct LevelEntity;
 #[derive(Component)]
 struct ArenaBackground;
 
+#[derive(Resource, Default)]
+struct CardSpriteHandles(Vec<Handle<Image>>);
+
 pub fn manage_level(app: &mut App) {
     app.add_plugins(game_messages::game_messages)
         .add_plugins(debug_ui::debug_ui_plugin)
@@ -53,6 +57,7 @@ pub fn manage_level(app: &mut App) {
                 spawn_arena_background,
                 spawn_bridge_locations,
                 load_from_level_res().run_if(not_in_editor),
+                load_card_sprites,
                 show_deckbar,
                 show_back_btn,
             ),
@@ -81,9 +86,11 @@ pub fn manage_level(app: &mut App) {
                 hide_back_btn,
                 set_message(""),
                 pause,
+                unload_card_sprites,
             ),
         )
         .insert_state::<IsPaused>(IsPaused::True)
+        .init_resource::<CardSpriteHandles>()
         .init_state::<GameOver>()
         .init_resource::<LevelRes>();
 }
@@ -126,6 +133,21 @@ fn save_level_to_resource(world: &mut World) {
     let mut level_res = world.get_resource_mut::<LevelRes>().unwrap();
 
     level_res.0 = current_level;
+}
+
+fn load_card_sprites(
+    mut card_sprite_handles: ResMut<CardSpriteHandles>,
+    asset_server: Res<AssetServer>,
+) {
+    for card in Card::iter() {
+        card_sprite_handles
+            .0
+            .push(asset_server.load(card.get_sprite_filepath()));
+    }
+}
+
+fn unload_card_sprites(mut card_sprite_handles: ResMut<CardSpriteHandles>) {
+    card_sprite_handles.0.clear();
 }
 
 fn load_from_level_res() -> ScheduleConfigs<ScheduleSystem> {
