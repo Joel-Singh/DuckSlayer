@@ -17,6 +17,8 @@ use nest::nest_plugin;
 use nest::nest_shoot;
 pub use nest::Nest;
 
+use strum::IntoEnumIterator;
+
 #[derive(Component)]
 #[require(LevelEntity, NestTarget, WaterballTarget)]
 pub struct Quakka;
@@ -68,35 +70,59 @@ pub struct Bridge;
 #[derive(Component)]
 pub struct Arena;
 
+#[derive(Resource, Default)]
+struct CardSpriteHandles(Vec<Handle<Image>>);
+
 pub fn card_behaviors(app: &mut App) {
-    app.add_systems(
-        FixedUpdate,
-        (
-            delete_dead_entities.run_if(in_state(IsPaused::False)),
-            update_healthbars,
-        )
-            .chain()
-            .run_if(in_state(GameState::InGame)),
-    )
-    .add_systems(
-        FixedUpdate,
-        (
+    app.add_systems(OnEnter(GameState::InGame), load_card_sprites)
+        .add_systems(
+            FixedUpdate,
             (
-                farmer_go_to_bridge,
-                farmer_go_up,
-                tick_attacker_cooldowns,
-                quakka_chase_and_attack,
-                explode_waterballs,
-                nest_shoot,
+                delete_dead_entities.run_if(in_state(IsPaused::False)),
+                update_healthbars,
             )
-                .run_if(in_state(IsPaused::False)),
-            spawn_card_on_click,
+                .chain()
+                .run_if(in_state(GameState::InGame)),
         )
-            .run_if(in_state(GameState::InGame)),
-    )
-    .add_event::<NestDestroyed>()
-    .add_plugins(nest_plugin)
-    .add_plugins(debug);
+        .add_systems(
+            FixedUpdate,
+            (
+                (
+                    farmer_go_to_bridge,
+                    farmer_go_up,
+                    tick_attacker_cooldowns,
+                    quakka_chase_and_attack,
+                    explode_waterballs,
+                    nest_shoot,
+                )
+                    .run_if(in_state(IsPaused::False)),
+                spawn_card_on_click,
+            )
+                .run_if(in_state(GameState::InGame)),
+        )
+        .add_systems(OnExit(GameState::InGame), unload_card_sprites)
+        .add_event::<NestDestroyed>()
+        .init_resource::<CardSpriteHandles>()
+        .add_plugins(nest_plugin)
+        .add_plugins(debug);
+}
+
+fn load_card_sprites(
+    mut card_sprite_handles: ResMut<CardSpriteHandles>,
+    asset_server: Res<AssetServer>,
+) {
+    for card in Card::iter() {
+        if card.is_empty() {
+            continue;
+        }
+        card_sprite_handles
+            .0
+            .push(asset_server.load(card.get_sprite_filepath()));
+    }
+}
+
+fn unload_card_sprites(mut card_sprite_handles: ResMut<CardSpriteHandles>) {
+    card_sprite_handles.0.clear();
 }
 
 fn initialize_healthbar(mut world: DeferredWorld, context: HookContext) {
