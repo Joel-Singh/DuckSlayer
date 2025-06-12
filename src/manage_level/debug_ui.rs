@@ -8,7 +8,7 @@ use strum::IntoEnumIterator;
 use crate::{
     card::{Card, IsSpawnedCardDebugOverlayEnabled},
     deckbar::PushToDeckbar,
-    global::{in_debug, GameState},
+    global::{in_debug, GameState, IsPointerOverUi},
 };
 
 use super::{GameOver, IsPaused};
@@ -24,6 +24,7 @@ fn create_debug_window(
     game_over: Res<State<GameOver>>,
     is_paused: Res<State<IsPaused>>,
     game_state: Res<State<GameState>>,
+    is_pointer_over_ui: Res<IsPointerOverUi>,
 ) {
     egui::Window::new("DEBUG UI").show(contexts.ctx_mut(), |ui| {
         create_push_to_deckbar_btns(ui, &mut commands);
@@ -39,10 +40,9 @@ fn create_debug_window(
 
         ui.heading("Resources");
         ui.label("Gameover: ".to_string() + &format!("{game_over:?}"));
-
         ui.label("IsPaused: ".to_string() + &format!("{is_paused:?}"));
-
         ui.label("GameState: ".to_string() + &format!("{game_state:?}"));
+        ui.label("IsPointerOverUi: ".to_string() + &format!("{is_pointer_over_ui:?}"));
     });
 }
 
