@@ -11,11 +11,17 @@ use crate::{
     global::in_debug,
 };
 
+use super::GameOver;
+
 pub fn debug_ui_plugin(app: &mut App) {
     app.add_systems(EguiContextPass, create_debug_window.run_if(in_debug));
 }
 
-fn create_debug_window(mut contexts: EguiContexts, mut commands: Commands) {
+fn create_debug_window(
+    mut contexts: EguiContexts,
+    mut commands: Commands,
+    game_over: Res<State<GameOver>>,
+) {
     egui::Window::new("DEBUG UI").show(contexts.ctx_mut(), |ui| {
         create_push_to_deckbar_btns(ui, &mut commands);
         if ui.button("Toggle Spawned Card Debug Overlay").clicked() {
@@ -27,6 +33,9 @@ fn create_debug_window(mut contexts: EguiContexts, mut commands: Commands) {
                 is_overlay_enabled.0 = !is_overlay_enabled.0;
             })
         }
+
+        ui.heading("Resources");
+        ui.label("Gameover current state: ".to_string() + &format!("{game_over:?}"));
     });
 }
 
