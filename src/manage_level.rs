@@ -82,6 +82,7 @@ pub fn manage_level(app: &mut App) {
                 delete_all::<Bridge>,
                 delete_all::<LevelEntity>,
                 set_in_editor_false,
+                set_gameover_false,
                 hide_deckbar,
                 hide_back_btn,
                 set_message(""),
