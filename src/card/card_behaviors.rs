@@ -78,15 +78,6 @@ pub fn card_behaviors(app: &mut App) {
         .add_systems(
             FixedUpdate,
             (
-                delete_dead_entities.run_if(in_state(IsPaused::False)),
-                update_healthbars,
-            )
-                .chain()
-                .run_if(in_state(GameState::InGame)),
-        )
-        .add_systems(
-            FixedUpdate,
-            (
                 (
                     farmer_go_to_bridge,
                     farmer_go_up,
@@ -97,6 +88,7 @@ pub fn card_behaviors(app: &mut App) {
                 )
                     .run_if(in_state(IsPaused::False)),
                 spawn_card_on_click,
+                (delete_dead_entities, update_healthbars).chain(),
             )
                 .run_if(in_state(GameState::InGame)),
         )
