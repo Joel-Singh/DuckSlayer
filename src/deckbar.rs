@@ -30,6 +30,10 @@ pub fn deckbar(app: &mut App) {
             )
                 .run_if(in_state(GameState::InGame)),
         )
+        .add_systems(
+            OnExit(GameState::InGame),
+            (hide_hover_sprite, deselect_card),
+        )
         .add_observer(remove_selected_card_style)
         .add_observer(add_selected_card_style);
 }
@@ -166,6 +170,13 @@ fn spawn_hover_sprite(mut commands: Commands) {
             ..default()
         },
     ));
+}
+
+fn hide_hover_sprite(hover_sprite: Single<Entity, With<HoverSprite>>, mut commands: Commands) {
+    commands.entity(*hover_sprite).insert(Sprite {
+        color: Color::NONE,
+        ..default()
+    });
 }
 
 fn hover_sprite_when_card_selected(
