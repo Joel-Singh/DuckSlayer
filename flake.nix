@@ -21,7 +21,7 @@
               rustc = pkgs.rust-bin.stable.latest.minimal;
             };
           in rustPlatform.buildRustPackage rec {
-            name = "bevy-hello-world";
+            name = "DuckSlayer";
             src = self;
             nativeBuildInputs = with pkgs; [ pkg-config ];
             buildInputs = with pkgs; [
