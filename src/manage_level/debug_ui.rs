@@ -32,10 +32,6 @@ fn create_debug_window(mut contexts: EguiContexts, mut commands: Commands) {
 
 fn create_push_to_deckbar_btns(ui: &mut Ui, commands: &mut Commands) {
     for card in Card::iter() {
-        if card.is_empty() {
-            continue;
-        }
-
         let push_to_deck_btn = ui.button("Push ".to_string() + &card.to_string());
         if push_to_deck_btn.clicked() {
             commands.queue(PushToDeckbar(card));

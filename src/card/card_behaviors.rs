@@ -112,9 +112,6 @@ fn load_card_sprites(
     asset_server: Res<AssetServer>,
 ) {
     for card in Card::iter() {
-        if card.is_empty() {
-            continue;
-        }
         card_sprite_handles
             .0
             .push(asset_server.load(card.get_sprite_filepath()));
@@ -319,10 +316,14 @@ fn spawn_card_on_click(
     mut mousebtn_evr: EventReader<MouseButtonInput>,
     mouse_coords: Res<CursorWorldCoords>,
     is_pointer_over_ui: Res<IsPointerOverUi>,
-    selected_card: Option<Single<&Card, With<SelectedCard>>>,
+    selected_card: Option<Single<&MaybeCard, With<SelectedCard>>>,
 ) {
     let Some(selected_card) = selected_card.map(Single::into_inner) else {
         mousebtn_evr.clear();
+        return;
+    };
+
+    let Some(selected_card) = selected_card.0 else {
         return;
     };
 
@@ -331,8 +332,8 @@ fn spawn_card_on_click(
             continue;
         }
 
-        if !selected_card.is_empty() && !is_pointer_over_ui.0 {
-            commands.queue(SpawnCard::new(*selected_card, mouse_coords.0));
+        if !is_pointer_over_ui.0 {
+            commands.queue(SpawnCard::new(selected_card, mouse_coords.0));
             commands.queue(DeleteSelectedCard::default());
         }
     }
@@ -468,6 +469,7 @@ mod nest {
 pub use debug::IsSpawnedCardDebugOverlayEnabled;
 
 use super::CardConsts;
+use super::MaybeCard;
 use super::SpawnCard;
 
 mod debug {

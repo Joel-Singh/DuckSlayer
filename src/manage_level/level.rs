@@ -3,7 +3,7 @@ use bevy_common_assets::json::JsonAssetPlugin;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    card::{Card, Farmer, Nest, Quakka},
+    card::{Card, Farmer, MaybeCard, Nest, Quakka},
     deckbar::DeckBarRoot,
 };
 
@@ -39,10 +39,15 @@ impl Level {
             .single(world)
             .unwrap()
             .iter()
-            .map(|e| world.get::<Card>(e).unwrap());
+            .map(|e| world.get::<MaybeCard>(e).unwrap());
 
         for card in deck {
-            level.starting_deckbar.push(*card);
+            match card.0 {
+                Some(card) => {
+                    level.starting_deckbar.push(card);
+                }
+                None => {}
+            }
         }
 
         level

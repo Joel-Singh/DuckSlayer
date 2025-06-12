@@ -13,35 +13,17 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use strum_macros::EnumIter;
 
-#[derive(Component, Clone, Copy, Debug, EnumIter, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, EnumIter, Serialize, Deserialize)]
 pub enum Card {
-    Empty,
     Farmer,
     Quakka,
     Waterball,
     Nest,
 }
 
-pub fn card(app: &mut App) {
-    app.add_plugins(card_behaviors::card_behaviors)
-        .add_plugins(card_constants::card_constants);
-}
-
 impl Card {
-    pub fn is_empty(&self) -> bool {
-        match self {
-            Card::Empty => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_not_empty(&self) -> bool {
-        !self.is_empty()
-    }
-
     pub fn to_string(&self) -> String {
         match self {
-            Card::Empty => "Empty".to_string(),
             Card::Farmer => "Farmer".to_string(),
             Card::Quakka => "Quakka".to_string(),
             Card::Waterball => "Waterball".to_string(),
@@ -51,9 +33,6 @@ impl Card {
 
     pub fn get_sprite_size(&self, consts: &CardConsts) -> (f32, f32) {
         match self {
-            Card::Empty => {
-                panic!()
-            }
             Card::Farmer => consts.farmer.size,
             Card::Quakka => consts.quakka.size,
             Card::Waterball => consts.waterball.size(),
@@ -63,9 +42,6 @@ impl Card {
 
     pub fn get_sprite_filepath(&self) -> String {
         match self {
-            Card::Empty => {
-                panic!();
-            }
             Card::Farmer => "farmer.png".to_string(),
             Card::Quakka => "quakka.png".to_string(),
             Card::Waterball => "waterball.png".to_string(),
@@ -80,6 +56,14 @@ impl Card {
             ..default()
         }
     }
+}
+
+#[derive(Component, Clone, Copy, Serialize, Deserialize)]
+pub struct MaybeCard(pub Option<Card>);
+
+pub fn card(app: &mut App) {
+    app.add_plugins(card_behaviors::card_behaviors)
+        .add_plugins(card_constants::card_constants);
 }
 
 pub struct SpawnCard {
@@ -111,7 +95,6 @@ impl Command for SpawnCard {
             Card::Nest => {
                 world.spawn(nest_bundle(self.position, asset_server, card_consts));
             }
-            Card::Empty => warn!("Cannot spawn an empty card bundle"),
         }
     }
 }

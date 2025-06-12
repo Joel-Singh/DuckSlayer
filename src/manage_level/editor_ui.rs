@@ -118,10 +118,6 @@ fn create_editor_window(
 
 fn create_push_to_deckbar_btns(ui: &mut Ui, commands: &mut Commands) {
     for card in Card::iter() {
-        if card.is_empty() {
-            continue;
-        }
-
         let push_to_deck_btn =
             ui.button("Add ".to_string() + &card.to_string() + &" to the deck".to_string());
         if push_to_deck_btn.clicked() {

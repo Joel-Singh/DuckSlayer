@@ -1,4 +1,4 @@
-use crate::card::{Card, CardConsts};
+use crate::card::{Card, CardConsts, MaybeCard};
 
 use bevy::{
     color::palettes::css::*,
@@ -65,7 +65,7 @@ fn initialize_deckbar(mut commands: Commands) {
                     },
                     BackgroundColor(MAROON.into()),
                     Button,
-                    Card::Empty,
+                    MaybeCard(None),
                 );
             }
 
@@ -100,12 +100,12 @@ fn add_selected_card_style(trigger: Trigger<OnAdd, SelectedCard>, mut node_q: Qu
 }
 
 pub fn clear_deckbar(
-    cards: Query<Entity, With<Card>>,
+    cards: Query<Entity, With<MaybeCard>>,
     selected_card: Option<Single<Entity, With<SelectedCard>>>,
     mut commands: Commands,
 ) {
     for card in cards {
-        commands.entity(card).insert(Card::Empty);
+        commands.entity(card).insert(MaybeCard(None));
     }
 
     if let Some(e) = selected_card {
@@ -114,7 +114,7 @@ pub fn clear_deckbar(
 }
 
 fn update_card_image(
-    cards: Query<(Entity, &Card), Changed<Card>>,
+    cards: Query<(Entity, &MaybeCard), Changed<MaybeCard>>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
@@ -124,13 +124,15 @@ fn update_card_image(
             .insert(get_image_node(card, &asset_server));
     }
 
-    fn get_image_node(card: &Card, asset_server: &Res<AssetServer>) -> ImageNode {
-        let image = match card {
-            Card::Farmer => asset_server.load("farmer-mugshot.png"),
-            Card::Quakka => asset_server.load("quakka-mugshot.png"),
-            Card::Waterball => asset_server.load("waterball-mugshot.png"),
-            Card::Nest => asset_server.load("nest-mugshot.png"),
-            Card::Empty => TRANSPARENT_IMAGE_HANDLE,
+    fn get_image_node(card: &MaybeCard, asset_server: &Res<AssetServer>) -> ImageNode {
+        let image = match card.0 {
+            None => TRANSPARENT_IMAGE_HANDLE,
+            Some(card) => match card {
+                Card::Farmer => asset_server.load("farmer-mugshot.png"),
+                Card::Quakka => asset_server.load("quakka-mugshot.png"),
+                Card::Waterball => asset_server.load("waterball-mugshot.png"),
+                Card::Nest => asset_server.load("nest-mugshot.png"),
+            },
         };
 
         ImageNode {
@@ -144,7 +146,7 @@ fn update_card_image(
 fn highlight_card_on_hover(
     mut interaction_query: Query<
         (&Interaction, &mut ImageNode),
-        (Changed<Interaction>, (With<Button>, With<Card>)),
+        (Changed<Interaction>, (With<Button>, With<MaybeCard>)),
     >,
 ) {
     for (interaction, mut image_node) in &mut interaction_query {
@@ -171,7 +173,7 @@ fn hover_sprite_when_card_selected(
 
     hover_sprite: Single<Entity, With<HoverSprite>>,
 
-    selected_card: Option<Single<&Card, With<SelectedCard>>>,
+    selected_card: Option<Single<&MaybeCard, With<SelectedCard>>>,
     asset_server: Res<AssetServer>,
     cursor_world_coords: Res<CursorWorldCoords>,
 
@@ -185,15 +187,16 @@ fn hover_sprite_when_card_selected(
     };
 
     if let Some(selected_card) = selected_card {
-        let selected_card = selected_card.into_inner();
-
-        if selected_card.is_empty() {
-            hide_hover_sprite();
-        } else {
-            commands.entity(*hover_sprite).insert(Sprite {
-                color: Color::linear_rgba(1., 1., 1., 0.5),
-                ..selected_card.get_sprite(&asset_server, &card_consts)
-            });
+        match selected_card.0 {
+            None => {
+                hide_hover_sprite();
+            }
+            Some(selected_card) => {
+                commands.entity(*hover_sprite).insert(Sprite {
+                    color: Color::linear_rgba(1., 1., 1., 0.5),
+                    ..selected_card.get_sprite(&asset_server, &card_consts)
+                });
+            }
         }
     } else {
         hide_hover_sprite()
@@ -211,10 +214,10 @@ fn hover_sprite_when_card_selected(
 fn select_card_on_click(
     mut interaction_query: Query<
         (&Interaction, Entity),
-        (Changed<Interaction>, With<Button>, With<Card>),
+        (Changed<Interaction>, With<Button>, With<MaybeCard>),
     >,
     old_selected_card: Option<Single<Entity, With<SelectedCard>>>,
-    cards_q: Query<&Card>,
+    cards_q: Query<&MaybeCard>,
 
     mut commands: Commands,
 ) {
@@ -233,15 +236,16 @@ fn select_card_on_click(
 
         let card_clicked = cards_q.get(card_clicked_e).unwrap();
 
-        if card_clicked.is_empty() {
-            return;
-        }
+        match card_clicked.0 {
+            None => {}
+            Some(_) => {
+                if let Some(old_selected_card) = old_selected_card {
+                    commands.entity(old_selected_card).remove::<SelectedCard>();
+                }
 
-        if let Some(old_selected_card) = old_selected_card {
-            commands.entity(old_selected_card).remove::<SelectedCard>();
+                commands.entity(card_clicked_e).insert(SelectedCard);
+            }
         }
-
-        commands.entity(card_clicked_e).insert(SelectedCard);
     }
 }
 
@@ -264,7 +268,7 @@ pub fn select_card(to_select: usize) -> ScheduleConfigs<ScheduleSystem> {
     (move |old_selected_card: Option<Single<Entity, With<SelectedCard>>>,
            deck: Single<&Children, With<DeckBarRoot>>,
            mut commands: Commands,
-           cards: Query<&Card>| {
+           cards: Query<&MaybeCard>| {
         if let Some(old_selected_card) = old_selected_card {
             commands
                 .entity(old_selected_card.into_inner())
@@ -279,7 +283,7 @@ pub fn select_card(to_select: usize) -> ScheduleConfigs<ScheduleSystem> {
             }
         }
 
-        if cards.get(card).unwrap().is_not_empty() {
+        if cards.get(card).unwrap().0.is_some() {
             commands.entity(card).insert(SelectedCard);
         }
     })
@@ -298,7 +302,7 @@ impl Command for DeleteSelectedCard {
         let mut selected_card = world.get_entity_mut(selected_card).unwrap();
 
         selected_card.remove::<SelectedCard>();
-        selected_card.insert(Card::Empty);
+        selected_card.insert(MaybeCard(None));
     }
 }
 
@@ -306,6 +310,8 @@ pub struct PushToDeckbar(pub Card);
 
 impl Command for PushToDeckbar {
     fn apply(self, world: &mut World) -> () {
+        let new_card = self.0;
+
         let deck = world
             .query_filtered::<&Children, With<DeckBarRoot>>()
             .single(world)
@@ -313,10 +319,10 @@ impl Command for PushToDeckbar {
 
         let empty_card = deck
             .iter()
-            .find(|e| world.get::<Card>(*e).unwrap().is_empty());
+            .find(|e| world.get::<MaybeCard>(*e).unwrap().0.is_none());
 
         if let Some(empty_card) = empty_card {
-            *world.get_mut::<Card>(empty_card).unwrap() = self.0;
+            *world.get_mut::<MaybeCard>(empty_card).unwrap() = MaybeCard(Some(new_card));
         }
     }
 }
