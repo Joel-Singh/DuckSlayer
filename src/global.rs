@@ -61,7 +61,7 @@ pub struct ImageHandles {
 #[derive(Resource, Default)]
 pub struct CursorWorldCoords(pub Vec2);
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Debug)]
 pub struct IsPointerOverUi(pub bool);
 
 pub const SCREEN_WIDTH: f32 = 1366.0;
@@ -108,15 +108,13 @@ fn update_cursor_world_coords(
 
 fn update_is_pointer_over_ui(
     mut is_pointer_over_ui: ResMut<IsPointerOverUi>,
-    interaction_query: Query<&Interaction, (With<Node>, Changed<Interaction>)>,
+    interaction_query: Query<&Interaction, With<Node>>,
 
     egui_wants_input: Res<EguiWantsInput>,
 ) {
-    if interaction_query.iter().count() > 0 {
-        is_pointer_over_ui.0 = interaction_query.iter().any(|i| *i != Interaction::None);
-    }
+    let bevy_using_pointer = interaction_query.iter().any(|i| *i != Interaction::None);
 
-    is_pointer_over_ui.0 = is_pointer_over_ui.0 || egui_wants_input.wants_any_pointer_input();
+    is_pointer_over_ui.0 = bevy_using_pointer || egui_wants_input.wants_any_pointer_input();
 }
 
 fn load_images(mut commands: Commands, asset_server: Res<AssetServer>) {
