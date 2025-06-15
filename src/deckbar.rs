@@ -172,11 +172,8 @@ fn spawn_hover_sprite(mut commands: Commands) {
     ));
 }
 
-fn hide_hover_sprite(hover_sprite: Single<Entity, With<HoverSprite>>, mut commands: Commands) {
-    commands.entity(*hover_sprite).insert(Sprite {
-        color: Color::NONE,
-        ..default()
-    });
+fn hide_hover_sprite(mut hover_sprite: Single<&mut Sprite, With<HoverSprite>>) {
+    hover_sprite.color = Color::NONE;
 }
 
 fn hover_sprite_when_card_selected(
