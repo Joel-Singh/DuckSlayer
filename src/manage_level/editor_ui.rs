@@ -264,7 +264,7 @@ impl Command for LoadCardConstsWithFileDialog {
         let thread_pool = AsyncComputeTaskPool::get();
         let task = thread_pool.spawn(async move {
             FileDialog::new()
-                .add_filter("JSON", &["card_consts.json"])
+                .add_filter("JSON", &["consts.json"])
                 .pick_file()
         });
 
