@@ -59,7 +59,7 @@ fn get_resolution() -> WindowResolution {
 
     let mut resolution = WindowResolution::default();
     if is_joels_computer {
-        resolution = resolution.with_scale_factor_override(1.0);
+        resolution = resolution.with_scale_factor_override(1.406);
     }
     resolution
 }
