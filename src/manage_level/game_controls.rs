@@ -6,7 +6,7 @@ use crate::manage_level::GameOver;
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
 
-use super::{pause, set_gameover_false, set_message, toggle_pause, LevelEntity};
+use super::{pause, set_gameover_false, set_message, toggle_pause, IsPaused, LevelEntity};
 
 pub fn game_controls_plugin(app: &mut App) {
     let start_msg: &'static str = "[Space] to start level\n[Z] to restart level";
@@ -62,10 +62,12 @@ fn delete_level_entities_on_click(
     for level_entity in level_entities {
         commands.entity(level_entity).insert(Pickable::default());
         commands.entity(level_entity).observe(
-            |trigger: Trigger<Pointer<Click>>, mut commands: Commands| {
-                commands.entity(trigger.target()).despawn();
+            |trigger: Trigger<Pointer<Click>>, is_paused: Res<State<IsPaused>>, mut commands: Commands| {
+                match **is_paused {
+                    IsPaused::True => {commands.entity(trigger.target()).despawn();}
+                    IsPaused::False => {}
+                }
             },
         );
     }
 }
-
