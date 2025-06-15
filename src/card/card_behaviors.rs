@@ -78,7 +78,8 @@ pub fn card_behaviors(app: &mut App) {
             )
                 .run_if(in_state(IsPaused::False)),
             spawn_card_on_click,
-            (delete_dead_entities, update_healthbars).chain(),
+            delete_dead_entities,
+            update_healthbars,
         )
             .run_if(in_state(GameState::InGame)),
     )
@@ -117,13 +118,13 @@ fn update_healthbars(
         let health = health.unwrap();
         let health_percentage = health.current_health / health.max_health;
 
-        commands.entity(healthbar).insert(Mesh2d(
+        commands.entity(healthbar).try_insert(Mesh2d(
             meshes.add(Rectangle::new(health_percentage * 100.0, 10.0)),
         ));
 
         commands
             .entity(healthbar)
-            .insert_if_new(MeshMaterial2d(materials.add(Color::from(RED))));
+            .try_insert_if_new(MeshMaterial2d(materials.add(Color::from(RED))));
     }
 }
 
