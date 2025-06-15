@@ -21,10 +21,10 @@ pub struct WaterballConsts {
 
 impl Default for WaterballConsts {
     fn default() -> WaterballConsts {
-        const RADIUS: f32 = 50.;
+        const RADIUS: f32 = 120.;
         WaterballConsts {
             radius: RADIUS,
-            damage: 30.,
+            damage: 90.,
         }
     }
 }
