@@ -5,11 +5,16 @@ use bevy_egui::input::egui_wants_any_pointer_input;
 #[derive(Component)]
 pub struct BackBtn;
 
+#[derive(Resource, Deref, DerefMut, Default)]
+pub struct PreviousScreen(Option<GameState>);
+
 pub fn back_btn(app: &mut App) {
-    app.add_systems(Startup, spawn_back_btn).add_systems(
-        FixedUpdate,
-        go_to_titlescreen_on_click.run_if(not(egui_wants_any_pointer_input)),
-    );
+    app.add_systems(Startup, spawn_back_btn)
+        .add_systems(
+            FixedUpdate,
+            go_back_on_click.run_if(not(egui_wants_any_pointer_input)),
+        )
+        .init_resource::<PreviousScreen>();
 }
 
 fn spawn_back_btn(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -25,13 +30,15 @@ fn spawn_back_btn(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
-fn go_to_titlescreen_on_click(
+fn go_back_on_click(
     interactions: Query<&Interaction, (Changed<Interaction>, With<BackBtn>)>,
     mut game_state: ResMut<NextState<GameState>>,
+    mut previous_screen: ResMut<PreviousScreen>,
 ) {
     for interaction in interactions {
         if *interaction == Interaction::Pressed {
-            game_state.set(GameState::TitleScreen);
+            game_state.set(previous_screen.unwrap_or(GameState::TitleScreen));
+            **previous_screen = None;
         }
     }
 }

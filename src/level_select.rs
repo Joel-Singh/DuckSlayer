@@ -8,7 +8,7 @@ use bevy::{
 use DuckSlayer::delete_all;
 
 use crate::{
-    back_btn::{hide_back_btn, show_back_btn},
+    back_btn::{hide_back_btn, show_back_btn, PreviousScreen},
     global::GameState,
     manage_level::{EnterLevel, Level},
 };
@@ -148,6 +148,7 @@ fn load_levels(
     loading_level: Option<ResMut<LoadingLevel>>,
     mut commands: Commands,
     mut level_assets: ResMut<Assets<Level>>,
+    mut previous_screen: ResMut<PreviousScreen>,
 ) {
     let Some(loading_level) = loading_level else {
         return;
@@ -155,6 +156,7 @@ fn load_levels(
 
     if let Some(loaded_level) = level_assets.remove(loading_level.0.id()) {
         commands.queue(EnterLevel(loaded_level));
+        **previous_screen = Some(GameState::LevelSelect);
         commands.remove_resource::<LoadingLevel>();
     }
 }
