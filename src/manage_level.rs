@@ -4,10 +4,7 @@ mod game_controls;
 mod game_messages;
 mod level;
 
-use bevy::{
-    ecs::{schedule::ScheduleConfigs, system::ScheduleSystem},
-    prelude::*,
-};
+use bevy::prelude::*;
 pub use game_messages::set_message;
 pub use level::Level;
 use strum::IntoEnumIterator;
@@ -34,7 +31,7 @@ pub enum GameOver {
 }
 
 #[derive(Resource, Default)]
-pub struct LevelRes(pub Level);
+struct LevelMemory(pub Level);
 
 #[derive(Component, Default)]
 pub struct LevelEntity;
@@ -56,7 +53,6 @@ pub fn manage_level(app: &mut App) {
             (
                 spawn_arena_background,
                 spawn_bridge_locations,
-                load_from_level_res().run_if(not_in_editor),
                 load_card_sprites,
                 show_deckbar,
                 show_back_btn,
@@ -93,7 +89,7 @@ pub fn manage_level(app: &mut App) {
         .insert_state::<IsPaused>(IsPaused::True)
         .init_resource::<CardSpriteHandles>()
         .init_state::<GameOver>()
-        .init_resource::<LevelRes>();
+        .init_resource::<LevelMemory>();
 }
 
 fn spawn_arena_background(mut commands: Commands, image_handles: Res<ImageHandles>) {
@@ -131,7 +127,7 @@ fn spawn_bridge_locations(mut commands: Commands) {
 
 fn save_level_to_resource(world: &mut World) {
     let current_level = Level::get_current(world);
-    let mut level_res = world.get_resource_mut::<LevelRes>().unwrap();
+    let mut level_res = world.get_resource_mut::<LevelMemory>().unwrap();
 
     level_res.0 = current_level;
 }
@@ -151,17 +147,15 @@ fn unload_card_sprites(mut card_sprite_handles: ResMut<CardSpriteHandles>) {
     card_sprite_handles.0.clear();
 }
 
-fn load_from_level_res() -> ScheduleConfigs<ScheduleSystem> {
-    return (
-        clear_deckbar,
-        delete_all::<LevelEntity>,
-        spawn_entities_from_level_res,
-    )
-        .chain();
+fn spawn_entities_from_level_memory(level: Res<LevelMemory>, mut commands: Commands) {
+    let level = &level.0;
+
+    spawn_entities_from_level(&level, &mut commands);
 }
 
-fn spawn_entities_from_level_res(level: Res<LevelRes>, mut commands: Commands) {
-    let level = &level.0;
+fn spawn_entities_from_level(level: &Level, commands: &mut Commands) {
+    commands.run_system_cached(clear_deckbar);
+    commands.run_system_cached(delete_all::<LevelEntity>);
 
     for (card, position) in &level.cards {
         commands.queue(SpawnCard::new(*card, *position));
@@ -185,6 +179,17 @@ impl Command for Pause {
     fn apply(self, world: &mut World) -> () {
         let mut is_paused = world.get_resource_mut::<NextState<IsPaused>>().unwrap();
         is_paused.set(IsPaused::True);
+    }
+}
+
+pub struct EnterLevel(pub Level);
+impl Command for EnterLevel {
+    fn apply(self, world: &mut World) -> () {
+        spawn_entities_from_level(&self.0, &mut world.commands());
+        world
+            .resource_mut::<NextState<GameState>>()
+            .set(GameState::InGame);
+        world.resource_mut::<LevelMemory>().0 = self.0;
     }
 }
 

@@ -19,8 +19,8 @@ use crate::{
 };
 
 use super::{
-    level::Level, pause, save_level_to_resource, spawn_entities_from_level_res, LevelEntity,
-    LevelRes, Pause,
+    level::Level, pause, save_level_to_resource, spawn_entities_from_level_memory, LevelEntity,
+    LevelMemory, Pause,
 };
 
 #[derive(Resource, Default)]
@@ -63,7 +63,7 @@ fn create_editor_window(
                 commands.queue(move |world: &mut World| {
                     let _ = world.run_system_once(delete_all::<LevelEntity>);
                     let _ = world.run_system_once(clear_deckbar);
-                    let _ = world.run_system_once(spawn_entities_from_level_res);
+                    let _ = world.run_system_once(spawn_entities_from_level_memory);
                     let _ = world.run_system_once(pause);
                 })
             }
@@ -202,7 +202,7 @@ impl Command for LoadLevelWithFileDialog {
 
         world.spawn(PickingFile(task)).observe(
             |trigger: Trigger<FinishedPickingFile>, world: &mut World| {
-                let mut level_res = world.resource_mut::<LevelRes>();
+                let mut level_res = world.resource_mut::<LevelMemory>();
                 let file = &trigger.0;
 
                 if let Ok(file) = std::fs::read(file) {
@@ -213,7 +213,7 @@ impl Command for LoadLevelWithFileDialog {
                         level_res.0 = level_from_file;
                         let _ = world.run_system_once(delete_all::<LevelEntity>);
                         let _ = world.run_system_once(clear_deckbar);
-                        let _ = world.run_system_once(spawn_entities_from_level_res);
+                        let _ = world.run_system_once(spawn_entities_from_level_memory);
                     } else {
                         warn!("Couldn't load level from file");
                     }

@@ -1,12 +1,14 @@
 use crate::deckbar::{deselect_card, select_card};
 use crate::global::{in_editor, not_in_editor, GameState};
-use crate::manage_level::load_from_level_res;
 use crate::manage_level::unpause;
 use crate::manage_level::GameOver;
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
 
-use super::{pause, set_gameover_false, set_message, toggle_pause, IsPaused, LevelEntity};
+use super::{
+    pause, set_gameover_false, set_message, spawn_entities_from_level_memory, toggle_pause,
+    IsPaused, LevelEntity,
+};
 
 pub fn game_controls_plugin(app: &mut App) {
     let start_msg: &'static str = "[Space] to start level\n[Z] to restart level";
@@ -25,7 +27,7 @@ pub fn game_controls_plugin(app: &mut App) {
             (
                 unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
                 (
-                    load_from_level_res(),
+                    spawn_entities_from_level_memory,
                     pause,
                     set_gameover_false,
                     set_message(start_msg),
@@ -35,7 +37,7 @@ pub fn game_controls_plugin(app: &mut App) {
             )
                 .run_if(not_in_editor),
             (
-                (load_from_level_res(), pause)
+                (spawn_entities_from_level_memory, pause)
                     .chain()
                     .run_if(input_just_pressed(KeyCode::KeyZ)),
                 toggle_pause.run_if(input_just_pressed(KeyCode::Space)),
@@ -62,9 +64,13 @@ fn delete_level_entities_on_click(
     for level_entity in level_entities {
         commands.entity(level_entity).insert(Pickable::default());
         commands.entity(level_entity).observe(
-            |trigger: Trigger<Pointer<Click>>, is_paused: Res<State<IsPaused>>, mut commands: Commands| {
+            |trigger: Trigger<Pointer<Click>>,
+             is_paused: Res<State<IsPaused>>,
+             mut commands: Commands| {
                 match **is_paused {
-                    IsPaused::True => {commands.entity(trigger.target()).despawn();}
+                    IsPaused::True => {
+                        commands.entity(trigger.target()).despawn();
+                    }
                     IsPaused::False => {}
                 }
             },

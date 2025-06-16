@@ -10,7 +10,7 @@ use DuckSlayer::delete_all;
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
     global::GameState,
-    manage_level::{Level, LevelRes},
+    manage_level::{EnterLevel, Level},
 };
 
 #[derive(Component)]
@@ -148,16 +148,13 @@ fn load_levels(
     loading_level: Option<ResMut<LoadingLevel>>,
     mut commands: Commands,
     mut level_assets: ResMut<Assets<Level>>,
-    mut level: ResMut<LevelRes>,
-    mut game_state: ResMut<NextState<GameState>>,
 ) {
     let Some(loading_level) = loading_level else {
         return;
     };
 
     if let Some(loaded_level) = level_assets.remove(loading_level.0.id()) {
-        level.0 = loaded_level;
+        commands.queue(EnterLevel(loaded_level));
         commands.remove_resource::<LoadingLevel>();
-        game_state.set(GameState::InGame);
     }
 }
