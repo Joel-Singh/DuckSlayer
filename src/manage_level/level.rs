@@ -7,15 +7,23 @@ use crate::{
     deckbar::DeckBarRoot,
 };
 
-#[derive(Serialize, Deserialize, Default, Asset, TypePath)]
+#[derive(Serialize, Deserialize)]
+pub struct DeathGoal {
+    pub card: Card,
+    pub count_dead: u32,
+}
+
+#[derive(Serialize, Deserialize, Asset, TypePath)]
 pub struct Level {
     pub cards: Vec<(Card, Vec2)>,
     pub starting_deckbar: Vec<Card>,
+    pub win_condition: DeathGoal,
+    pub lose_condition: DeathGoal,
 }
 
 impl Level {
     pub fn get_current(world: &mut World) -> Level {
-        let mut level = Level::default();
+        let mut level = Level::get_stub(); // Does not take win condition
 
         let mut cards = world.query::<(&Transform, Has<Quakka>, Has<Farmer>, Has<Nest>)>();
         for (transform, is_quakka, is_farmer, is_nest) in cards.iter(world) {
@@ -51,6 +59,21 @@ impl Level {
         }
 
         level
+    }
+
+    pub fn get_stub() -> Level {
+        Level {
+            cards: Vec::new(),
+            starting_deckbar: Vec::new(),
+            win_condition: DeathGoal {
+                card: Card::Quakka,
+                count_dead: 99,
+            },
+            lose_condition: DeathGoal {
+                card: Card::Quakka,
+                count_dead: 99,
+            },
+        }
     }
 }
 

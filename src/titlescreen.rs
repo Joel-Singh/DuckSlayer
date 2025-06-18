@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use DuckSlayer::delete_all;
 
-use crate::global::*;
+use crate::{
+    global::*,
+    manage_level::{EnterLevel, Level},
+};
 
 #[derive(Component)]
 struct TitleScreen;
@@ -81,13 +84,14 @@ fn start_game_on_click(
 
 fn start_editor_on_click(
     interactions: Query<&Interaction, (Changed<Interaction>, With<EditorBtn>)>,
-    mut game_state: ResMut<NextState<GameState>>,
     mut in_editor: ResMut<InEditorRes>,
+
+    mut commands: Commands,
 ) {
     for interaction in interactions.iter() {
         if let Interaction::Pressed = interaction {
-            game_state.set(GameState::InGame);
             **in_editor = true;
+            commands.queue(EnterLevel(Level::get_stub()));
         }
     }
 }

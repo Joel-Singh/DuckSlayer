@@ -10,3 +10,7 @@ pub fn delete_all<T: Component>(
         commands.entity(entity).despawn();
     }
 }
+
+pub fn remove_resource<R: Resource>(mut commands: Commands) {
+    commands.remove_resource::<R>();
+}

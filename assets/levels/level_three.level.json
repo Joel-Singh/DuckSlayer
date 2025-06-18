@@ -59,5 +59,13 @@
   ],
   "starting_deckbar": [
     "Farmer"
-  ]
+  ],
+  "win_condition": {
+    "card": "Nest",
+    "count_dead": 7
+  },
+  "lose_condition": {
+    "card": "Quakka",
+    "count_dead": 1
+  }
 }

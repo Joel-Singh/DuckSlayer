@@ -53,5 +53,13 @@
   "starting_deckbar": [
     "Waterball",
     "Farmer"
-  ]
+  ],
+  "win_condition": {
+    "card": "Quakka",
+    "count_dead": 5
+  },
+  "lose_condition": {
+    "card": "Nest",
+    "count_dead": 1
+  }
 }

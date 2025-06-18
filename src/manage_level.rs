@@ -8,11 +8,11 @@ use bevy::prelude::*;
 pub use game_messages::set_message;
 pub use level::Level;
 use strum::IntoEnumIterator;
-use DuckSlayer::delete_all;
+use DuckSlayer::{delete_all, remove_resource};
 
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
-    card::{Bridge, Card, CardDeath, Quakka, SpawnCard},
+    card::{Bridge, Card, CardDeath, SpawnCard},
     deckbar::{clear_deckbar, hide_deckbar, show_deckbar, PushToDeckbar},
     global::{not_in_editor, GameState, ImageHandles, InEditorRes, BRIDGE_LOCATIONS},
 };
@@ -23,6 +23,12 @@ pub enum IsPaused {
     False,
 }
 
+#[derive(Resource)]
+struct WinLoseDeathProgress {
+    win: u32,
+    lose: u32,
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States, Default)]
 pub enum LevelProgress {
     #[default]
@@ -31,7 +37,7 @@ pub enum LevelProgress {
     GameWon,
 }
 
-#[derive(Resource, Default, Deref, DerefMut)]
+#[derive(Resource, Deref, DerefMut)]
 struct LevelMemory(pub Level);
 
 #[derive(Component, Default)]
@@ -61,8 +67,7 @@ pub fn manage_level(app: &mut App) {
         )
         .add_systems(
             FixedUpdate,
-            (gameover_on_nest_destruction, game_won_on_all_quakka_deaths)
-                .run_if(in_state(GameState::InGame).and(not_in_editor)),
+            (win_or_lose_on_conditions).run_if(in_state(GameState::InGame).and(not_in_editor)),
         )
         .add_systems(
             OnEnter(IsPaused::False),
@@ -82,8 +87,9 @@ pub fn manage_level(app: &mut App) {
                 delete_all::<ArenaBackground>,
                 delete_all::<Bridge>,
                 delete_all::<LevelEntity>,
-                clear_level_memory,
                 clear_deckbar,
+                remove_resource::<LevelMemory>,
+                remove_resource::<WinLoseDeathProgress>,
                 set_in_editor_false,
                 reset_level_progress,
                 hide_deckbar,
@@ -95,8 +101,7 @@ pub fn manage_level(app: &mut App) {
         )
         .insert_state::<IsPaused>(IsPaused::True)
         .init_resource::<CardSpriteHandles>()
-        .init_state::<LevelProgress>()
-        .init_resource::<LevelMemory>();
+        .init_state::<LevelProgress>();
 }
 
 fn spawn_arena_background(mut commands: Commands, image_handles: Res<ImageHandles>) {
@@ -154,10 +159,6 @@ fn save_level_to_memory(world: &mut World) {
     level_res.0 = current_level;
 }
 
-fn clear_level_memory(mut memory: ResMut<LevelMemory>) {
-    **memory = Level::default();
-}
-
 fn spawn_entities_from_level_memory(level: Res<LevelMemory>, mut commands: Commands) {
     let level = &level.0;
 
@@ -193,14 +194,21 @@ impl Command for Pause {
     }
 }
 
+#[derive(Deref, DerefMut)]
 pub struct EnterLevel(pub Level);
 impl Command for EnterLevel {
     fn apply(self, world: &mut World) -> () {
-        spawn_entities_from_level(&self.0, &mut world.commands());
+        spawn_entities_from_level(&self, &mut world.commands());
         world
             .resource_mut::<NextState<GameState>>()
             .set(GameState::InGame);
-        world.resource_mut::<LevelMemory>().0 = self.0;
+
+        world.insert_resource(WinLoseDeathProgress {
+            win: self.win_condition.count_dead,
+            lose: self.lose_condition.count_dead,
+        });
+
+        world.insert_resource(LevelMemory(self.0));
     }
 }
 
@@ -219,26 +227,29 @@ fn toggle_pause(mut is_paused_mut: ResMut<NextState<IsPaused>>, is_paused: Res<S
     }
 }
 
-fn gameover_on_nest_destruction(
+fn win_or_lose_on_conditions(
     mut level_progress: ResMut<NextState<LevelProgress>>,
     mut card_death_evs: EventReader<CardDeath>,
+
+    mut win_lose_progress: ResMut<WinLoseDeathProgress>,
+    level: Res<LevelMemory>,
 ) {
     for card_death in card_death_evs.read() {
-        if Card::Nest == **card_death {
-            level_progress.set(LevelProgress::GameOver);
+        if **card_death == level.win_condition.card {
+            win_lose_progress.win -= 1;
+        }
+
+        if win_lose_progress.win == 0 {
+            level_progress.set(LevelProgress::GameWon);
             break;
         }
-    }
-}
 
-fn game_won_on_all_quakka_deaths(
-    quakkas: Query<&Quakka>,
-    mut card_death_evs: EventReader<CardDeath>,
-    mut level_progress: ResMut<NextState<LevelProgress>>,
-) {
-    for card_death in card_death_evs.read() {
-        if Card::Quakka == **card_death && quakkas.iter().count() == 0 {
-            level_progress.set(LevelProgress::GameWon);
+        if **card_death == level.lose_condition.card {
+            win_lose_progress.lose -= 1;
+        }
+
+        if win_lose_progress.lose == 0 {
+            level_progress.set(LevelProgress::GameOver);
             break;
         }
     }
