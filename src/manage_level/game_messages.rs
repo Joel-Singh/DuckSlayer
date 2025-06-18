@@ -25,6 +25,10 @@ fn spawn_message_box(mut commands: Commands) {
             Val::Px(10.),
         ),
         MessageBox,
+        Pickable {
+            should_block_lower: false,
+            ..default()
+        },
     ));
 }
 
