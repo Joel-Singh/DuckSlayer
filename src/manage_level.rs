@@ -83,6 +83,7 @@ pub fn manage_level(app: &mut App) {
                 delete_all::<Bridge>,
                 delete_all::<LevelEntity>,
                 clear_level_memory,
+                clear_deckbar,
                 set_in_editor_false,
                 reset_level_progress,
                 hide_deckbar,
