@@ -3,7 +3,7 @@ use bevy_common_assets::json::JsonAssetPlugin;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    card::{Card, Farmer, MaybeCard, Nest, Quakka},
+    card::{Card, MaybeCard, SpawnedCard},
     deckbar::DeckBarRoot,
 };
 
@@ -25,21 +25,11 @@ impl Level {
     pub fn get_current(world: &mut World) -> Level {
         let mut level = Level::get_stub(); // Does not take win condition
 
-        let mut cards = world.query::<(&Transform, Has<Quakka>, Has<Farmer>, Has<Nest>)>();
-        for (transform, is_quakka, is_farmer, is_nest) in cards.iter(world) {
-            if is_quakka {
-                level
-                    .cards
-                    .push((Card::Quakka, transform.translation.truncate()));
-            } else if is_farmer {
-                level
-                    .cards
-                    .push((Card::Farmer, transform.translation.truncate()));
-            } else if is_nest {
-                level
-                    .cards
-                    .push((Card::Nest, transform.translation.truncate()));
-            }
+        let mut cards = world.query::<(&Transform, &SpawnedCard)>();
+        for (transform, spawned_card) in cards.iter(world) {
+            level
+                .cards
+                .push((**spawned_card, transform.translation.truncate()));
         }
 
         let deck = world

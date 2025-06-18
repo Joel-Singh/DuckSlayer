@@ -6,7 +6,8 @@ use bevy::prelude::*;
 use card_behaviors::{Attacker, GoingToBridge, Health};
 
 pub use card_behaviors::{
-    Bridge, CardDeath, Farmer, IsSpawnedCardDebugOverlayEnabled, Nest, Quakka, Waterball,
+    Bridge, CardDeath, Farmer, IsSpawnedCardDebugOverlayEnabled, Nest, Quakka, SpawnedCard,
+    Waterball,
 };
 pub use card_constants::CardConsts;
 use serde::{Deserialize, Serialize};
