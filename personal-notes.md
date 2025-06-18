@@ -6,6 +6,7 @@
 
 # Necessary
 - Different win conditions for each level
+- Attacker timer only ticks when enemy in range and resets when they exit
 
 # The last 90%
 - Can only go on to the next level after completing the current
