@@ -31,7 +31,7 @@ pub enum LevelProgress {
     GameWon,
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Deref, DerefMut)]
 struct LevelMemory(pub Level);
 
 #[derive(Component, Default)]
@@ -82,6 +82,7 @@ pub fn manage_level(app: &mut App) {
                 delete_all::<ArenaBackground>,
                 delete_all::<Bridge>,
                 delete_all::<LevelEntity>,
+                clear_level_memory,
                 set_in_editor_false,
                 reset_level_progress,
                 hide_deckbar,
@@ -150,6 +151,10 @@ fn save_level_to_memory(world: &mut World) {
     let mut level_res = world.get_resource_mut::<LevelMemory>().unwrap();
 
     level_res.0 = current_level;
+}
+
+fn clear_level_memory(mut memory: ResMut<LevelMemory>) {
+    **memory = Level::default();
 }
 
 fn spawn_entities_from_level_memory(level: Res<LevelMemory>, mut commands: Commands) {
