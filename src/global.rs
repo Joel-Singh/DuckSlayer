@@ -12,22 +12,15 @@ pub enum GameState {
     LevelSelect,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
-pub enum IsInEditor {
-    True,
-    #[default]
-    False,
+#[derive(Resource, Deref, DerefMut, Default)]
+pub struct InEditorRes(bool);
+
+pub fn in_editor(in_editor_res: Res<InEditorRes>) -> bool {
+    **in_editor_res
 }
 
-pub fn in_editor(is_in_editor: Res<State<IsInEditor>>) -> bool {
-    match **is_in_editor {
-        IsInEditor::True => true,
-        IsInEditor::False => false,
-    }
-}
-
-pub fn not_in_editor(is_in_editor: Res<State<IsInEditor>>) -> bool {
-    !in_editor(is_in_editor)
+pub fn not_in_editor(in_editor_res: Res<InEditorRes>) -> bool {
+    !in_editor(in_editor_res)
 }
 
 #[derive(Resource, PartialEq)]
@@ -86,8 +79,8 @@ pub fn global(app: &mut App) {
         .init_resource::<CursorWorldCoords>()
         .init_resource::<IsDebug>()
         .init_resource::<IsPointerOverUi>()
-        .init_state::<GameState>()
-        .init_state::<IsInEditor>();
+        .init_resource::<InEditorRes>()
+        .init_state::<GameState>();
 }
 
 fn update_cursor_world_coords(

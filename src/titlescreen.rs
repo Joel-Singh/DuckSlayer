@@ -82,12 +82,12 @@ fn start_game_on_click(
 fn start_editor_on_click(
     interactions: Query<&Interaction, (Changed<Interaction>, With<EditorBtn>)>,
     mut game_state: ResMut<NextState<GameState>>,
-    mut is_in_editor: ResMut<NextState<IsInEditor>>,
+    mut in_editor: ResMut<InEditorRes>,
 ) {
     for interaction in interactions.iter() {
         if let Interaction::Pressed = interaction {
             game_state.set(GameState::InGame);
-            is_in_editor.set(IsInEditor::True);
+            **in_editor = true;
         }
     }
 }

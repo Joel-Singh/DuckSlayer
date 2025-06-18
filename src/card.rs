@@ -58,7 +58,7 @@ impl Card {
     }
 }
 
-#[derive(Component, Clone, Copy, Serialize, Deserialize)]
+#[derive(Component, Clone, Copy, Serialize, Deserialize, Deref, DerefMut)]
 pub struct MaybeCard(pub Option<Card>);
 
 pub fn card(app: &mut App) {

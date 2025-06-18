@@ -14,7 +14,7 @@ use crate::{
     back_btn::{hide_back_btn, show_back_btn},
     card::{Bridge, Card, CardDeath, Quakka, SpawnCard},
     deckbar::{clear_deckbar, hide_deckbar, show_deckbar, PushToDeckbar},
-    global::{not_in_editor, GameState, ImageHandles, IsInEditor, BRIDGE_LOCATIONS},
+    global::{not_in_editor, GameState, ImageHandles, InEditorRes, BRIDGE_LOCATIONS},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -204,8 +204,8 @@ impl Command for EnterLevel {
     }
 }
 
-fn set_in_editor_false(mut is_in_editor: ResMut<NextState<IsInEditor>>) {
-    is_in_editor.set(IsInEditor::False);
+fn set_in_editor_false(mut in_editor: ResMut<InEditorRes>) {
+    **in_editor = false;
 }
 
 fn toggle_pause(mut is_paused_mut: ResMut<NextState<IsPaused>>, is_paused: Res<State<IsPaused>>) {
