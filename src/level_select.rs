@@ -22,6 +22,7 @@ struct LoadingLevel(Handle<Level>);
 enum SelectableLevel {
     One,
     Two,
+    Three,
 }
 
 impl SelectableLevel {
@@ -29,6 +30,7 @@ impl SelectableLevel {
         match self {
             SelectableLevel::One => "levels/level_one.level.json",
             SelectableLevel::Two => "levels/level_two.level.json",
+            SelectableLevel::Three => "levels/level_three.level.json",
         }
     }
 
@@ -37,6 +39,8 @@ impl SelectableLevel {
             Some(SelectableLevel::One)
         } else if i == 2 {
             Some(SelectableLevel::Two)
+        } else if i == 3 {
+            Some(SelectableLevel::Three)
         } else {
             None
         }

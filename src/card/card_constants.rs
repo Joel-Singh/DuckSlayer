@@ -83,7 +83,7 @@ impl Default for NestConsts {
     fn default() -> Self {
         NestConsts {
             size: (50., 50.),
-            range: 500.,
+            range: 250.,
             damage: 10.,
         }
     }
