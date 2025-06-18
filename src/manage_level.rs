@@ -130,13 +130,6 @@ fn spawn_bridge_locations(mut commands: Commands) {
     ));
 }
 
-fn save_level_to_memory(world: &mut World) {
-    let current_level = Level::get_current(world);
-    let mut level_res = world.get_resource_mut::<LevelMemory>().unwrap();
-
-    level_res.0 = current_level;
-}
-
 fn load_card_sprites(
     mut card_sprite_handles: ResMut<CardSpriteHandles>,
     asset_server: Res<AssetServer>,
@@ -150,6 +143,13 @@ fn load_card_sprites(
 
 fn unload_card_sprites(mut card_sprite_handles: ResMut<CardSpriteHandles>) {
     card_sprite_handles.0.clear();
+}
+
+fn save_level_to_memory(world: &mut World) {
+    let current_level = Level::get_current(world);
+    let mut level_res = world.get_resource_mut::<LevelMemory>().unwrap();
+
+    level_res.0 = current_level;
 }
 
 fn spawn_entities_from_level_memory(level: Res<LevelMemory>, mut commands: Commands) {
