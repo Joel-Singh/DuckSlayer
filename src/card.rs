@@ -6,14 +6,14 @@ use bevy::prelude::*;
 use card_behaviors::{Attacker, GoingToBridge, Health};
 
 pub use card_behaviors::{
-    Bridge, Farmer, IsSpawnedCardDebugOverlayEnabled, Nest, NestDestroyed, Quakka, Waterball,
+    Bridge, CardDeath, Farmer, IsSpawnedCardDebugOverlayEnabled, Nest, Quakka, Waterball,
 };
 pub use card_constants::CardConsts;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use strum_macros::EnumIter;
 
-#[derive(Clone, Copy, Debug, EnumIter, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, EnumIter, Serialize, Deserialize, PartialEq)]
 pub enum Card {
     Farmer,
     Quakka,

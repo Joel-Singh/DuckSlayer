@@ -1,13 +1,12 @@
 use crate::deckbar::{deselect_card, select_card};
 use crate::global::{in_editor, not_in_editor, GameState};
 use crate::manage_level::unpause;
-use crate::manage_level::GameOver;
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
 
 use super::{
-    pause, set_gameover_false, set_message, spawn_entities_from_level_memory, toggle_pause,
-    IsPaused, LevelEntity,
+    pause, reset_level_progress, set_message, spawn_entities_from_level_memory, toggle_pause,
+    IsPaused, LevelEntity, LevelProgress,
 };
 
 pub fn game_controls_plugin(app: &mut App) {
@@ -25,11 +24,12 @@ pub fn game_controls_plugin(app: &mut App) {
         FixedUpdate,
         (
             (
-                unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(GameOver::False))),
+                unpause
+                    .run_if(input_just_pressed(KeyCode::Space).and(in_state(LevelProgress::Null))),
                 (
                     spawn_entities_from_level_memory,
                     pause,
-                    set_gameover_false,
+                    reset_level_progress,
                     set_message(start_msg),
                 )
                     .chain()

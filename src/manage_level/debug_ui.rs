@@ -11,7 +11,7 @@ use crate::{
     global::{in_debug, GameState, IsPointerOverUi},
 };
 
-use super::{GameOver, IsPaused};
+use super::{IsPaused, LevelProgress};
 
 pub fn debug_ui_plugin(app: &mut App) {
     app.add_systems(EguiContextPass, create_debug_window.run_if(in_debug));
@@ -21,7 +21,7 @@ fn create_debug_window(
     mut contexts: EguiContexts,
     mut commands: Commands,
 
-    game_over: Res<State<GameOver>>,
+    level_progress: Res<State<LevelProgress>>,
     is_paused: Res<State<IsPaused>>,
     game_state: Res<State<GameState>>,
     is_pointer_over_ui: Res<IsPointerOverUi>,
@@ -39,9 +39,9 @@ fn create_debug_window(
         }
 
         ui.heading("Resources");
-        ui.label("Gameover: ".to_string() + &format!("{game_over:?}"));
+        ui.label("Gameover: ".to_string() + &format!("{level_progress:?}"));
         ui.label("IsPaused: ".to_string() + &format!("{is_paused:?}"));
-        ui.label("GameState: ".to_string() + &format!("{game_state:?}"));
+        ui.label("LevelProgress: ".to_string() + &format!("{game_state:?}"));
         ui.label("IsPointerOverUi: ".to_string() + &format!("{is_pointer_over_ui:?}"));
     });
 }

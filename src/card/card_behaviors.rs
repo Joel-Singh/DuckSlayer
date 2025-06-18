@@ -18,19 +18,25 @@ pub use nest::Nest;
 
 #[derive(Component)]
 #[require(LevelEntity, NestTarget, WaterballTarget)]
+#[require(SpawnedCard(Card::Quakka))]
 pub struct Quakka;
 
 #[derive(Component)]
+#[require(QuakkaTarget, LevelEntity)]
+#[require(SpawnedCard(Card::Farmer))]
+pub struct Farmer;
+
+#[derive(Component)]
+#[require(SpawnedCard(Card::Waterball))]
 pub struct Waterball {
     pub radius: f32,
 }
 
+#[derive(Component, DerefMut, Deref)]
+pub struct SpawnedCard(Card);
+
 #[derive(Component, Default)]
 pub struct WaterballTarget;
-
-#[derive(Component)]
-#[require(QuakkaTarget, LevelEntity)]
-pub struct Farmer;
 
 #[derive(Component)]
 pub struct Attacker {
@@ -58,8 +64,8 @@ struct HealthBar;
 #[derive(Component)]
 pub struct GoingToBridge;
 
-#[derive(Event)]
-pub struct NestDestroyed;
+#[derive(Event, Deref, DerefMut)]
+pub struct CardDeath(Card);
 
 #[derive(Component)]
 pub struct Bridge;
@@ -83,7 +89,7 @@ pub fn card_behaviors(app: &mut App) {
         )
             .run_if(in_state(GameState::InGame)),
     )
-    .add_event::<NestDestroyed>()
+    .add_event::<CardDeath>()
     .add_plugins(nest_plugin)
     .add_plugins(debug);
 }
@@ -217,16 +223,13 @@ fn explode_waterballs(
 fn delete_dead_entities(
     healths: Query<(&Health, Entity)>,
     mut commands: Commands,
-    nests: Query<Has<Nest>>,
-    mut nest_destroyed_ev: EventWriter<NestDestroyed>,
+    spawned_card_q: Query<&SpawnedCard>,
+    mut card_destroyed_ev: EventWriter<CardDeath>,
 ) {
     for (health, e) in healths.iter() {
         if health.current_health <= 0.0 {
             commands.entity(e).despawn();
-
-            if nests.get(e).unwrap_or_default() {
-                nest_destroyed_ev.write(NestDestroyed);
-            }
+            card_destroyed_ev.write(CardDeath(**spawned_card_q.get(e).unwrap()));
         }
     }
 }
@@ -315,12 +318,16 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
 }
 
 mod nest {
-    use super::{Attacker, Health, NestTarget, QuakkaTarget};
-    use crate::{card::CardConsts, manage_level::LevelEntity};
+    use super::{Attacker, Health, NestTarget, QuakkaTarget, SpawnedCard};
+    use crate::{
+        card::{Card, CardConsts},
+        manage_level::LevelEntity,
+    };
     use bevy::prelude::*;
 
     #[derive(Component, Default)]
     #[require(QuakkaTarget, LevelEntity)]
+    #[require(SpawnedCard(Card::Nest))]
     pub struct Nest {
         current_victim: Option<Entity>,
     }
@@ -434,6 +441,7 @@ mod nest {
 
 pub use debug::IsSpawnedCardDebugOverlayEnabled;
 
+use super::Card;
 use super::CardConsts;
 use super::MaybeCard;
 use super::SpawnCard;

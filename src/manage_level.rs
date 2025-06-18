@@ -12,7 +12,7 @@ use DuckSlayer::delete_all;
 
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
-    card::{Bridge, Card, NestDestroyed, SpawnCard},
+    card::{Bridge, Card, CardDeath, Quakka, SpawnCard},
     deckbar::{clear_deckbar, hide_deckbar, show_deckbar, PushToDeckbar},
     global::{not_in_editor, GameState, ImageHandles, IsInEditor, BRIDGE_LOCATIONS},
 };
@@ -24,10 +24,11 @@ pub enum IsPaused {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States, Default)]
-pub enum GameOver {
-    True,
+pub enum LevelProgress {
     #[default]
-    False,
+    Null,
+    GameOver,
+    GameWon,
 }
 
 #[derive(Resource, Default)]
@@ -60,16 +61,20 @@ pub fn manage_level(app: &mut App) {
         )
         .add_systems(
             FixedUpdate,
-            (gameover_on_nest_destruction.run_if(not_in_editor))
-                .run_if(in_state(GameState::InGame)),
+            (gameover_on_nest_destruction, game_won_on_all_quakka_deaths)
+                .run_if(in_state(GameState::InGame).and(not_in_editor)),
         )
         .add_systems(
             OnEnter(IsPaused::False),
             set_message("").run_if(not_in_editor),
         )
         .add_systems(
-            OnEnter(GameOver::True),
+            OnEnter(LevelProgress::GameOver),
             (pause, set_message("Gameover: nest destroyed")),
+        )
+        .add_systems(
+            OnEnter(LevelProgress::GameWon),
+            (pause, set_message("You Win!")),
         )
         .add_systems(
             OnExit(GameState::InGame),
@@ -78,7 +83,7 @@ pub fn manage_level(app: &mut App) {
                 delete_all::<Bridge>,
                 delete_all::<LevelEntity>,
                 set_in_editor_false,
-                set_gameover_false,
+                reset_level_progress,
                 hide_deckbar,
                 hide_back_btn,
                 set_message(""),
@@ -88,7 +93,7 @@ pub fn manage_level(app: &mut App) {
         )
         .insert_state::<IsPaused>(IsPaused::True)
         .init_resource::<CardSpriteHandles>()
-        .init_state::<GameOver>()
+        .init_state::<LevelProgress>()
         .init_resource::<LevelMemory>();
 }
 
@@ -209,14 +214,30 @@ fn toggle_pause(mut is_paused_mut: ResMut<NextState<IsPaused>>, is_paused: Res<S
 }
 
 fn gameover_on_nest_destruction(
-    mut gameover: ResMut<NextState<GameOver>>,
-    mut nest_destroyed_evs: EventReader<NestDestroyed>,
+    mut level_progress: ResMut<NextState<LevelProgress>>,
+    mut card_death_evs: EventReader<CardDeath>,
 ) {
-    for _ in nest_destroyed_evs.read() {
-        gameover.set(GameOver::True);
+    for card_death in card_death_evs.read() {
+        if Card::Nest == **card_death {
+            level_progress.set(LevelProgress::GameOver);
+            break;
+        }
     }
 }
 
-fn set_gameover_false(mut gameover: ResMut<NextState<GameOver>>) {
-    gameover.set(GameOver::False);
+fn game_won_on_all_quakka_deaths(
+    quakkas: Query<&Quakka>,
+    mut card_death_evs: EventReader<CardDeath>,
+    mut level_progress: ResMut<NextState<LevelProgress>>,
+) {
+    for card_death in card_death_evs.read() {
+        if Card::Quakka == **card_death && quakkas.iter().count() == 0 {
+            level_progress.set(LevelProgress::GameWon);
+            break;
+        }
+    }
+}
+
+fn reset_level_progress(mut level_prog: ResMut<NextState<LevelProgress>>) {
+    level_prog.set(LevelProgress::Null);
 }
