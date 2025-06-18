@@ -23,7 +23,7 @@ pub enum IsPaused {
     False,
 }
 
-#[derive(Resource)]
+#[derive(Resource, Debug)]
 struct WinLoseDeathProgress {
     win: u32,
     lose: u32,
@@ -255,6 +255,14 @@ fn win_or_lose_on_conditions(
     }
 }
 
-fn reset_level_progress(mut level_prog: ResMut<NextState<LevelProgress>>) {
+fn reset_level_progress(
+    mut level_prog: ResMut<NextState<LevelProgress>>,
+    level: Res<LevelMemory>,
+    mut commands: Commands,
+) {
     level_prog.set(LevelProgress::Null);
+    commands.insert_resource(WinLoseDeathProgress {
+        win: level.win_condition.count_dead,
+        lose: level.lose_condition.count_dead,
+    });
 }

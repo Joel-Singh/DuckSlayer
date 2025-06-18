@@ -11,7 +11,7 @@ use crate::{
     global::{in_debug, GameState, IsPointerOverUi},
 };
 
-use super::{IsPaused, LevelProgress};
+use super::{IsPaused, LevelProgress, WinLoseDeathProgress};
 
 pub fn debug_ui_plugin(app: &mut App) {
     app.add_systems(EguiContextPass, create_debug_window.run_if(in_debug));
@@ -25,6 +25,7 @@ fn create_debug_window(
     is_paused: Res<State<IsPaused>>,
     game_state: Res<State<GameState>>,
     is_pointer_over_ui: Res<IsPointerOverUi>,
+    win_lose_death_progress: Option<Res<WinLoseDeathProgress>>,
 ) {
     egui::Window::new("DEBUG UI").show(contexts.ctx_mut(), |ui| {
         create_push_to_deckbar_btns(ui, &mut commands);
@@ -43,6 +44,7 @@ fn create_debug_window(
         ui.label("IsPaused: ".to_string() + &format!("{is_paused:?}"));
         ui.label("LevelProgress: ".to_string() + &format!("{game_state:?}"));
         ui.label("IsPointerOverUi: ".to_string() + &format!("{is_pointer_over_ui:?}"));
+        ui.label(format!("WinLoseDeathProgress: {win_lose_death_progress:?}"))
     });
 }
 
