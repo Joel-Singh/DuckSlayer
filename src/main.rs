@@ -1,4 +1,3 @@
-use bevy::dev_tools::picking_debug::{DebugPickingMode, DebugPickingPlugin};
 use bevy::{prelude::*, window::WindowResolution};
 
 mod asset_load_schedule;
@@ -29,8 +28,8 @@ fn main() {
                     ..default()
                 }),
         )
-        .add_plugins(DebugPickingPlugin::default())
-        .insert_resource(DebugPickingMode::Noisy)
+        // .add_plugins(DebugPickingPlugin::default())
+        // .insert_resource(DebugPickingMode::Noisy)
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
