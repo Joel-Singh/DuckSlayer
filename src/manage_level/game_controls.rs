@@ -1,23 +1,26 @@
 use crate::deckbar::{deselect_card, select_card};
 use crate::global::{in_editor, not_in_editor, GameState};
-use crate::manage_level::unpause;
+use crate::manage_level::{unpause, Level};
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
 
+use super::game_messages::SetMessage;
 use super::{
     pause, reset_level_progress, save_level_to_memory, set_message,
-    spawn_entities_from_level_memory, toggle_pause, IsPaused, LevelEntity, LevelProgress,
+    spawn_entities_from_level_memory, toggle_pause, IsPaused, LevelEntity, LevelMemory,
+    LevelProgress,
 };
 
-pub fn game_controls_plugin(app: &mut App) {
-    let start_msg: &'static str = "[Space] to start level\n[Z] to restart level";
+pub const CONTROLS_MESSAGE: &'static str = "[Space] to start level\n[Z] to restart level\n";
+pub const CONTROLS_EDITOR_MESSAGE: &'static str =
+    "[Space] to toggle pausing \n[Click] on spawned cards to delete\n";
 
+pub fn game_controls_plugin(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::InGame),
         (
-            set_message(start_msg).run_if(not_in_editor),
-            set_message("[Space] to toggle pausing \n[Click] on spawned cards to delete")
-                .run_if(in_editor),
+            set_starting_message.run_if(not_in_editor),
+            set_message(CONTROLS_EDITOR_MESSAGE).run_if(in_editor),
         ),
     )
     .add_systems(
@@ -30,7 +33,7 @@ pub fn game_controls_plugin(app: &mut App) {
                     spawn_entities_from_level_memory,
                     pause,
                     reset_level_progress,
-                    set_message(start_msg),
+                    set_starting_message,
                 )
                     .chain()
                     .run_if(input_just_pressed(KeyCode::KeyZ)),
@@ -56,6 +59,31 @@ pub fn game_controls_plugin(app: &mut App) {
         )
             .run_if(in_state(GameState::InGame)),
     );
+}
+
+fn set_starting_message(mut commands: Commands, level: Res<LevelMemory>) {
+    let condition_string = get_condition_string(&**level);
+    let starting_message = format!("{CONTROLS_MESSAGE}{condition_string}");
+
+    commands.queue(SetMessage(starting_message));
+
+    pub fn get_condition_string(level: &Level) -> String {
+        let mut win_condition_card = level.win_condition.card.to_string();
+        let win_condition_count = level.win_condition.count_dead.to_string();
+        if level.win_condition.count_dead > 1 {
+            win_condition_card = format!("{win_condition_card}s");
+        }
+
+        let lose_condition_card = level.lose_condition.card.to_string();
+        let lose_condition_count = level.lose_condition.count_dead.to_string();
+        let s = if level.lose_condition.count_dead > 1 {
+            String::from("s")
+        } else {
+            String::from("")
+        };
+
+        format!("Eliminate {win_condition_count} {win_condition_card} and avoid {lose_condition_count} {lose_condition_card} death{s}")
+    }
 }
 
 fn delete_level_entities_on_click(

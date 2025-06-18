@@ -38,3 +38,13 @@ pub fn set_message(message: &'static str) -> ScheduleConfigs<ScheduleSystem> {
     })
     .into_configs();
 }
+
+pub struct SetMessage(pub String);
+impl Command for SetMessage {
+    fn apply(self, world: &mut World) -> () {
+        let mut q = world.query_filtered::<&mut Text, With<MessageBox>>();
+        let mut message_box = q.single_mut(world).unwrap();
+
+        *message_box = Text(self.0);
+    }
+}
