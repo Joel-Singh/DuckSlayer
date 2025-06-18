@@ -5,7 +5,6 @@ mod asset_load_schedule;
 mod back_btn;
 mod card;
 mod deckbar;
-mod game_messages;
 mod global;
 mod level_select;
 mod manage_level;
