@@ -19,7 +19,7 @@ use crate::{
 };
 
 use super::{
-    level::Level, pause, save_level_to_resource, spawn_entities_from_level_memory, LevelEntity,
+    level::Level, pause, save_level_to_memory, spawn_entities_from_level_memory, LevelEntity,
     LevelMemory, Pause,
 };
 
@@ -53,13 +53,13 @@ fn create_editor_window(
             }
 
             ui.heading("Quick Saving");
-            if ui.button("Quicksave").clicked() {
+            if ui.button("Quicksave [X]").clicked() {
                 commands.queue(move |world: &mut World| {
-                    let _ = world.run_system_once(save_level_to_resource);
+                    let _ = world.run_system_once(save_level_to_memory);
                 })
             }
 
-            if ui.button("Load quicksave [z]").clicked() {
+            if ui.button("Load quicksave [Z]").clicked() {
                 commands.queue(move |world: &mut World| {
                     let _ = world.run_system_once(delete_all::<LevelEntity>);
                     let _ = world.run_system_once(clear_deckbar);

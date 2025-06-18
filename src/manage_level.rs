@@ -130,7 +130,7 @@ fn spawn_bridge_locations(mut commands: Commands) {
     ));
 }
 
-fn save_level_to_resource(world: &mut World) {
+fn save_level_to_memory(world: &mut World) {
     let current_level = Level::get_current(world);
     let mut level_res = world.get_resource_mut::<LevelMemory>().unwrap();
 

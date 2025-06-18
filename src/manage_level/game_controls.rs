@@ -5,8 +5,8 @@ use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
 
 use super::{
-    pause, reset_level_progress, set_message, spawn_entities_from_level_memory, toggle_pause,
-    IsPaused, LevelEntity, LevelProgress,
+    pause, reset_level_progress, save_level_to_memory, set_message,
+    spawn_entities_from_level_memory, toggle_pause, IsPaused, LevelEntity, LevelProgress,
 };
 
 pub fn game_controls_plugin(app: &mut App) {
@@ -40,6 +40,7 @@ pub fn game_controls_plugin(app: &mut App) {
                 (spawn_entities_from_level_memory, pause)
                     .chain()
                     .run_if(input_just_pressed(KeyCode::KeyZ)),
+                save_level_to_memory.run_if(input_just_pressed(KeyCode::KeyX)),
                 toggle_pause.run_if(input_just_pressed(KeyCode::Space)),
                 delete_level_entities_on_click,
             )
