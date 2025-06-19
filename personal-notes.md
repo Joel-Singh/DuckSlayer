@@ -10,6 +10,7 @@
 - For Farmer Pathfinding, it could be running away from quakka but also following the path which would necessitate going on bridges
 - Restrict placing on the water
 - Have entities avoid other entities when pathfinding (boid like behavior)
+- Have a visual of what kinds of enemies to slay / left alive. Perhaps the entities that need to be kept alive are in green and those that need killing are red.
 
 # The last 90%
 - Can only go on to the next level after completing the current
