@@ -291,6 +291,7 @@ fn remove_card_on_right_click_in_editor(
                 let right_click = trigger.button == PointerButton::Secondary;
                 if right_click && **in_editor {
                     commands.entity(trigger.target).insert(MaybeCard(None));
+                    commands.entity(trigger.target).remove::<SelectedCard>();
                 }
             },
         );
