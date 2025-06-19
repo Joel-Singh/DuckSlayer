@@ -30,7 +30,7 @@ pub struct ImageHandles {
     pub arena_background: Handle<Image>,
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource, Default, Debug)]
 pub struct CursorWorldCoords(pub Vec2);
 
 #[derive(Resource, Default, Debug)]

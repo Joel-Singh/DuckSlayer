@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::global::CursorWorldCoords;
+
 #[derive(Resource, PartialEq)]
 pub struct IsDebug(pub bool);
 
@@ -21,5 +23,18 @@ pub fn in_debug(is_debug: Res<IsDebug>) -> bool {
 }
 
 pub fn debug_plugin(app: &mut App) {
-    app.init_resource::<IsDebug>();
+    app.add_systems(
+        FixedUpdate,
+        (print_out_world_coords_on_click).run_if(in_debug),
+    )
+    .init_resource::<IsDebug>();
+}
+
+fn print_out_world_coords_on_click(
+    world_coords: Res<CursorWorldCoords>,
+    mouse: Res<ButtonInput<MouseButton>>,
+) {
+    if mouse.just_pressed(MouseButton::Left) {
+        dbg!(world_coords);
+    }
 }
