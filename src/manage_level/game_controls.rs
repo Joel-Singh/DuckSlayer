@@ -3,6 +3,7 @@ use crate::global::{in_editor, not_in_editor, GameState};
 use crate::manage_level::{unpause, Level};
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::prelude::*;
+use bevy_egui::input::egui_wants_any_keyboard_input;
 
 use super::game_messages::SetMessage;
 use super::{
@@ -60,7 +61,8 @@ pub fn game_controls_plugin(app: &mut App) {
                 select_card(3).run_if(input_just_pressed(KeyCode::Digit4)),
                 deselect_card.run_if(input_just_pressed(KeyCode::Escape)),
                 deselect_card.run_if(input_just_pressed(KeyCode::CapsLock)),
-            ),
+            )
+                .run_if(not(egui_wants_any_keyboard_input)),
         )
             .run_if(in_state(GameState::InGame)),
     );
