@@ -18,32 +18,6 @@
 
 # Planning
 ## Different Win/Loss Conditions
-Currently there is simply loss on nest destruction and on all quakkas being dead
-
-For the levels I've made I want:
-Win: All Quakkas being dead, destroying all Nests
-Loss: Nest Destruction or Quakka Destruction.
-
-There should be a
-```rust
-struct DeathGoal {
-    card: Card,
-    count_dead: u32
-}
-```
-
-And in `Level`:
-```rust
-pub struct Level {
-    pub cards: Vec<(Card, Vec2)>,
-    pub starting_deckbar: Vec<Card>,
-    win_condition: DeathGoal,
-    lose_condition: DeathGoal
-}
-```
-
-`manage_level` will read from the level's `win` and `lose` conditions. Will display them with `game_messages`.
-
 editor will have a menu for win and lose conditions
 
 Some indication in editor when win and lose conditions are met
