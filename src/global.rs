@@ -1,6 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_egui::input::EguiWantsInput;
-use std::env;
 
 use crate::asset_load_schedule::AssetLoad;
 
@@ -21,26 +20,6 @@ pub fn in_editor(in_editor_res: Res<InEditorRes>) -> bool {
 
 pub fn not_in_editor(in_editor_res: Res<InEditorRes>) -> bool {
     !in_editor(in_editor_res)
-}
-
-#[derive(Resource, PartialEq)]
-pub struct IsDebug(pub bool);
-
-impl Default for IsDebug {
-    fn default() -> Self {
-        if let Ok(duckslayer_debug) = env::var("DUCKSLAYER_DEBUG") {
-            if duckslayer_debug == "true" {
-                return IsDebug(true);
-            } else {
-                return IsDebug(false);
-            }
-        }
-        IsDebug(false)
-    }
-}
-
-pub fn in_debug(is_debug: Res<IsDebug>) -> bool {
-    is_debug.0
 }
 
 #[derive(Resource, Default)]
@@ -75,7 +54,6 @@ pub fn global(app: &mut App) {
             (update_cursor_world_coords, update_is_pointer_over_ui),
         )
         .init_resource::<CursorWorldCoords>()
-        .init_resource::<IsDebug>()
         .init_resource::<IsPointerOverUi>()
         .init_resource::<InEditorRes>()
         .init_state::<GameState>();

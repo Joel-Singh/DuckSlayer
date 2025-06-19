@@ -3,6 +3,7 @@ use bevy::{prelude::*, window::WindowResolution};
 mod asset_load_schedule;
 mod back_btn;
 mod card;
+mod debug;
 mod deckbar;
 mod global;
 mod level_select;
@@ -41,6 +42,7 @@ fn main() {
         .add_plugins(manage_level::manage_level)
         .add_plugins(back_btn::back_btn)
         .add_plugins(level_select::level_select)
+        .add_plugins(debug::debug_plugin)
         .add_systems(Startup, setup_camera)
         .run();
 }

@@ -481,7 +481,7 @@ use super::MaybeCard;
 use super::SpawnCard;
 
 mod debug {
-    use crate::{card::CardConsts, global::in_debug};
+    use crate::{card::CardConsts, debug::in_debug};
 
     use super::{farmer::Bridge, Nest};
     use bevy::{color::palettes::tailwind::PINK_600, prelude::*};

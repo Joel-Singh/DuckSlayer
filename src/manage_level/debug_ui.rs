@@ -7,8 +7,9 @@ use strum::IntoEnumIterator;
 
 use crate::{
     card::{Card, IsSpawnedCardDebugOverlayEnabled},
+    debug::in_debug,
     deckbar::PushToDeckbar,
-    global::{in_debug, GameState, IsPointerOverUi},
+    global::{GameState, IsPointerOverUi},
 };
 
 use super::{IsPaused, LevelProgress, WinLoseDeathProgress};
