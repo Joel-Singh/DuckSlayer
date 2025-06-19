@@ -12,6 +12,10 @@ use bevy::input::mouse::MouseButtonInput;
 use bevy::input::ButtonState;
 use bevy::{color::palettes::css::*, prelude::*};
 use debug::debug;
+use farmer::farmer_go_to_bridge;
+use farmer::farmer_go_up;
+use farmer::farmer_plugin;
+use farmer::GoingToBridge;
 use nest::nest_plugin;
 use nest::nest_shoot;
 
@@ -67,14 +71,8 @@ pub struct Health {
 #[require(Transform)]
 struct HealthBar;
 
-#[derive(Component, Default)]
-pub struct GoingToBridge;
-
 #[derive(Event, Deref, DerefMut)]
 pub struct CardDeath(Card);
-
-#[derive(Component)]
-pub struct Bridge;
 
 pub fn card_behaviors(app: &mut App) {
     app.add_systems(
@@ -97,6 +95,7 @@ pub fn card_behaviors(app: &mut App) {
     )
     .add_event::<CardDeath>()
     .add_plugins(nest_plugin)
+    .add_plugins(farmer_plugin)
     .add_plugins(debug);
 }
 
@@ -240,54 +239,88 @@ fn delete_dead_entities(
     }
 }
 
-fn farmer_go_to_bridge(
-    mut farmers: Query<
-        (&mut Transform, Entity),
-        (With<Farmer>, With<GoingToBridge>, Without<Bridge>),
-    >,
-    bridges: Query<&Transform, (With<Bridge>, Without<Farmer>)>,
-    mut commands: Commands,
-    time: Res<Time>,
+mod farmer {
+    use super::Farmer;
+    use crate::{card::CardConsts, global::BRIDGE_LOCATIONS};
+    use bevy::prelude::*;
 
-    card_consts: Res<CardConsts>,
-) {
-    for farmer in farmers.iter_mut() {
-        let (mut farmer_transform, farmer_e) = farmer;
-        let farmer_translation = farmer_transform.translation;
-        let bridge = bridges.iter().max_by(|a, b| {
-            let a_distance = farmer_translation.distance(a.translation);
-            let b_distance = farmer_translation.distance(b.translation);
-            b_distance.partial_cmp(&a_distance).unwrap()
-        });
+    #[derive(Component, Default)]
+    pub struct GoingToBridge;
 
-        if bridge.is_none() {
-            warn!("No bridge found for farmer");
-            return;
-        }
+    #[derive(Component)]
+    pub struct Bridge;
 
-        let bridge = bridge.unwrap();
+    pub fn farmer_plugin(app: &mut App) {
+        app.add_systems(Startup, spawn_bridge_locations);
+    }
 
-        let mut difference = bridge.translation - farmer_translation;
+    pub(crate) fn farmer_go_to_bridge(
+        mut farmers: Query<
+            (&mut Transform, Entity),
+            (With<Farmer>, With<GoingToBridge>, Without<Bridge>),
+        >,
+        bridges: Query<&Transform, (With<Bridge>, Without<Farmer>)>,
+        mut commands: Commands,
+        time: Res<Time>,
 
-        difference = difference.normalize();
+        card_consts: Res<CardConsts>,
+    ) {
+        for farmer in farmers.iter_mut() {
+            let (mut farmer_transform, farmer_e) = farmer;
+            let farmer_translation = farmer_transform.translation;
+            let bridge = bridges.iter().max_by(|a, b| {
+                let a_distance = farmer_translation.distance(a.translation);
+                let b_distance = farmer_translation.distance(b.translation);
+                b_distance.partial_cmp(&a_distance).unwrap()
+            });
 
-        if farmer_translation.distance(bridge.translation) < 10.0 {
-            commands.entity(farmer_e).remove::<GoingToBridge>();
-        } else {
-            farmer_transform.translation +=
-                (difference) * time.delta_secs() * card_consts.farmer.speed;
+            if bridge.is_none() {
+                warn!("No bridge found for farmer");
+                return;
+            }
+
+            let bridge = bridge.unwrap();
+
+            let mut difference = bridge.translation - farmer_translation;
+
+            difference = difference.normalize();
+
+            if farmer_translation.distance(bridge.translation) < 10.0 {
+                commands.entity(farmer_e).remove::<GoingToBridge>();
+            } else {
+                farmer_transform.translation +=
+                    (difference) * time.delta_secs() * card_consts.farmer.speed;
+            }
         }
     }
-}
 
-fn farmer_go_up(
-    mut farmer_transforms: Query<&mut Transform, (With<Farmer>, Without<GoingToBridge>)>,
-    time: Res<Time>,
+    pub(crate) fn farmer_go_up(
+        mut farmer_transforms: Query<&mut Transform, (With<Farmer>, Without<GoingToBridge>)>,
+        time: Res<Time>,
 
-    card_consts: Res<CardConsts>,
-) {
-    for mut farmer_transform in farmer_transforms.iter_mut() {
-        farmer_transform.translation.y += time.delta_secs() * card_consts.farmer.speed;
+        card_consts: Res<CardConsts>,
+    ) {
+        for mut farmer_transform in farmer_transforms.iter_mut() {
+            farmer_transform.translation.y += time.delta_secs() * card_consts.farmer.speed;
+        }
+    }
+
+    fn spawn_bridge_locations(mut commands: Commands) {
+        commands.spawn((
+            Bridge,
+            Transform {
+                translation: BRIDGE_LOCATIONS.0.extend(0.0),
+                ..default()
+            },
+        ));
+
+        commands.spawn((
+            Bridge,
+            Transform {
+                translation: BRIDGE_LOCATIONS.1.extend(0.0),
+                ..default()
+            },
+        ));
     }
 }
 
@@ -450,7 +483,7 @@ use super::SpawnCard;
 mod debug {
     use crate::{card::CardConsts, global::in_debug};
 
-    use super::{Bridge, Nest};
+    use super::{farmer::Bridge, Nest};
     use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
 
     #[derive(Resource, PartialEq)]

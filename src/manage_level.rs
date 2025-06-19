@@ -12,9 +12,9 @@ use DuckSlayer::{delete_all, remove_resource};
 
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
-    card::{Bridge, Card, CardDeath, SpawnCard},
+    card::{Card, CardDeath, SpawnCard},
     deckbar::{clear_deckbar, hide_deckbar, show_deckbar, PushToDeckbar},
-    global::{not_in_editor, GameState, ImageHandles, InEditorRes, BRIDGE_LOCATIONS},
+    global::{not_in_editor, GameState, ImageHandles, InEditorRes},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -59,7 +59,6 @@ pub fn manage_level(app: &mut App) {
             OnEnter(GameState::InGame),
             (
                 spawn_arena_background,
-                spawn_bridge_locations,
                 load_card_sprites,
                 show_deckbar,
                 show_back_btn,
@@ -85,7 +84,6 @@ pub fn manage_level(app: &mut App) {
             OnExit(GameState::InGame),
             (
                 delete_all::<ArenaBackground>,
-                delete_all::<Bridge>,
                 delete_all::<LevelEntity>,
                 clear_deckbar,
                 remove_resource::<LevelMemory>,
@@ -116,24 +114,6 @@ fn spawn_arena_background(mut commands: Commands, image_handles: Res<ImageHandle
             ..default()
         },
         ArenaBackground,
-    ));
-}
-
-fn spawn_bridge_locations(mut commands: Commands) {
-    commands.spawn((
-        Bridge,
-        Transform {
-            translation: BRIDGE_LOCATIONS.0.extend(0.0),
-            ..default()
-        },
-    ));
-
-    commands.spawn((
-        Bridge,
-        Transform {
-            translation: BRIDGE_LOCATIONS.1.extend(0.0),
-            ..default()
-        },
     ));
 }
 
