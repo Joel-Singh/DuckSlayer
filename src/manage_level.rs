@@ -74,7 +74,7 @@ pub fn manage_level(app: &mut App) {
         )
         .add_systems(
             OnEnter(LevelProgress::GameOver),
-            (pause, set_message("Gameover: nest destroyed")),
+            (pause, set_message("Gameover")),
         )
         .add_systems(
             OnEnter(LevelProgress::GameWon),
