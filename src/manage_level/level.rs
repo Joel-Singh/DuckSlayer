@@ -9,13 +9,13 @@ use crate::{
 
 use super::LevelMemory;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct DeathGoal {
     pub card: Card,
     pub count_dead: u32,
 }
 
-#[derive(Serialize, Deserialize, Asset, TypePath)]
+#[derive(Serialize, Deserialize, Asset, TypePath, Debug)]
 pub struct Level {
     pub cards: Vec<(Card, Vec2)>,
     pub starting_deckbar: Vec<Card>,

@@ -12,7 +12,7 @@ use crate::{
     global::{GameState, IsPointerOverUi},
 };
 
-use super::{IsPaused, LevelProgress, WinLoseDeathProgress};
+use super::{IsPaused, LevelMemory, LevelProgress, WinLoseDeathProgress};
 
 pub fn debug_ui_plugin(app: &mut App) {
     app.add_systems(EguiContextPass, create_debug_window.run_if(in_debug));
@@ -27,6 +27,7 @@ fn create_debug_window(
     game_state: Res<State<GameState>>,
     is_pointer_over_ui: Res<IsPointerOverUi>,
     win_lose_death_progress: Option<Res<WinLoseDeathProgress>>,
+    level_memory: Option<Res<LevelMemory>>,
 ) {
     egui::Window::new("DEBUG UI").show(contexts.ctx_mut(), |ui| {
         create_push_to_deckbar_btns(ui, &mut commands);
@@ -45,7 +46,11 @@ fn create_debug_window(
         ui.label("IsPaused: ".to_string() + &format!("{is_paused:?}"));
         ui.label("LevelProgress: ".to_string() + &format!("{game_state:?}"));
         ui.label("IsPointerOverUi: ".to_string() + &format!("{is_pointer_over_ui:?}"));
-        ui.label(format!("WinLoseDeathProgress: {win_lose_death_progress:?}"))
+        ui.label(format!("WinLoseDeathProgress: {win_lose_death_progress:?}"));
+
+        ui.collapsing("Level in memory", |ui| {
+            ui.label(format!("{level_memory:?}"))
+        });
     });
 }
 

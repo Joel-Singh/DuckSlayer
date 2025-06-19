@@ -37,7 +37,7 @@ pub enum LevelProgress {
     GameWon,
 }
 
-#[derive(Resource, Deref, DerefMut)]
+#[derive(Resource, Deref, DerefMut, Debug)]
 struct LevelMemory(pub Level);
 
 #[derive(Component, Default)]
@@ -66,7 +66,8 @@ pub fn manage_level(app: &mut App) {
         )
         .add_systems(
             FixedUpdate,
-            (win_or_lose_on_conditions).run_if(in_state(GameState::InGame).and(not_in_editor)),
+            (win_or_lose_on_conditions)
+                .run_if(in_state(GameState::InGame).and(in_state(LevelProgress::Null))),
         )
         .add_systems(
             OnEnter(IsPaused::False),

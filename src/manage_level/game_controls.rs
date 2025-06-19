@@ -40,7 +40,12 @@ pub fn game_controls_plugin(app: &mut App) {
             )
                 .run_if(not_in_editor),
             (
-                (spawn_entities_from_level_memory, pause)
+                (
+                    spawn_entities_from_level_memory,
+                    pause,
+                    reset_level_progress,
+                    set_message(CONTROLS_EDITOR_MESSAGE),
+                )
                     .chain()
                     .run_if(input_just_pressed(KeyCode::KeyZ)),
                 save_level_to_memory.run_if(input_just_pressed(KeyCode::KeyX)),
