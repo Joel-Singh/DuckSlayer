@@ -2,7 +2,7 @@ mod saving_loading_levels;
 
 use bevy::{ecs::system::RunSystemOnce, prelude::*};
 use bevy_egui::{
-    egui::{self, Slider, Ui},
+    egui::{self, ComboBox, Slider, Ui},
     EguiContextPass, EguiContexts,
 };
 use saving_loading_levels::{
@@ -18,7 +18,9 @@ use crate::{
     global::{in_editor, GameState, NEST_POSITIONS},
 };
 
-use super::{pause, save_level_to_memory, spawn_entities_from_level_memory, LevelEntity, Pause};
+use super::{
+    pause, save_level_to_memory, spawn_entities_from_level_memory, LevelEntity, LevelMemory, Pause,
+};
 
 #[derive(Resource, Default)]
 struct IsConstantsWindowOpen(bool);
@@ -33,6 +35,7 @@ pub fn editor_ui_plugin(app: &mut App) {
 fn create_editor_window(
     mut contexts: EguiContexts,
     mut card_consts: ResMut<CardConsts>,
+    mut level: ResMut<LevelMemory>,
     mut is_constants_window_open: ResMut<IsConstantsWindowOpen>,
     mut commands: Commands,
 ) {
@@ -75,6 +78,30 @@ fn create_editor_window(
                 commands.queue(Pause);
                 commands.queue(LoadLevelWithFileDialog);
             }
+
+            ui.heading("Win/Lose conditions");
+            ComboBox::from_label("Win Condition")
+                .selected_text(level.win_condition.card.to_string())
+                .show_ui(ui, |ui| {
+                    for card in Card::iter() {
+                        ui.selectable_value(&mut level.win_condition.card, card, card.to_string());
+                    }
+                });
+            ui.add(
+                Slider::new(&mut level.win_condition.count_dead, 1..=99).text("Count to eliminate"),
+            );
+
+            ComboBox::from_label("Lose Condition")
+                .selected_text(level.lose_condition.card.to_string())
+                .show_ui(ui, |ui| {
+                    for card in Card::iter() {
+                        ui.selectable_value(&mut level.lose_condition.card, card, card.to_string());
+                    }
+                });
+            ui.add(
+                Slider::new(&mut level.lose_condition.count_dead, 1..=99)
+                    .text("Count dead for loss"),
+            );
 
             ui.heading("Toggles");
             if ui.button("Toggle constants window").clicked() {
