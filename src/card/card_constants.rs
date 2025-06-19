@@ -52,7 +52,7 @@ impl Default for FarmerConsts {
 
         FarmerConsts {
             size: SIZE,
-            speed: 25.0,
+            speed: 60.0,
         }
     }
 }
@@ -88,7 +88,7 @@ impl Default for NestConsts {
         NestConsts {
             size: (50., 50.),
             range: 250.,
-            damage: 10.,
+            damage: 15.,
         }
     }
 }
