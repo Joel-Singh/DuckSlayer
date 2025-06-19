@@ -30,7 +30,7 @@ pub fn deckbar(app: &mut App) {
     .add_systems(
         FixedUpdate,
         (
-            highlight_card_on_hover,
+            highlight_card,
             select_card_on_click,
             hover_sprite_when_card_selected,
             update_card_image,
@@ -98,16 +98,29 @@ pub fn hide_deckbar(mut deck_bar: Single<&mut Node, With<DeckBarRoot>>) {
 fn remove_selected_card_style(
     trigger: Trigger<OnRemove, SelectedCard>,
     mut node_q: Query<&mut Node>,
+    mut image_node_q: Query<&mut ImageNode>,
 ) {
     let e = trigger.target();
-    let mut card_style = node_q.get_mut(e).unwrap();
-    card_style.right = Val::ZERO;
+
+    let mut node = node_q.get_mut(e).unwrap();
+    node.right = Val::ZERO;
+
+    let mut image_node = image_node_q.get_mut(e).unwrap();
+    image_node.color = GREY.into();
 }
 
-fn add_selected_card_style(trigger: Trigger<OnAdd, SelectedCard>, mut node_q: Query<&mut Node>) {
+fn add_selected_card_style(
+    trigger: Trigger<OnAdd, SelectedCard>,
+    mut node_q: Query<&mut Node>,
+    mut image_node_q: Query<&mut ImageNode>,
+) {
     let e = trigger.target();
-    let mut card_style = node_q.get_mut(e).unwrap();
-    card_style.right = Val::Px(30.0);
+
+    let mut node = node_q.get_mut(e).unwrap();
+    node.right = Val::Px(30.0);
+
+    let mut image_node = image_node_q.get_mut(e).unwrap();
+    image_node.color = Color::WHITE;
 }
 
 pub fn clear_deckbar(
@@ -154,16 +167,17 @@ fn update_card_image(
     }
 }
 
-fn highlight_card_on_hover(
+fn highlight_card(
     mut interaction_query: Query<
-        (&Interaction, &mut ImageNode),
+        (&Interaction, &mut ImageNode, Has<SelectedCard>),
         (Changed<Interaction>, (With<Button>, With<MaybeCard>)),
     >,
 ) {
-    for (interaction, mut image_node) in &mut interaction_query {
-        image_node.color = match *interaction {
-            Interaction::Hovered => Color::WHITE,
-            _ => GREY.into(),
+    for (interaction, mut image_node, is_selected) in &mut interaction_query {
+        if *interaction == Interaction::Hovered {
+            image_node.color = Color::WHITE;
+        } else if !is_selected {
+            image_node.color = GREY.into();
         }
     }
 }
