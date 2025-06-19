@@ -1,6 +1,13 @@
 {
   "cards": [
     [
+      "Quakka",
+      [
+        -239.91876,
+        210.80006
+      ]
+    ],
+    [
       "Nest",
       [
         -368.421,
@@ -48,13 +55,6 @@
         173.0,
         -312.0
       ]
-    ],
-    [
-      "Quakka",
-      [
-        -239.91876,
-        210.80006
-      ]
     ]
   ],
   "starting_deckbar": [
@@ -62,7 +62,7 @@
   ],
   "win_condition": {
     "card": "Nest",
-    "count_dead": 7
+    "count_dead": 1
   },
   "lose_condition": {
     "card": "Quakka",
