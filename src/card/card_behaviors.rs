@@ -21,7 +21,7 @@ use nest::nest_shoot;
 pub struct Quakka;
 
 #[derive(Component)]
-#[require(QuakkaTarget, LevelEntity)]
+#[require(QuakkaTarget, LevelEntity, GoingToBridge)]
 #[require(SpawnedCard(Card::Farmer))]
 pub struct Farmer;
 
@@ -67,7 +67,7 @@ pub struct Health {
 #[require(Transform)]
 struct HealthBar;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct GoingToBridge;
 
 #[derive(Event, Deref, DerefMut)]
