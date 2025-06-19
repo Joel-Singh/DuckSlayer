@@ -3,7 +3,7 @@ use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
 use crate::{
     deckbar::{DeleteSelectedCard, SelectedCard},
-    global::{CursorWorldCoords, GameState, FARMER_SPEED},
+    global::{CursorWorldCoords, GameState},
 };
 
 use bevy::ecs::component::HookContext;
@@ -242,6 +242,8 @@ fn farmer_go_to_bridge(
     bridges: Query<&Transform, (With<Bridge>, Without<Farmer>)>,
     mut commands: Commands,
     time: Res<Time>,
+
+    card_consts: Res<CardConsts>,
 ) {
     for farmer in farmers.iter_mut() {
         let (mut farmer_transform, farmer_e) = farmer;
@@ -266,7 +268,8 @@ fn farmer_go_to_bridge(
         if farmer_translation.distance(bridge.translation) < 10.0 {
             commands.entity(farmer_e).remove::<GoingToBridge>();
         } else {
-            farmer_transform.translation += (difference) * time.delta_secs() * FARMER_SPEED;
+            farmer_transform.translation +=
+                (difference) * time.delta_secs() * card_consts.farmer.speed;
         }
     }
 }
@@ -274,9 +277,11 @@ fn farmer_go_to_bridge(
 fn farmer_go_up(
     mut farmer_transforms: Query<&mut Transform, (With<Farmer>, Without<GoingToBridge>)>,
     time: Res<Time>,
+
+    card_consts: Res<CardConsts>,
 ) {
     for mut farmer_transform in farmer_transforms.iter_mut() {
-        farmer_transform.translation.y += time.delta_secs() * FARMER_SPEED;
+        farmer_transform.translation.y += time.delta_secs() * card_consts.farmer.speed;
     }
 }
 

@@ -127,6 +127,9 @@ fn create_editor_window(
                 const_edit(ui, "Damage", &mut card_consts.nest.damage, 100.);
                 const_edit(ui, "Range", &mut card_consts.nest.range, 1000.);
 
+                ui.heading("Farmer");
+                const_edit(ui, "Speed", &mut card_consts.farmer.speed, 100.);
+
                 if ui.button("Save current constants to file").clicked() {
                     commands.queue(Pause);
                     commands.queue(SaveCardConstsWithFileDialog);

@@ -38,6 +38,7 @@ impl WaterballConsts {
 #[derive(Serialize, Deserialize)]
 pub struct FarmerConsts {
     pub size: (f32, f32),
+    pub speed: f32,
 }
 
 impl Default for FarmerConsts {
@@ -49,7 +50,10 @@ impl Default for FarmerConsts {
             FILE_DIMENSIONS.1 * (CUSTOM_WIDTH / FILE_DIMENSIONS.0),
         );
 
-        FarmerConsts { size: SIZE }
+        FarmerConsts {
+            size: SIZE,
+            speed: 25.0,
+        }
     }
 }
 
