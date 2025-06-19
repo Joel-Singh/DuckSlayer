@@ -13,8 +13,9 @@ use bevy::input::ButtonState;
 use bevy::{color::palettes::css::*, prelude::*};
 use debug::debug;
 use farmer::farmer_go_to_bridge;
-use farmer::farmer_go_up;
+use farmer::farmer_go_to_exit;
 use farmer::farmer_plugin;
+use farmer::kill_farmer_reaching_exit;
 use farmer::GoingToBridge;
 use nest::nest_plugin;
 use nest::nest_shoot;
@@ -80,7 +81,8 @@ pub fn card_behaviors(app: &mut App) {
         (
             (
                 farmer_go_to_bridge,
-                farmer_go_up,
+                farmer_go_to_exit,
+                kill_farmer_reaching_exit,
                 tick_attacker_cooldowns,
                 quakka_chase_and_attack,
                 explode_waterballs,
@@ -240,8 +242,11 @@ fn delete_dead_entities(
 }
 
 mod farmer {
-    use super::Farmer;
-    use crate::{card::CardConsts, global::BRIDGE_LOCATIONS};
+    use super::{Farmer, Health};
+    use crate::{
+        card::CardConsts,
+        global::{BRIDGE_LOCATIONS, FARMER_EXIT_LOCATION},
+    };
     use bevy::prelude::*;
 
     #[derive(Component, Default)]
@@ -250,8 +255,11 @@ mod farmer {
     #[derive(Component)]
     pub struct Bridge;
 
+    #[derive(Component)]
+    pub struct Exit;
+
     pub fn farmer_plugin(app: &mut App) {
-        app.add_systems(Startup, spawn_bridge_locations);
+        app.add_systems(Startup, (spawn_bridge_locations, spawn_exit));
     }
 
     pub(crate) fn farmer_go_to_bridge(
@@ -294,14 +302,29 @@ mod farmer {
         }
     }
 
-    pub(crate) fn farmer_go_up(
-        mut farmer_transforms: Query<&mut Transform, (With<Farmer>, Without<GoingToBridge>)>,
+    pub fn farmer_go_to_exit(
+        mut farmer_q: Query<&mut Transform, (With<Farmer>, Without<GoingToBridge>)>,
+        exit: Single<&Transform, (With<Exit>, Without<Farmer>)>,
         time: Res<Time>,
 
         card_consts: Res<CardConsts>,
     ) {
-        for mut farmer_transform in farmer_transforms.iter_mut() {
-            farmer_transform.translation.y += time.delta_secs() * card_consts.farmer.speed;
+        for mut farmer in farmer_q.iter_mut() {
+            let mut delta = exit.translation - farmer.translation;
+            delta = delta.normalize_or_zero();
+
+            farmer.translation += delta * time.delta_secs() * card_consts.farmer.speed;
+        }
+    }
+
+    pub fn kill_farmer_reaching_exit(
+        mut farmer_q: Query<(&mut Health, &Transform), With<Farmer>>,
+        exit: Single<&Transform, (With<Exit>, Without<Farmer>)>,
+    ) {
+        for (mut farmer_health, farmer_transform) in farmer_q.iter_mut() {
+            if farmer_transform.translation.distance(exit.translation) < 10.0 {
+                farmer_health.current_health = 0.0;
+            };
         }
     }
 
@@ -318,6 +341,16 @@ mod farmer {
             Bridge,
             Transform {
                 translation: BRIDGE_LOCATIONS.1.extend(0.0),
+                ..default()
+            },
+        ));
+    }
+
+    fn spawn_exit(mut commands: Commands) {
+        commands.spawn((
+            Exit,
+            Transform {
+                translation: Vec2::from(FARMER_EXIT_LOCATION).extend(0.0),
                 ..default()
             },
         ));
