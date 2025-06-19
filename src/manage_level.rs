@@ -78,7 +78,7 @@ pub fn manage_level(app: &mut App) {
         )
         .add_systems(
             OnEnter(LevelProgress::GameWon),
-            (pause, set_message("You Win!")),
+            (pause, set_message("Gamewon")),
         )
         .add_systems(
             OnExit(GameState::InGame),
