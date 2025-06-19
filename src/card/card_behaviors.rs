@@ -14,7 +14,6 @@ use bevy::{color::palettes::css::*, prelude::*};
 use debug::debug;
 use nest::nest_plugin;
 use nest::nest_shoot;
-pub use nest::Nest;
 
 #[derive(Component)]
 #[require(LevelEntity, NestTarget, WaterballTarget)]
@@ -30,6 +29,13 @@ pub struct Farmer;
 #[require(SpawnedCard(Card::Waterball))]
 pub struct Waterball {
     pub radius: f32,
+}
+
+#[derive(Component, Default)]
+#[require(QuakkaTarget, LevelEntity)]
+#[require(SpawnedCard(Card::Nest))]
+pub struct Nest {
+    current_victim: Option<Entity>,
 }
 
 #[derive(Component, DerefMut, Deref)]
@@ -323,19 +329,9 @@ fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>)
 }
 
 mod nest {
-    use super::{Attacker, Health, NestTarget, QuakkaTarget, SpawnedCard};
-    use crate::{
-        card::{Card, CardConsts},
-        manage_level::LevelEntity,
-    };
+    use super::{Attacker, Health, Nest, NestTarget};
+    use crate::card::CardConsts;
     use bevy::prelude::*;
-
-    #[derive(Component, Default)]
-    #[require(QuakkaTarget, LevelEntity)]
-    #[require(SpawnedCard(Card::Nest))]
-    pub struct Nest {
-        current_victim: Option<Entity>,
-    }
 
     #[derive(Component)]
     pub struct Egg {
@@ -454,7 +450,7 @@ use super::SpawnCard;
 mod debug {
     use crate::{card::CardConsts, global::in_debug};
 
-    use super::{nest::Nest, Bridge};
+    use super::{Bridge, Nest};
     use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
 
     #[derive(Resource, PartialEq)]
