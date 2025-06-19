@@ -12,6 +12,7 @@
 - Have entities avoid other entities when pathfinding (boid like behavior)
 - Have a visual of what kinds of enemies to slay / left alive. Perhaps the entities that need to be kept alive are in green and those that need killing are red.
 - SOUUUUUUUUNDDDD
+- Nests won't suddenly change target if another quakka comes into contact
 
 # The last 90%
 - Can only go on to the next level after completing the current
