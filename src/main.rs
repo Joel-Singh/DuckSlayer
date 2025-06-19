@@ -49,7 +49,8 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
 
-// Resolution is incorrectly found on joel's computer
+// Resolution is incorrectly found on joel's computer and is easier to manually set resolution
+// instead of messing with xserver/wayland settings
 fn get_resolution() -> WindowResolution {
     let mut is_joels_computer = false;
     if let Ok(joels_comuter_env) = env::var("JOELS_COMPUTER") {
@@ -58,9 +59,15 @@ fn get_resolution() -> WindowResolution {
         }
     }
 
+    let Ok(current_computer) = env::var("CURRENT_COMPUTER") else {
+        return default();
+    };
+
     let mut resolution = WindowResolution::default();
     if is_joels_computer {
-        resolution = resolution.with_scale_factor_override(1.406);
+        let scale_factor = if current_computer == "hp" { 1.406 } else { 1.0 };
+
+        resolution = resolution.with_scale_factor_override(scale_factor);
     }
     resolution
 }
