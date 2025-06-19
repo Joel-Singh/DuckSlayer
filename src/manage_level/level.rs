@@ -7,7 +7,9 @@ use crate::{
     deckbar::DeckBarRoot,
 };
 
-#[derive(Serialize, Deserialize)]
+use super::LevelMemory;
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct DeathGoal {
     pub card: Card,
     pub count_dead: u32,
@@ -23,11 +25,11 @@ pub struct Level {
 
 impl Level {
     pub fn get_current(world: &mut World) -> Level {
-        let mut level = Level::get_stub(); // Does not take win condition
+        let mut current_level = Level::get_stub();
 
         let mut cards = world.query::<(&Transform, &SpawnedCard)>();
         for (transform, spawned_card) in cards.iter(world) {
-            level
+            current_level
                 .cards
                 .push((**spawned_card, transform.translation.truncate()));
         }
@@ -42,13 +44,17 @@ impl Level {
         for card in deck {
             match card.0 {
                 Some(card) => {
-                    level.starting_deckbar.push(card);
+                    current_level.starting_deckbar.push(card);
                 }
                 None => {}
             }
         }
 
-        level
+        let level_in_memory = world.get_resource::<LevelMemory>().unwrap();
+        current_level.win_condition = level_in_memory.win_condition.clone();
+        current_level.lose_condition = level_in_memory.lose_condition.clone();
+
+        current_level
     }
 
     pub fn get_stub() -> Level {
