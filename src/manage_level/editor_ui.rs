@@ -19,7 +19,8 @@ use crate::{
 };
 
 use super::{
-    pause, save_level_to_memory, spawn_entities_from_level_memory, LevelEntity, LevelMemory, Pause,
+    pause, reset_level_progress, save_level_to_memory, spawn_entities_from_level_memory,
+    LevelEntity, LevelMemory, Pause,
 };
 
 #[derive(Resource, Default)]
@@ -87,9 +88,15 @@ fn create_editor_window(
                         ui.selectable_value(&mut level.win_condition.card, card, card.to_string());
                     }
                 });
-            ui.add(
-                Slider::new(&mut level.win_condition.count_dead, 1..=99).text("Count to eliminate"),
-            );
+            if ui
+                .add(
+                    Slider::new(&mut level.win_condition.count_dead, 1..=99)
+                        .text("Count to eliminate"),
+                )
+                .dragged()
+            {
+                commands.run_system_cached(reset_level_progress);
+            }
 
             ComboBox::from_label("Lose Condition")
                 .selected_text(level.lose_condition.card.to_string())
@@ -98,10 +105,15 @@ fn create_editor_window(
                         ui.selectable_value(&mut level.lose_condition.card, card, card.to_string());
                     }
                 });
-            ui.add(
-                Slider::new(&mut level.lose_condition.count_dead, 1..=99)
-                    .text("Count dead for loss"),
-            );
+            if ui
+                .add(
+                    Slider::new(&mut level.lose_condition.count_dead, 1..=99)
+                        .text("Count dead for loss"),
+                )
+                .dragged()
+            {
+                commands.run_system_cached(reset_level_progress);
+            }
 
             ui.heading("Toggles");
             if ui.button("Toggle constants window").clicked() {
