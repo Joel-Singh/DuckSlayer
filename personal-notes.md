@@ -2,11 +2,10 @@
 - Quakka immediately takes damage upon entering the range of a nest
 
 ## Usability issues for the editor:
-- Some Indication when the level is quicksaved or loaded
 
 # Necessary
-- Different win conditions for each level
 - Attacker timer only ticks when enemy in range and resets when they exit
+- Need to add proper pathfinding, having entities roughly follow the path and farmers run away from Quakka's instead of a preset path
 
 # The last 90%
 - Can only go on to the next level after completing the current
