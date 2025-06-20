@@ -1,20 +1,24 @@
-use bevy::prelude::*;
+use bevy::{
+    dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin},
+    prelude::*,
+};
 
 use crate::global::CursorWorldCoords;
+
+fn get_debug_env_var() -> bool {
+    if let Ok(duckslayer_debug) = std::env::var("DUCKSLAYER_DEBUG") {
+        duckslayer_debug == "true"
+    } else {
+        false
+    }
+}
 
 #[derive(Resource, PartialEq)]
 pub struct IsDebug(pub bool);
 
 impl Default for IsDebug {
     fn default() -> Self {
-        if let Ok(duckslayer_debug) = std::env::var("DUCKSLAYER_DEBUG") {
-            if duckslayer_debug == "true" {
-                return IsDebug(true);
-            } else {
-                return IsDebug(false);
-            }
-        }
-        IsDebug(false)
+        IsDebug(get_debug_env_var())
     }
 }
 
@@ -28,6 +32,15 @@ pub fn debug_plugin(app: &mut App) {
         (print_out_world_coords_on_click).run_if(in_debug),
     )
     .init_resource::<IsDebug>();
+
+    if get_debug_env_var() {
+        app.add_plugins(FpsOverlayPlugin {
+            config: FpsOverlayConfig {
+                enabled: true,
+                ..default()
+            },
+        });
+    };
 }
 
 fn print_out_world_coords_on_click(
