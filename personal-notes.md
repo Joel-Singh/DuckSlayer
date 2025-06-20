@@ -3,6 +3,7 @@
 - Have a diagram showing the win/loss condition instead of just text
 
 ## Usability issues for the editor:
+- Add an undo button
 
 # Necessary
 - Attacker timer only ticks when enemy in range and resets when they exit
