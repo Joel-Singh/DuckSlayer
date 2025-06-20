@@ -26,6 +26,7 @@ enum SelectableLevel {
     Four,
     Five,
     Six,
+    Seven,
 }
 
 impl SelectableLevel {
@@ -37,6 +38,7 @@ impl SelectableLevel {
             SelectableLevel::Four => "levels/level_four.level.json",
             SelectableLevel::Five => "levels/level_five.level.json",
             SelectableLevel::Six => "levels/level_six.level.json",
+            SelectableLevel::Seven => "levels/level_seven.level.json",
         }
     }
 
@@ -53,6 +55,8 @@ impl SelectableLevel {
             Some(SelectableLevel::Five)
         } else if i == 6 {
             Some(SelectableLevel::Six)
+        } else if i == 7 {
+            Some(SelectableLevel::Seven)
         } else {
             None
         }
