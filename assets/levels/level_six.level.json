@@ -120,7 +120,7 @@
   ],
   "win_condition": {
     "card": "Quakka",
-    "count_dead": 99
+    "count_dead": 14
   },
   "lose_condition": {
     "card": "Nest",
