@@ -24,4 +24,3 @@
 - Have the debug picker plugin appear over ui nodes
 
 # Planning
-## So, you were creating level 6, which involves lots of waterballs and having v low fs because you have lots of quakkas. Going to try performance optimizing code.
