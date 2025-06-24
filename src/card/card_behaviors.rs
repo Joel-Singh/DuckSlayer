@@ -1,4 +1,5 @@
 use crate::global::IsPointerOverUi;
+use crate::global::HEALTHBAR_SIZE;
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
 use crate::{
@@ -10,7 +11,7 @@ use bevy::ecs::component::HookContext;
 use bevy::ecs::world::DeferredWorld;
 use bevy::input::mouse::MouseButtonInput;
 use bevy::input::ButtonState;
-use bevy::{color::palettes::css::*, prelude::*};
+use bevy::prelude::*;
 use debug::debug;
 use farmer::farmer_go_to_bridge;
 use farmer::farmer_go_to_exit;
@@ -103,27 +104,36 @@ pub fn card_behaviors(app: &mut App) {
 }
 
 fn initialize_healthbar(mut world: DeferredWorld, context: HookContext) {
+    let asset_server = world.resource::<AssetServer>();
+    let healthbar_sprite: Handle<Image> = asset_server.load("healthbar.png");
+
     let healthbar_height = world
         .get::<Health>(context.entity)
         .unwrap()
         .healthbar_height;
 
-    let healthbar = world
-        .commands()
-        .spawn((Transform::from_xyz(0., healthbar_height, 1.), HealthBar))
+    let mut commands = world.commands();
+
+    let healthbar = commands
+        .spawn((
+            Transform::from_xyz(0., healthbar_height, 1.),
+            HealthBar,
+            Sprite {
+                rect: Some(Rect::from_corners(Vec2::ZERO, HEALTHBAR_SIZE.into())),
+                image: healthbar_sprite,
+                ..default()
+            },
+        ))
         .id();
 
     world.commands().entity(context.entity).add_child(healthbar);
 }
 
 fn update_healthbars(
-    mut commands: Commands,
-    mut healthbar_q: Query<(Entity, &ChildOf), With<HealthBar>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut healthbar_q: Query<(&mut Sprite, &ChildOf), With<HealthBar>>,
     health: Query<&Health>,
 ) {
-    for (healthbar, card) in healthbar_q.iter_mut() {
+    for (mut healthbar_sprite, card) in healthbar_q.iter_mut() {
         let health = health.get(card.parent());
         if health.is_err() {
             panic!("Health component not on card!");
@@ -132,13 +142,10 @@ fn update_healthbars(
         let health = health.unwrap();
         let health_percentage = health.current_health / health.max_health;
 
-        commands.entity(healthbar).try_insert(Mesh2d(
-            meshes.add(Rectangle::new(health_percentage * 100.0, 10.0)),
+        healthbar_sprite.rect = Some(Rect::from_corners(
+            Vec2::ZERO,
+            (HEALTHBAR_SIZE.0 * health_percentage, HEALTHBAR_SIZE.1).into(),
         ));
-
-        commands
-            .entity(healthbar)
-            .try_insert_if_new(MeshMaterial2d(materials.add(Color::from(RED))));
     }
 }
 

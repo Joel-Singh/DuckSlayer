@@ -45,6 +45,8 @@ pub const NEST_POSITIONS: ((f32, f32), (f32, f32)) = ((-388., -312.), (173., -31
 pub const BRIDGE_LOCATIONS: (Vec2, Vec2) = (Vec2::new(-392.0, -4.0), Vec2::new(165.0, -8.0));
 pub const FARMER_EXIT_LOCATION: (f32, f32) = (-83., 420.);
 
+pub const HEALTHBAR_SIZE: (f32, f32) = (108., 12.);
+
 // LHS is image size
 pub const BTN_SIZE: (f32, f32) = (360. / 3.0, 160. / 3.0);
 
