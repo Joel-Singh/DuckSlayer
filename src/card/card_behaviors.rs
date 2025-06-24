@@ -26,7 +26,7 @@ use nest::nest_shoot;
 pub struct Quakka;
 
 #[derive(Component)]
-#[require(QuakkaTarget, LevelEntity, GoingToBridge)]
+#[require(QuakkaTarget, LevelEntity, GoingToBridge, WalkAnim)]
 #[require(SpawnedCard(Card::Farmer))]
 pub struct Farmer;
 
@@ -592,6 +592,7 @@ mod nest {
 
 pub use debug::IsSpawnedCardDebugOverlayEnabled;
 use walk_animation::walk_animation_plugin;
+use walk_animation::WalkAnim;
 
 use super::Card;
 use super::CardConsts;
