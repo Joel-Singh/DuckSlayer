@@ -98,6 +98,7 @@ pub fn card_behaviors(app: &mut App) {
     .add_event::<CardDeath>()
     .add_plugins(nest_plugin)
     .add_plugins(farmer_plugin)
+    .add_plugins(walk_animation_plugin)
     .add_plugins(debug);
 }
 
@@ -141,17 +142,89 @@ fn update_healthbars(
     }
 }
 
+mod walk_animation {
+    use bevy::prelude::*;
+    use std::f32::consts::PI;
+
+    use crate::manage_level::IsPaused;
+
+    #[derive(Component, Default)]
+    pub struct WalkAnim {
+        pub progress: f32, // From 0.0 to 1.0
+    }
+
+    #[derive(Component)]
+    pub struct CancelWalkAnim;
+
+    pub fn walk_animation_plugin(app: &mut App) {
+        app.add_systems(
+            Update,
+            (animate_walking, remove_stray_cancels).run_if(in_state(IsPaused::False)),
+        );
+    }
+
+    fn remove_stray_cancels(
+        strays: Query<Entity, (With<CancelWalkAnim>, Without<WalkAnim>)>,
+        mut commands: Commands,
+    ) {
+        for stray in strays {
+            commands.entity(stray).try_remove::<CancelWalkAnim>();
+        }
+    }
+
+    fn animate_walking(
+        walkers: Query<(&mut Transform, &mut WalkAnim, Has<CancelWalkAnim>, Entity)>,
+        time: Res<Time<Real>>,
+
+        mut commands: Commands,
+    ) {
+        const ANIM_SPEED: f32 = 4.;
+        const LENGTH: f32 = 1. / 40.;
+
+        let easing_curve = EasingCurve::new(0., 2. * PI * LENGTH, EaseFunction::CubicInOut);
+
+        for (mut transform, mut walk_anim, is_canceling, e) in walkers {
+            walk_anim.progress += time.delta_secs();
+
+            let curve_sample = wrap_around(0., 1., walk_anim.progress * ANIM_SPEED);
+            if is_canceling && curve_sample < 0.05 {
+                commands.entity(e).try_remove::<CancelWalkAnim>();
+                commands.entity(e).try_remove::<WalkAnim>();
+            } else {
+                transform.rotation =
+                    Quat::from_rotation_z(easing_curve.sample(curve_sample).unwrap());
+            }
+        }
+
+        fn wrap_around(start: f32, end: f32, x: f32) -> f32 {
+            debug_assert!(start < end);
+            let range = start.abs() + end.abs();
+
+            let is_even = (x / range) as i32 % 2 == 0;
+
+            let remainder = x % range;
+            if is_even {
+                start + remainder
+            } else {
+                end - remainder
+            }
+        }
+    }
+}
+
 fn quakka_chase_and_attack(
-    mut quakkas: Query<(&mut Transform, &mut Attacker), With<Quakka>>,
+    mut quakkas: Query<(&mut Transform, &mut Attacker, Entity), With<Quakka>>,
     mut quakka_targets: Query<
         (&Transform, Entity, &mut Health),
         (With<QuakkaTarget>, Without<Quakka>),
     >,
     time: Res<Time>,
-
     card_consts: Res<CardConsts>,
+    mut commands: Commands,
 ) {
     for mut quakka in quakkas.iter_mut() {
+        let quakka_e: Entity = quakka.2;
+
         let closest_chaseable = quakka_targets.iter_mut().min_by(|a, b| {
             let a_distance = quakka.0.translation.distance(a.0.translation);
             let b_distance = quakka.0.translation.distance(b.0.translation);
@@ -159,6 +232,9 @@ fn quakka_chase_and_attack(
         });
 
         if closest_chaseable.is_none() {
+            commands
+                .entity(quakka_e)
+                .insert(walk_animation::CancelWalkAnim);
             continue;
         }
 
@@ -170,6 +246,11 @@ fn quakka_chase_and_attack(
             .distance(closest_chaseable.0.translation);
 
         let in_attack_distance = distance_to_chaseable < card_consts.quakka.range;
+        if in_attack_distance {
+            commands
+                .entity(quakka_e)
+                .insert(walk_animation::CancelWalkAnim);
+        }
 
         if in_attack_distance && quakka.1.cooldown.finished() {
             quakka.1.cooldown.reset();
@@ -179,6 +260,9 @@ fn quakka_chase_and_attack(
             to_chaseable = to_chaseable.normalize();
 
             quakka.0.translation += to_chaseable * time.delta_secs() * card_consts.quakka.speed;
+            commands
+                .entity(quakka_e)
+                .try_insert_if_new(walk_animation::WalkAnim::default());
         }
     }
 }
@@ -507,6 +591,7 @@ mod nest {
 }
 
 pub use debug::IsSpawnedCardDebugOverlayEnabled;
+use walk_animation::walk_animation_plugin;
 
 use super::Card;
 use super::CardConsts;
