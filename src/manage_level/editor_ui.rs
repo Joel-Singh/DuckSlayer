@@ -126,6 +126,7 @@ fn create_editor_window(
             .enabled(is_constants_window_open.0)
             .default_pos((0., 400.))
             .show(contexts.ctx_mut(), |ui| {
+                ui.label("Some constants only take effect for newly spawned cards");
                 let const_edit =
                     |ui: &mut Ui, desc: &'static str, constant: &mut f32, max_val: f32| {
                         ui.add(Slider::new(constant, 0.0..=max_val).text(desc));

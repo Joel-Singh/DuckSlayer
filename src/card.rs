@@ -116,9 +116,12 @@ fn quakka_bundle(
             healthbar_height: 60.,
         },
         Quakka,
-        Attacker {
-            cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-        },
+        Attacker::new(
+            card_consts.quakka.damage,
+            card_consts.quakka.range,
+            vec![Card::Nest, Card::Farmer],
+            Duration::from_secs(1),
+        ),
     )
 }
 
@@ -149,15 +152,10 @@ fn waterball_bundle(
 ) -> impl Bundle {
     (
         Card::Waterball.get_sprite(asset_server, card_consts),
-        Waterball {
-            radius: card_consts.waterball.radius,
-        },
+        Waterball::new(card_consts.waterball.radius),
         Transform {
             translation: position.extend(0.0),
             ..default()
-        },
-        Attacker {
-            cooldown: Timer::new(Duration::from_secs_f32(0.1), TimerMode::Once),
         },
     )
 }
@@ -178,9 +176,12 @@ fn nest_bundle(
             max_health: 100.0,
             healthbar_height: 60.,
         },
-        Nest::default(),
-        Attacker {
-            cooldown: Timer::new(Duration::from_secs_f32(1.0), TimerMode::Once),
-        },
+        Nest,
+        Attacker::new(
+            card_consts.nest.damage,
+            card_consts.nest.range,
+            vec![Card::Quakka],
+            Duration::from_secs(1),
+        ),
     )
 }

@@ -1,9 +1,13 @@
 mod follow_path;
 
+use std::time::Duration;
+
 use crate::global::GameState;
 use crate::global::HEALTHBAR_SIZE;
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
+use attacker::attacker_plugin;
+pub use attacker::Attacker;
 use bevy::ecs::component::HookContext;
 use bevy::ecs::world::DeferredWorld;
 use bevy::prelude::*;
@@ -13,7 +17,6 @@ use farmer::farmer_plugin;
 use farmer::kill_farmer_reaching_exit;
 pub use follow_path::follow_paths;
 use nest::nest_plugin;
-use nest::nest_shoot;
 use walk_animation::walk_animation_plugin;
 use walk_animation::WalkAnim;
 
@@ -34,14 +37,22 @@ pub struct Farmer;
 #[require(SpawnedCard(Card::Waterball))]
 pub struct Waterball {
     pub radius: f32,
+    pub timer: Timer,
 }
 
-#[derive(Component, Default)]
+impl Waterball {
+    pub fn new(radius: f32) -> Waterball {
+        Waterball {
+            radius,
+            timer: Timer::new(Duration::from_secs_f32(0.5), TimerMode::Once),
+        }
+    }
+}
+
+#[derive(Component)]
 #[require(QuakkaTarget, LevelEntity)]
 #[require(SpawnedCard(Card::Nest))]
-pub struct Nest {
-    current_victim: Option<Entity>,
-}
+pub struct Nest;
 
 #[derive(Component, DerefMut, Deref)]
 pub struct SpawnedCard(Card);
@@ -49,9 +60,110 @@ pub struct SpawnedCard(Card);
 #[derive(Component, Default)]
 pub struct WaterballTarget;
 
-#[derive(Component)]
-pub struct Attacker {
-    pub cooldown: Timer,
+mod attacker {
+    use std::time::Duration;
+
+    use bevy::prelude::*;
+
+    use crate::{card::Card, global::GameState, manage_level::IsPaused};
+
+    use super::{Health, SpawnedCard};
+
+    pub fn attacker_plugin(app: &mut App) {
+        app.add_systems(
+            FixedUpdate,
+            attackers_attack.run_if(in_state(GameState::InGame).and(in_state(IsPaused::False))),
+        );
+    }
+
+    #[derive(Component)]
+    pub struct Attacker {
+        damage: f32,
+        range: f32,
+        cooldown: Timer,
+        prey: Vec<Card>,
+        current_victim: Option<Entity>,
+        current_victim_in_range: bool,
+    }
+
+    impl Attacker {
+        pub fn current_victim(&self) -> Option<Entity> {
+            self.current_victim
+        }
+
+        pub fn current_victim_in_range(&self) -> bool {
+            self.current_victim_in_range
+        }
+
+        pub fn cooldown_fraction(&self) -> f32 {
+            self.cooldown.fraction()
+        }
+
+        pub fn new(
+            damage: f32,
+            range: f32,
+            prey: Vec<Card>,
+            attack_cooldown: Duration,
+        ) -> Attacker {
+            Attacker {
+                damage,
+                range,
+                prey,
+                cooldown: Timer::new(attack_cooldown, TimerMode::Once),
+                current_victim: None,
+                current_victim_in_range: false,
+            }
+        }
+    }
+
+    fn attackers_attack(
+        mut possible_targets: Query<(Entity, &mut Health, &SpawnedCard), With<Transform>>,
+        attackers: Query<(Entity, &mut Attacker)>,
+        transform_q: Query<&Transform>,
+
+        time: Res<Time>,
+    ) {
+        for (attacker_e, mut attacker) in attackers {
+            let attacker_translation = transform_q.get(attacker_e).unwrap().translation;
+
+            let closest_target = possible_targets
+                .iter_mut()
+                .filter(|t| attacker.prey.contains(&**t.2) && t.0 != attacker_e)
+                .min_by(|a, b| {
+                    let a = transform_q.get(a.0).unwrap().translation;
+                    let b = transform_q.get(b.0).unwrap().translation;
+
+                    let a_dist = attacker_translation.distance(a);
+                    let b_dist = attacker_translation.distance(b);
+
+                    a_dist.partial_cmp(&b_dist).unwrap()
+                });
+
+            let Some(mut closest_target) = closest_target else {
+                attacker.current_victim = None;
+                attacker.current_victim_in_range = false;
+                attacker.cooldown.reset();
+                return;
+            };
+            attacker.current_victim = Some(closest_target.0);
+
+            let closest_target_translation = transform_q.get(closest_target.0).unwrap().translation;
+            let dist_to_target = attacker_translation.distance(closest_target_translation);
+            let in_attack_dist = dist_to_target < attacker.range;
+
+            if in_attack_dist {
+                attacker.cooldown.tick(time.delta());
+                attacker.current_victim_in_range = true;
+                if attacker.cooldown.finished() {
+                    closest_target.1.current_health -= attacker.damage;
+                    attacker.cooldown.reset();
+                }
+            } else {
+                attacker.cooldown.reset();
+                attacker.current_victim_in_range = false;
+            }
+        }
+    }
 }
 
 #[derive(Component, Default)]
@@ -81,10 +193,8 @@ pub fn card_behaviors(app: &mut App) {
         (
             (
                 kill_farmer_reaching_exit,
-                tick_attacker_cooldowns,
-                quakka_chase_and_attack,
                 explode_waterballs,
-                nest_shoot,
+                tick_waterball_timers,
                 follow_paths,
             )
                 .run_if(in_state(IsPaused::False)),
@@ -96,6 +206,7 @@ pub fn card_behaviors(app: &mut App) {
     .add_event::<CardDeath>()
     .add_plugins(nest_plugin)
     .add_plugins(farmer_plugin)
+    .add_plugins(attacker_plugin)
     .add_plugins(walk_animation_plugin)
     .add_plugins(debug);
 }
@@ -216,58 +327,9 @@ mod walk_animation {
     }
 }
 
-fn quakka_chase_and_attack(
-    mut quakkas: Query<(&mut Transform, &mut Attacker, Entity), With<Quakka>>,
-    mut quakka_targets: Query<
-        (&Transform, Entity, &mut Health),
-        (With<QuakkaTarget>, Without<Quakka>),
-    >,
-    time: Res<Time>,
-    card_consts: Res<CardConsts>,
-    mut commands: Commands,
-) {
-    for mut quakka in quakkas.iter_mut() {
-        let quakka_e: Entity = quakka.2;
-
-        let closest_chaseable = quakka_targets.iter_mut().min_by(|a, b| {
-            let a_distance = quakka.0.translation.distance(a.0.translation);
-            let b_distance = quakka.0.translation.distance(b.0.translation);
-            a_distance.partial_cmp(&b_distance).unwrap()
-        });
-
-        if closest_chaseable.is_none() {
-            commands
-                .entity(quakka_e)
-                .insert(walk_animation::CancelWalkAnim);
-            continue;
-        }
-
-        let mut closest_chaseable = closest_chaseable.unwrap();
-
-        let distance_to_chaseable = quakka
-            .0
-            .translation
-            .distance(closest_chaseable.0.translation);
-
-        let in_attack_distance = distance_to_chaseable < card_consts.quakka.range;
-        if in_attack_distance {
-            commands
-                .entity(quakka_e)
-                .insert(walk_animation::CancelWalkAnim);
-        }
-
-        if in_attack_distance && quakka.1.cooldown.finished() {
-            quakka.1.cooldown.reset();
-            closest_chaseable.2.current_health -= card_consts.quakka.damage;
-        } else if !in_attack_distance {
-            let mut to_chaseable = closest_chaseable.0.translation - quakka.0.translation;
-            to_chaseable = to_chaseable.normalize();
-
-            quakka.0.translation += to_chaseable * time.delta_secs() * card_consts.quakka.speed;
-            commands
-                .entity(quakka_e)
-                .try_insert_if_new(walk_animation::WalkAnim::default());
-        }
+fn tick_waterball_timers(waterballs: Query<&mut Waterball>, time: Res<Time>) {
+    for mut waterball in waterballs {
+        waterball.timer.tick(time.delta());
     }
 }
 
@@ -275,7 +337,6 @@ fn explode_waterballs(
     mut waterball_targets: Query<Entity, With<WaterballTarget>>,
     waterballs: Query<(Entity, &Waterball)>,
     mut health_q: Query<&mut Health>,
-    mut attacker_q: Query<&mut Attacker, With<Waterball>>,
     transform_q: Query<&Transform>,
 
     mut commands: Commands,
@@ -283,9 +344,7 @@ fn explode_waterballs(
     card_consts: Res<CardConsts>,
 ) {
     for (waterball_e, waterball) in waterballs {
-        let waterball_attacker = attacker_q.get_mut(waterball_e).unwrap();
-
-        if !waterball_attacker.cooldown.finished() {
+        if !waterball.timer.finished() {
             continue;
         }
 
@@ -365,18 +424,8 @@ mod farmer {
     }
 }
 
-fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>) {
-    for mut attacker in attackers.iter_mut() {
-        if attacker.cooldown.mode() == TimerMode::Repeating {
-            panic!("Attack cooldown should be once");
-        }
-        attacker.cooldown.tick(time.delta());
-    }
-}
-
 mod nest {
-    use super::{Attacker, Health, Nest, NestTarget};
-    use crate::card::CardConsts;
+    use super::{Attacker, Nest};
     use bevy::prelude::*;
 
     #[derive(Component)]
@@ -386,41 +435,6 @@ mod nest {
 
     pub fn nest_plugin(app: &mut App) {
         app.add_systems(FixedUpdate, (spawn_eggs, render_eggs));
-    }
-
-    pub fn nest_shoot(
-        mut victims: Query<(&Transform, &mut Health, Entity), With<NestTarget>>,
-        nests: Query<(&Transform, &mut Attacker, &mut Nest), With<Nest>>,
-
-        card_consts: Res<CardConsts>,
-    ) {
-        for mut nest in nests {
-            let closest_victim = victims.iter_mut().min_by(|a, b| {
-                let a_dist = nest.0.translation.distance(a.0.translation);
-                let b_dist = nest.0.translation.distance(b.0.translation);
-                a_dist.total_cmp(&b_dist)
-            });
-
-            if closest_victim.is_none() {
-                nest.2.current_victim = None;
-                continue;
-            }
-
-            let mut closest_victim = closest_victim.unwrap();
-
-            let dist_to_victim = nest.0.translation.distance(closest_victim.0.translation);
-
-            if dist_to_victim < card_consts.nest.range {
-                nest.2.current_victim = Some(closest_victim.2);
-
-                if nest.1.cooldown.finished() {
-                    nest.1.cooldown.reset();
-                    closest_victim.1.current_health -= card_consts.nest.damage;
-                }
-            } else {
-                nest.2.current_victim = None;
-            }
-        }
     }
 
     fn spawn_eggs(
@@ -444,39 +458,35 @@ mod nest {
 
     pub fn render_eggs(
         mut commands: Commands,
-        nest_q: Query<&Nest>,
         attacker_q: Query<&Attacker, With<Nest>>,
         transform_q: Query<&mut Transform>,
         eggs: Query<(Entity, &Egg, &mut Sprite)>,
     ) {
         for mut egg in eggs {
-            let nest = nest_q.get(egg.1.from_nest);
-
-            // Nest must have died
-            if nest.is_err() {
+            let Ok(nest_attack) = attacker_q.get(egg.1.from_nest) else {
+                // Nest must have died
                 commands.entity(egg.0).despawn();
                 return;
-            }
+            };
 
-            let nest = nest.unwrap();
-
-            if let Some(victim) = nest.current_victim {
+            if nest_attack.current_victim_in_range() {
                 egg.2.color = Color::WHITE;
+
+                let victim = nest_attack.current_victim().unwrap();
 
                 let victim_transform = transform_q.get(victim);
                 let nest_transform = transform_q.get(egg.1.from_nest);
-                let nest_attack = attacker_q.get(egg.1.from_nest);
 
                 // Victim might have died
-                if let (Ok(victim_transform), Ok(nest_transform), Ok(nest_attack)) =
-                    (victim_transform, nest_transform, nest_attack)
+                if let (Ok(victim_transform), Ok(nest_transform)) =
+                    (victim_transform, nest_transform)
                 {
                     let nest_to_victim: Vec3 =
                         victim_transform.translation - nest_transform.translation;
 
                     commands.entity(egg.0).insert(Transform::from_translation(
                         nest_transform.translation
-                            + (nest_to_victim * nest_attack.cooldown.fraction()),
+                            + (nest_to_victim * nest_attack.cooldown_fraction()),
                     ));
                 }
             } else {
