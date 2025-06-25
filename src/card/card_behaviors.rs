@@ -60,6 +60,158 @@ pub struct SpawnedCard(Card);
 #[derive(Component, Default)]
 pub struct WaterballTarget;
 
+#[derive(Component, Default)]
+pub struct QuakkaTarget;
+
+#[derive(Component, Default)]
+pub struct NestTarget;
+
+#[derive(Component)]
+#[component(on_add = initialize_healthbar)]
+pub struct Health {
+    pub current_health: f32,
+    pub max_health: f32,
+    pub healthbar_height: f32,
+}
+
+#[derive(Component)]
+#[require(Transform)]
+struct HealthBar;
+
+#[derive(Event, Deref, DerefMut)]
+pub struct CardDeath(Card);
+
+pub fn card_behaviors(app: &mut App) {
+    app.add_systems(
+        FixedUpdate,
+        (
+            (
+                kill_farmer_reaching_exit,
+                explode_waterballs,
+                tick_waterball_timers,
+                follow_paths,
+            )
+                .run_if(in_state(IsPaused::False)),
+            delete_dead_entities,
+            update_healthbars,
+        )
+            .run_if(in_state(GameState::InGame)),
+    )
+    .add_event::<CardDeath>()
+    .add_plugins(nest_plugin)
+    .add_plugins(farmer_plugin)
+    .add_plugins(attacker_plugin)
+    .add_plugins(walk_animation_plugin)
+    .add_plugins(debug);
+}
+
+fn initialize_healthbar(mut world: DeferredWorld, context: HookContext) {
+    let asset_server = world.resource::<AssetServer>();
+    let healthbar_sprite: Handle<Image> = asset_server.load("healthbar.png");
+
+    let healthbar_height = world
+        .get::<Health>(context.entity)
+        .unwrap()
+        .healthbar_height;
+
+    let mut commands = world.commands();
+
+    let healthbar = commands
+        .spawn((
+            Transform::from_xyz(0., healthbar_height, 1.),
+            HealthBar,
+            Sprite {
+                rect: Some(Rect::from_corners(Vec2::ZERO, HEALTHBAR_SIZE.into())),
+                image: healthbar_sprite,
+                ..default()
+            },
+        ))
+        .id();
+
+    world.commands().entity(context.entity).add_child(healthbar);
+}
+
+fn update_healthbars(
+    mut healthbar_q: Query<(&mut Sprite, &ChildOf), With<HealthBar>>,
+    health: Query<&Health>,
+) {
+    for (mut healthbar_sprite, card) in healthbar_q.iter_mut() {
+        let health = health.get(card.parent());
+        if health.is_err() {
+            panic!("Health component not on card!");
+        }
+
+        let health = health.unwrap();
+        let health_percentage = health.current_health / health.max_health;
+
+        healthbar_sprite.rect = Some(Rect::from_corners(
+            Vec2::ZERO,
+            (HEALTHBAR_SIZE.0 * health_percentage, HEALTHBAR_SIZE.1).into(),
+        ));
+    }
+}
+
+fn tick_waterball_timers(waterballs: Query<&mut Waterball>, time: Res<Time>) {
+    for mut waterball in waterballs {
+        waterball.timer.tick(time.delta());
+    }
+}
+
+fn explode_waterballs(
+    mut waterball_targets: Query<Entity, With<WaterballTarget>>,
+    waterballs: Query<(Entity, &Waterball)>,
+    mut health_q: Query<&mut Health>,
+    transform_q: Query<&Transform>,
+
+    mut commands: Commands,
+
+    card_consts: Res<CardConsts>,
+) {
+    for (waterball_e, waterball) in waterballs {
+        if !waterball.timer.finished() {
+            continue;
+        }
+
+        for target in &mut waterball_targets {
+            let target_transform = transform_q.get(target);
+
+            // Checking if within distance
+            if let Ok(target_transform) = target_transform {
+                let target_position = target_transform.translation.truncate();
+                let waterball_position =
+                    transform_q.get(waterball_e).unwrap().translation.truncate();
+
+                let is_in_explosion_distance =
+                    waterball_position.distance(target_position) < waterball.radius;
+                if !is_in_explosion_distance {
+                    continue;
+                }
+            }
+
+            let target_health = health_q.get_mut(target);
+            if let Ok(mut target_health) = target_health {
+                target_health.current_health -= card_consts.waterball.damage;
+            }
+        }
+
+        commands.entity(waterball_e).despawn();
+    }
+}
+
+fn delete_dead_entities(
+    healths: Query<(&Health, Entity)>,
+    mut commands: Commands,
+    spawned_card_q: Query<&SpawnedCard>,
+    mut card_destroyed_ev: EventWriter<CardDeath>,
+) {
+    for (health, e) in healths.iter() {
+        if health.current_health <= 0.0 {
+            commands.entity(e).despawn();
+            card_destroyed_ev.write(CardDeath(**spawned_card_q.get(e).unwrap()));
+        }
+    }
+}
+
 mod attacker {
     use std::time::Duration;
 
@@ -166,97 +318,6 @@ mod attacker {
     }
 }
 
-#[derive(Component, Default)]
-pub struct QuakkaTarget;
-
-#[derive(Component, Default)]
-pub struct NestTarget;
-
-#[derive(Component)]
-#[component(on_add = initialize_healthbar)]
-pub struct Health {
-    pub current_health: f32,
-    pub max_health: f32,
-    pub healthbar_height: f32,
-}
-
-#[derive(Component)]
-#[require(Transform)]
-struct HealthBar;
-
-#[derive(Event, Deref, DerefMut)]
-pub struct CardDeath(Card);
-
-pub fn card_behaviors(app: &mut App) {
-    app.add_systems(
-        FixedUpdate,
-        (
-            (
-                kill_farmer_reaching_exit,
-                explode_waterballs,
-                tick_waterball_timers,
-                follow_paths,
-            )
-                .run_if(in_state(IsPaused::False)),
-            delete_dead_entities,
-            update_healthbars,
-        )
-            .run_if(in_state(GameState::InGame)),
-    )
-    .add_event::<CardDeath>()
-    .add_plugins(nest_plugin)
-    .add_plugins(farmer_plugin)
-    .add_plugins(attacker_plugin)
-    .add_plugins(walk_animation_plugin)
-    .add_plugins(debug);
-}
-
-fn initialize_healthbar(mut world: DeferredWorld, context: HookContext) {
-    let asset_server = world.resource::<AssetServer>();
-    let healthbar_sprite: Handle<Image> = asset_server.load("healthbar.png");
-
-    let healthbar_height = world
-        .get::<Health>(context.entity)
-        .unwrap()
-        .healthbar_height;
-
-    let mut commands = world.commands();
-
-    let healthbar = commands
-        .spawn((
-            Transform::from_xyz(0., healthbar_height, 1.),
-            HealthBar,
-            Sprite {
-                rect: Some(Rect::from_corners(Vec2::ZERO, HEALTHBAR_SIZE.into())),
-                image: healthbar_sprite,
-                ..default()
-            },
-        ))
-        .id();
-
-    world.commands().entity(context.entity).add_child(healthbar);
-}
-
-fn update_healthbars(
-    mut healthbar_q: Query<(&mut Sprite, &ChildOf), With<HealthBar>>,
-    health: Query<&Health>,
-) {
-    for (mut healthbar_sprite, card) in healthbar_q.iter_mut() {
-        let health = health.get(card.parent());
-        if health.is_err() {
-            panic!("Health component not on card!");
-        }
-
-        let health = health.unwrap();
-        let health_percentage = health.current_health / health.max_health;
-
-        healthbar_sprite.rect = Some(Rect::from_corners(
-            Vec2::ZERO,
-            (HEALTHBAR_SIZE.0 * health_percentage, HEALTHBAR_SIZE.1).into(),
-        ));
-    }
-}
-
 mod walk_animation {
     use bevy::prelude::*;
     use std::f32::consts::PI;
@@ -323,67 +384,6 @@ mod walk_animation {
             } else {
                 end - remainder
             }
-        }
-    }
-}
-
-fn tick_waterball_timers(waterballs: Query<&mut Waterball>, time: Res<Time>) {
-    for mut waterball in waterballs {
-        waterball.timer.tick(time.delta());
-    }
-}
-
-fn explode_waterballs(
-    mut waterball_targets: Query<Entity, With<WaterballTarget>>,
-    waterballs: Query<(Entity, &Waterball)>,
-    mut health_q: Query<&mut Health>,
-    transform_q: Query<&Transform>,
-
-    mut commands: Commands,
-
-    card_consts: Res<CardConsts>,
-) {
-    for (waterball_e, waterball) in waterballs {
-        if !waterball.timer.finished() {
-            continue;
-        }
-
-        for target in &mut waterball_targets {
-            let target_transform = transform_q.get(target);
-
-            // Checking if within distance
-            if let Ok(target_transform) = target_transform {
-                let target_position = target_transform.translation.truncate();
-                let waterball_position =
-                    transform_q.get(waterball_e).unwrap().translation.truncate();
-
-                let is_in_explosion_distance =
-                    waterball_position.distance(target_position) < waterball.radius;
-                if !is_in_explosion_distance {
-                    continue;
-                }
-            }
-
-            let target_health = health_q.get_mut(target);
-            if let Ok(mut target_health) = target_health {
-                target_health.current_health -= card_consts.waterball.damage;
-            }
-        }
-
-        commands.entity(waterball_e).despawn();
-    }
-}
-
-fn delete_dead_entities(
-    healths: Query<(&Health, Entity)>,
-    mut commands: Commands,
-    spawned_card_q: Query<&SpawnedCard>,
-    mut card_destroyed_ev: EventWriter<CardDeath>,
-) {
-    for (health, e) in healths.iter() {
-        if health.current_health <= 0.0 {
-            commands.entity(e).despawn();
-            card_destroyed_ev.write(CardDeath(**spawned_card_q.get(e).unwrap()));
         }
     }
 }
