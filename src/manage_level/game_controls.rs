@@ -1,7 +1,13 @@
-use crate::deckbar::{deselect_card, select_card};
-use crate::global::{in_editor, not_in_editor, GameState};
+use crate::card::{MaybeCard, SpawnCard};
+use crate::deckbar::{deselect_card, select_card, DeleteSelectedCard, SelectedCard};
+use crate::global::{
+    get_left_river_rect, get_middle_river_rect, get_right_river_rect, in_editor, not_in_editor,
+    CursorWorldCoords, GameState, IsPointerOverUi,
+};
 use crate::manage_level::{unpause, Level};
 use bevy::input::common_conditions::input_just_pressed;
+use bevy::input::mouse::MouseButtonInput;
+use bevy::input::ButtonState;
 use bevy::prelude::*;
 use bevy_egui::input::egui_wants_any_keyboard_input;
 
@@ -63,6 +69,7 @@ pub fn game_controls_plugin(app: &mut App) {
                 deselect_card.run_if(input_just_pressed(KeyCode::CapsLock)),
             )
                 .run_if(not(egui_wants_any_keyboard_input)),
+            spawn_card_on_click,
         )
             .run_if(in_state(GameState::InGame)),
     );
@@ -111,5 +118,37 @@ fn delete_level_entities_on_click(
                 }
             },
         );
+    }
+}
+
+fn spawn_card_on_click(
+    mut commands: Commands,
+    mut mousebtn_evr: EventReader<MouseButtonInput>,
+    mouse_coords: Res<CursorWorldCoords>,
+    is_pointer_over_ui: Res<IsPointerOverUi>,
+    selected_card: Option<Single<&MaybeCard, With<SelectedCard>>>,
+) {
+    let Some(selected_card) = selected_card.map(Single::into_inner) else {
+        mousebtn_evr.clear();
+        return;
+    };
+
+    let Some(selected_card) = selected_card.0 else {
+        return;
+    };
+
+    for ev in mousebtn_evr.read() {
+        if ev.state != ButtonState::Pressed || **is_pointer_over_ui || !in_bounds(**mouse_coords) {
+            continue;
+        }
+
+        commands.queue(SpawnCard::new(selected_card, mouse_coords.0));
+        commands.queue(DeleteSelectedCard::default());
+    }
+
+    fn in_bounds(v: Vec2) -> bool {
+        !get_left_river_rect().contains(v)
+            && !get_middle_river_rect().contains(v)
+            && !get_right_river_rect().contains(v)
     }
 }

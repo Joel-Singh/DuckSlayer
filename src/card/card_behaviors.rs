@@ -1,28 +1,24 @@
 mod follow_path;
 
-use crate::global::get_left_river_rect;
-use crate::global::get_middle_river_rect;
-use crate::global::get_right_river_rect;
-use crate::global::IsPointerOverUi;
+use crate::global::GameState;
 use crate::global::HEALTHBAR_SIZE;
 use crate::manage_level::IsPaused;
 use crate::manage_level::LevelEntity;
-use crate::{
-    deckbar::{DeleteSelectedCard, SelectedCard},
-    global::{CursorWorldCoords, GameState},
-};
-
 use bevy::ecs::component::HookContext;
 use bevy::ecs::world::DeferredWorld;
-use bevy::input::mouse::MouseButtonInput;
-use bevy::input::ButtonState;
 use bevy::prelude::*;
 use debug::debug;
+pub use debug::IsSpawnedCardDebugOverlayEnabled;
 use farmer::farmer_plugin;
 use farmer::kill_farmer_reaching_exit;
 pub use follow_path::follow_paths;
 use nest::nest_plugin;
 use nest::nest_shoot;
+use walk_animation::walk_animation_plugin;
+use walk_animation::WalkAnim;
+
+use super::Card;
+use super::CardConsts;
 
 #[derive(Component)]
 #[require(LevelEntity, NestTarget, WaterballTarget)]
@@ -92,7 +88,6 @@ pub fn card_behaviors(app: &mut App) {
                 follow_paths,
             )
                 .run_if(in_state(IsPaused::False)),
-            spawn_card_on_click,
             delete_dead_entities,
             update_healthbars,
         )
@@ -370,38 +365,6 @@ mod farmer {
     }
 }
 
-fn spawn_card_on_click(
-    mut commands: Commands,
-    mut mousebtn_evr: EventReader<MouseButtonInput>,
-    mouse_coords: Res<CursorWorldCoords>,
-    is_pointer_over_ui: Res<IsPointerOverUi>,
-    selected_card: Option<Single<&MaybeCard, With<SelectedCard>>>,
-) {
-    let Some(selected_card) = selected_card.map(Single::into_inner) else {
-        mousebtn_evr.clear();
-        return;
-    };
-
-    let Some(selected_card) = selected_card.0 else {
-        return;
-    };
-
-    for ev in mousebtn_evr.read() {
-        if ev.state != ButtonState::Pressed || **is_pointer_over_ui || !in_bounds(**mouse_coords) {
-            continue;
-        }
-
-        commands.queue(SpawnCard::new(selected_card, mouse_coords.0));
-        commands.queue(DeleteSelectedCard::default());
-    }
-
-    fn in_bounds(v: Vec2) -> bool {
-        !get_left_river_rect().contains(v)
-            && !get_middle_river_rect().contains(v)
-            && !get_right_river_rect().contains(v)
-    }
-}
-
 fn tick_attacker_cooldowns(mut attackers: Query<&mut Attacker>, time: Res<Time>) {
     for mut attacker in attackers.iter_mut() {
         if attacker.cooldown.mode() == TimerMode::Repeating {
@@ -522,15 +485,6 @@ mod nest {
         }
     }
 }
-
-pub use debug::IsSpawnedCardDebugOverlayEnabled;
-use walk_animation::walk_animation_plugin;
-use walk_animation::WalkAnim;
-
-use super::Card;
-use super::CardConsts;
-use super::MaybeCard;
-use super::SpawnCard;
 
 mod debug {
     use crate::{card::CardConsts, debug::in_debug};
