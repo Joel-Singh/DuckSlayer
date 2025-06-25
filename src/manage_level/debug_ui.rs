@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::BLUE, prelude::*};
 use bevy_egui::{
     egui::{self, Ui},
     EguiContextPass, EguiContexts,
@@ -9,13 +9,21 @@ use crate::{
     card::{Card, IsSpawnedCardDebugOverlayEnabled},
     debug::in_debug,
     deckbar::PushToDeckbar,
-    global::{GameState, IsPointerOverUi},
+    global::{
+        get_left_river_rect, get_middle_river_rect, get_right_river_rect, GameState,
+        IsPointerOverUi,
+    },
 };
 
 use super::{IsPaused, LevelMemory, LevelProgress, WinLoseDeathProgress};
 
+const DRAW_RIVER_BOUNDARIES: bool = true;
+
 pub fn debug_ui_plugin(app: &mut App) {
-    app.add_systems(EguiContextPass, create_debug_window.run_if(in_debug));
+    app.add_systems(
+        EguiContextPass,
+        (create_debug_window, draw_river_boundaries).run_if(in_debug),
+    );
 }
 
 fn create_debug_window(
@@ -60,5 +68,23 @@ fn create_push_to_deckbar_btns(ui: &mut Ui, commands: &mut Commands) {
         if push_to_deck_btn.clicked() {
             commands.queue(PushToDeckbar(card));
         }
+    }
+}
+
+fn draw_river_boundaries(mut draw: Gizmos) {
+    for rect in [
+        get_left_river_rect(),
+        get_right_river_rect(),
+        get_middle_river_rect(),
+    ] {
+        if !DRAW_RIVER_BOUNDARIES {
+            return;
+        }
+
+        draw.rect_2d(
+            Isometry2d::from_translation(rect.center()),
+            rect.size(),
+            BLUE,
+        );
     }
 }

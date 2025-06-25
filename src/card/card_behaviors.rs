@@ -1,3 +1,6 @@
+use crate::global::get_left_river_rect;
+use crate::global::get_middle_river_rect;
+use crate::global::get_right_river_rect;
 use crate::global::IsPointerOverUi;
 use crate::global::HEALTHBAR_SIZE;
 use crate::manage_level::IsPaused;
@@ -13,11 +16,9 @@ use bevy::input::mouse::MouseButtonInput;
 use bevy::input::ButtonState;
 use bevy::prelude::*;
 use debug::debug;
-use farmer::farmer_go_to_bridge;
-use farmer::farmer_go_to_exit;
 use farmer::farmer_plugin;
 use farmer::kill_farmer_reaching_exit;
-use farmer::GoingToBridge;
+pub use follow_path::follow_paths;
 use nest::nest_plugin;
 use nest::nest_shoot;
 
@@ -27,7 +28,7 @@ use nest::nest_shoot;
 pub struct Quakka;
 
 #[derive(Component)]
-#[require(QuakkaTarget, LevelEntity, GoingToBridge, WalkAnim)]
+#[require(QuakkaTarget, LevelEntity, WalkAnim)]
 #[require(SpawnedCard(Card::Farmer))]
 pub struct Farmer;
 
@@ -81,13 +82,12 @@ pub fn card_behaviors(app: &mut App) {
         FixedUpdate,
         (
             (
-                farmer_go_to_bridge,
-                farmer_go_to_exit,
                 kill_farmer_reaching_exit,
                 tick_attacker_cooldowns,
                 quakka_chase_and_attack,
                 explode_waterballs,
                 nest_shoot,
+                follow_paths,
             )
                 .run_if(in_state(IsPaused::False)),
             spawn_card_on_click,
@@ -332,80 +332,153 @@ fn delete_dead_entities(
     }
 }
 
-mod farmer {
-    use super::{Farmer, Health};
-    use crate::{
-        card::CardConsts,
-        global::{BRIDGE_LOCATIONS, FARMER_EXIT_LOCATION},
+mod follow_path {
+    use bevy::{
+        ecs::{component::HookContext, world::DeferredWorld},
+        prelude::*,
     };
-    use bevy::prelude::*;
+    use pathfinding::prelude::astar;
 
-    #[derive(Component, Default)]
-    pub struct GoingToBridge;
+    use crate::global::{
+        get_entire_map_rect, get_left_river_rect, get_middle_river_rect, get_right_river_rect,
+    };
 
     #[derive(Component)]
-    pub struct Bridge;
+    #[require(Transform)]
+    #[component(on_add = generate_path)]
+    pub struct FollowPath {
+        goal: (i32, i32),
+        path: Vec<Vec2>,
+        current: usize,
+        speed: f32,
+    }
+
+    impl FollowPath {
+        pub fn new(goal: (i32, i32), speed: f32) -> Self {
+            FollowPath {
+                goal,
+                speed,
+                path: Vec::default(),
+                current: usize::default(),
+            }
+        }
+    }
+
+    pub fn follow_paths(path_followers: Query<(&mut Transform, &mut FollowPath)>, time: Res<Time>) {
+        for (mut transform, mut follow_path) in path_followers {
+            const TOLERANCE: f32 = 1.0;
+            let stop = follow_path.path[follow_path.current];
+
+            let mut to = stop - transform.translation.truncate();
+            to = to.normalize_or_zero();
+
+            transform.translation += (to * follow_path.speed * time.delta_secs()).extend(0.0);
+            if stop.distance(transform.translation.truncate()) < TOLERANCE
+                && follow_path.current < follow_path.path.len() - 1
+            {
+                follow_path.current += 1;
+            }
+        }
+    }
+
+    #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+    pub struct Pos(pub i32, pub i32);
+
+    const ASTAR_RESOLUTION: i32 = 30;
+    impl Pos {
+        fn distance(&self, other: &Pos) -> u32 {
+            let a = self.0 - other.0;
+            let b = self.1 - other.1;
+            ((a * a + b * b) as f32).sqrt() as u32
+        }
+
+        fn successors(&self) -> Vec<(Pos, u32)> {
+            let &Pos(x, y) = self;
+            vec![
+                Pos(x + ASTAR_RESOLUTION, y),
+                Pos(x - ASTAR_RESOLUTION, y),
+                Pos(x, y + ASTAR_RESOLUTION),
+                Pos(x, y - ASTAR_RESOLUTION),
+            ]
+            .into_iter()
+            .filter(reachable)
+            .map(|p| (p, 1))
+            .collect()
+        }
+    }
+
+    impl Into<Vec2> for Pos {
+        fn into(self) -> Vec2 {
+            Vec2::new(self.0 as f32, self.1 as f32)
+        }
+    }
+
+    impl From<(i32, i32)> for Pos {
+        fn from(item: (i32, i32)) -> Self {
+            Pos(item.0, item.1)
+        }
+    }
+
+    fn generate_path(mut world: DeferredWorld, context: HookContext) {
+        let start = world
+            .get::<Transform>(context.entity)
+            .unwrap()
+            .translation
+            .clone();
+
+        let mut follow_path = world.get_mut::<FollowPath>(context.entity).unwrap();
+
+        let goal = follow_path.goal;
+
+        let found_path = astar(
+            &Pos(start.x as i32, start.y as i32),
+            |p| p.successors(),
+            |p| p.distance(&goal.into()) / 3,
+            |p| p.distance(&goal.into()) <= ASTAR_RESOLUTION.try_into().unwrap(),
+        );
+
+        let Some((found_path, _)) = found_path else {
+            panic!("Tried to generate an impossible path to {:?}", goal);
+        };
+
+        debug_assert!(follow_path.path.is_empty());
+        for pos in found_path {
+            follow_path.path.push(pos.into());
+        }
+    }
+
+    fn reachable(pos: &Pos) -> bool {
+        let pos: Vec2 = Vec2::new(pos.0 as f32, pos.1 as f32);
+
+        get_entire_map_rect().contains(pos)
+            && !get_left_river_rect().contains(pos)
+            && !get_middle_river_rect().contains(pos)
+            && !get_right_river_rect().contains(pos)
+    }
+}
+
+mod farmer {
+    use crate::{card::CardConsts, global::FARMER_EXIT_LOCATION};
+
+    use super::{follow_path::FollowPath, Farmer, Health};
+    use bevy::prelude::*;
 
     #[derive(Component)]
     pub struct Exit;
 
     pub fn farmer_plugin(app: &mut App) {
-        app.add_systems(Startup, (spawn_bridge_locations, spawn_exit));
+        app.add_observer(farmers_go_to_exit);
     }
 
-    pub(crate) fn farmer_go_to_bridge(
-        mut farmers: Query<
-            (&mut Transform, Entity),
-            (With<Farmer>, With<GoingToBridge>, Without<Bridge>),
-        >,
-        bridges: Query<&Transform, (With<Bridge>, Without<Farmer>)>,
+    pub fn farmers_go_to_exit(
+        trigger: Trigger<OnAdd, Farmer>,
         mut commands: Commands,
-        time: Res<Time>,
-
         card_consts: Res<CardConsts>,
-    ) {
-        for farmer in farmers.iter_mut() {
-            let (mut farmer_transform, farmer_e) = farmer;
-            let farmer_translation = farmer_transform.translation;
-            let bridge = bridges.iter().max_by(|a, b| {
-                let a_distance = farmer_translation.distance(a.translation);
-                let b_distance = farmer_translation.distance(b.translation);
-                b_distance.partial_cmp(&a_distance).unwrap()
-            });
-
-            if bridge.is_none() {
-                warn!("No bridge found for farmer");
-                return;
-            }
-
-            let bridge = bridge.unwrap();
-
-            let mut difference = bridge.translation - farmer_translation;
-
-            difference = difference.normalize();
-
-            if farmer_translation.distance(bridge.translation) < 10.0 {
-                commands.entity(farmer_e).remove::<GoingToBridge>();
-            } else {
-                farmer_transform.translation +=
-                    (difference) * time.delta_secs() * card_consts.farmer.speed;
-            }
-        }
-    }
-
-    pub fn farmer_go_to_exit(
-        mut farmer_q: Query<&mut Transform, (With<Farmer>, Without<GoingToBridge>)>,
-        exit: Single<&Transform, (With<Exit>, Without<Farmer>)>,
-        time: Res<Time>,
-
-        card_consts: Res<CardConsts>,
-    ) {
-        for mut farmer in farmer_q.iter_mut() {
-            let mut delta = exit.translation - farmer.translation;
-            delta = delta.normalize_or_zero();
-
-            farmer.translation += delta * time.delta_secs() * card_consts.farmer.speed;
-        }
+    ) -> () {
+        commands.entity(trigger.target()).insert(FollowPath::new(
+            FARMER_EXIT_LOCATION,
+            card_consts.farmer.speed,
+        ));
     }
 
     pub fn kill_farmer_reaching_exit(
@@ -413,38 +486,10 @@ mod farmer {
         exit: Single<&Transform, (With<Exit>, Without<Farmer>)>,
     ) {
         for (mut farmer_health, farmer_transform) in farmer_q.iter_mut() {
-            if farmer_transform.translation.distance(exit.translation) < 10.0 {
+            if farmer_transform.translation.distance(exit.translation) < 1.0 {
                 farmer_health.current_health = 0.0;
             };
         }
-    }
-
-    fn spawn_bridge_locations(mut commands: Commands) {
-        commands.spawn((
-            Bridge,
-            Transform {
-                translation: BRIDGE_LOCATIONS.0.extend(0.0),
-                ..default()
-            },
-        ));
-
-        commands.spawn((
-            Bridge,
-            Transform {
-                translation: BRIDGE_LOCATIONS.1.extend(0.0),
-                ..default()
-            },
-        ));
-    }
-
-    fn spawn_exit(mut commands: Commands) {
-        commands.spawn((
-            Exit,
-            Transform {
-                translation: Vec2::from(FARMER_EXIT_LOCATION).extend(0.0),
-                ..default()
-            },
-        ));
     }
 }
 
@@ -465,14 +510,18 @@ fn spawn_card_on_click(
     };
 
     for ev in mousebtn_evr.read() {
-        if ev.state != ButtonState::Pressed {
+        if ev.state != ButtonState::Pressed || **is_pointer_over_ui || !in_bounds(**mouse_coords) {
             continue;
         }
 
-        if !is_pointer_over_ui.0 {
-            commands.queue(SpawnCard::new(selected_card, mouse_coords.0));
-            commands.queue(DeleteSelectedCard::default());
-        }
+        commands.queue(SpawnCard::new(selected_card, mouse_coords.0));
+        commands.queue(DeleteSelectedCard::default());
+    }
+
+    fn in_bounds(v: Vec2) -> bool {
+        !get_left_river_rect().contains(v)
+            && !get_middle_river_rect().contains(v)
+            && !get_right_river_rect().contains(v)
     }
 }
 
@@ -609,7 +658,7 @@ use super::SpawnCard;
 mod debug {
     use crate::{card::CardConsts, debug::in_debug};
 
-    use super::{farmer::Bridge, Nest};
+    use super::Nest;
     use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
 
     #[derive(Resource, PartialEq)]
@@ -624,20 +673,10 @@ mod debug {
     pub fn debug(app: &mut App) {
         app.add_systems(
             FixedUpdate,
-            (show_bridge_points, show_nest_attack_radius)
+            (show_nest_attack_radius)
                 .run_if(in_debug.and(resource_equals(IsSpawnedCardDebugOverlayEnabled(true)))),
         )
         .init_resource::<IsSpawnedCardDebugOverlayEnabled>();
-    }
-
-    fn show_bridge_points(mut draw: Gizmos, bridges: Query<&Transform, With<Bridge>>) {
-        for bridge in bridges {
-            draw.circle_2d(
-                Isometry2d::from_translation(bridge.translation.truncate()),
-                10.,
-                PINK_600,
-            );
-        }
     }
 
     fn show_nest_attack_radius(

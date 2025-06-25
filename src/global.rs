@@ -30,10 +30,10 @@ pub struct ImageHandles {
     pub arena_background: Handle<Image>,
 }
 
-#[derive(Resource, Default, Debug)]
+#[derive(Resource, Default, Debug, Deref, DerefMut)]
 pub struct CursorWorldCoords(pub Vec2);
 
-#[derive(Resource, Default, Debug)]
+#[derive(Resource, Default, Debug, Deref, DerefMut)]
 pub struct IsPointerOverUi(pub bool);
 
 pub const SCREEN_WIDTH: f32 = 1366.0;
@@ -42,13 +42,28 @@ pub const DECK_WIDTH: f32 = 0.1 * SCREEN_WIDTH;
 
 pub const NEST_POSITIONS: ((f32, f32), (f32, f32)) = ((-388., -312.), (173., -312.));
 
-pub const BRIDGE_LOCATIONS: (Vec2, Vec2) = (Vec2::new(-392.0, -4.0), Vec2::new(165.0, -8.0));
-pub const FARMER_EXIT_LOCATION: (f32, f32) = (-83., 420.);
+pub const FARMER_EXIT_LOCATION: (i32, i32) = (-83, 440);
 
 pub const HEALTHBAR_SIZE: (f32, f32) = (108., 12.);
 
 // LHS is image size
 pub const BTN_SIZE: (f32, f32) = (360. / 3.0, 160. / 3.0);
+
+pub fn get_left_river_rect() -> Rect {
+    Rect::from_corners((-683., 48.).into(), (-480., -50.).into())
+}
+
+pub fn get_middle_river_rect() -> Rect {
+    Rect::from_corners((-306., 41.).into(), (73., -52.).into())
+}
+
+pub fn get_right_river_rect() -> Rect {
+    Rect::from_corners((250., 42.).into(), (575., -45.).into())
+}
+
+pub fn get_entire_map_rect() -> Rect {
+    Rect::from_corners((-683., 480.).into(), (683., -384.).into()) // Slightly extended since exit is above the map
+}
 
 pub fn global(app: &mut App) {
     app.add_systems(AssetLoad, load_images)
