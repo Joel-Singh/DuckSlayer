@@ -24,12 +24,12 @@ use super::Card;
 use super::CardConsts;
 
 #[derive(Component)]
-#[require(LevelEntity, NestTarget, WaterballTarget)]
+#[require(LevelEntity, WaterballTarget)]
 #[require(SpawnedCard(Card::Quakka))]
 pub struct Quakka;
 
 #[derive(Component)]
-#[require(QuakkaTarget, LevelEntity, WalkAnim)]
+#[require(LevelEntity, WalkAnim)]
 #[require(SpawnedCard(Card::Farmer))]
 pub struct Farmer;
 
@@ -50,7 +50,7 @@ impl Waterball {
 }
 
 #[derive(Component)]
-#[require(QuakkaTarget, LevelEntity)]
+#[require(LevelEntity)]
 #[require(SpawnedCard(Card::Nest))]
 pub struct Nest;
 
@@ -59,12 +59,6 @@ pub struct SpawnedCard(Card);
 
 #[derive(Component, Default)]
 pub struct WaterballTarget;
-
-#[derive(Component, Default)]
-pub struct QuakkaTarget;
-
-#[derive(Component, Default)]
-pub struct NestTarget;
 
 #[derive(Component)]
 #[component(on_add = initialize_healthbar)]
