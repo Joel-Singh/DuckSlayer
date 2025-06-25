@@ -1,3 +1,5 @@
+LEFT OFF ON: Placing farmers on Water is crash because there is no valid path to exit.
+
 # QOL
 - Quakka immediately takes damage upon entering the range of a nest
 - Have a diagram showing the win/loss condition instead of just text
