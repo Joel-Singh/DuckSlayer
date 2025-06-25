@@ -10,7 +10,7 @@ use crate::global::{
 
 #[derive(Component)]
 #[require(Transform)]
-#[component(on_add = generate_path)]
+#[component(on_insert = generate_path)]
 pub struct FollowPath {
     goal: (i32, i32),
     path: Vec<Vec2>,
