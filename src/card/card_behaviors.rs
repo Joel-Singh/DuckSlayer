@@ -595,22 +595,23 @@ mod quakka {
                         commands.entity(quakka_e).insert(CancelWalkAnim);
                     }
                 } else {
-                    let mut generate_new_path = || {
-                        commands.entity(quakka_e).insert_if_new(WalkAnim::default());
-                        commands.entity(quakka_e).insert(FollowPath::new(
+                    let new_path_bundle = || {
+                        FollowPath::new(
                             (
                                 current_victim_translation.x as i32,
                                 current_victim_translation.y as i32,
                             ),
                             card_consts.quakka.speed,
-                        ));
+                        )
                     };
 
                     if follow_path.is_none() {
-                        generate_new_path();
+                        commands.entity(quakka_e).insert_if_new(WalkAnim::default());
+                        commands.entity(quakka_e).insert(new_path_bundle());
                     }
 
                     if let Some(follow_path) = follow_path {
+                        commands.entity(quakka_e).insert_if_new(WalkAnim::default());
                         let goal_dist_to_victim =
                             current_victim_translation.truncate().distance(Vec2::new(
                                 follow_path.get_goal().0 as f32,
@@ -618,7 +619,7 @@ mod quakka {
                             ));
 
                         if goal_dist_to_victim > REGENERATE_PATH_TOLERANCE {
-                            generate_new_path();
+                            commands.entity(quakka_e).insert(new_path_bundle());
                         }
                     }
                 }
