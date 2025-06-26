@@ -79,16 +79,34 @@ impl Pos {
     }
 
     fn successors(&self) -> Vec<(Pos, u32)> {
+        let straight_cost: u32 = 100;
+        let diagonal_cost: u32 = 141; // sqrt(2)
+
         let &Pos(x, y) = self;
         vec![
-            Pos(x + ASTAR_RESOLUTION, y),
-            Pos(x - ASTAR_RESOLUTION, y),
-            Pos(x, y + ASTAR_RESOLUTION),
-            Pos(x, y - ASTAR_RESOLUTION),
+            (Pos(x + ASTAR_RESOLUTION, y), straight_cost),
+            (Pos(x - ASTAR_RESOLUTION, y), straight_cost),
+            (Pos(x, y + ASTAR_RESOLUTION), straight_cost),
+            (Pos(x, y - ASTAR_RESOLUTION), straight_cost),
+            (
+                Pos(x + ASTAR_RESOLUTION, y + ASTAR_RESOLUTION),
+                diagonal_cost,
+            ),
+            (
+                Pos(x + ASTAR_RESOLUTION, y - ASTAR_RESOLUTION),
+                diagonal_cost,
+            ),
+            (
+                Pos(x - ASTAR_RESOLUTION, y + ASTAR_RESOLUTION),
+                diagonal_cost,
+            ),
+            (
+                Pos(x - ASTAR_RESOLUTION, y - ASTAR_RESOLUTION),
+                diagonal_cost,
+            ),
         ]
         .into_iter()
-        .filter(reachable)
-        .map(|p| (p, 1))
+        .filter(|(p, _)| reachable(p))
         .collect()
     }
 }
