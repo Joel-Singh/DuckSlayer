@@ -17,6 +17,7 @@ pub fn card_constants(app: &mut App) {
 pub struct WaterballConsts {
     pub radius: f32,
     pub damage: f32,
+    pub explosion_delay: f32,
 }
 
 impl Default for WaterballConsts {
@@ -25,6 +26,7 @@ impl Default for WaterballConsts {
         WaterballConsts {
             radius: RADIUS,
             damage: 90.,
+            explosion_delay: 0.1,
         }
     }
 }

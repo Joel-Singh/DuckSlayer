@@ -38,10 +38,10 @@ pub struct Waterball {
 }
 
 impl Waterball {
-    pub fn new(radius: f32) -> Waterball {
+    pub fn new(radius: f32, explosion_delay: f32) -> Waterball {
         Waterball {
             radius,
-            timer: Timer::new(Duration::from_secs_f32(0.5), TimerMode::Once),
+            timer: Timer::new(Duration::from_secs_f32(explosion_delay), TimerMode::Once),
         }
     }
 }

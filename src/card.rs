@@ -157,7 +157,10 @@ fn waterball_bundle(
 ) -> impl Bundle {
     (
         Card::Waterball.get_sprite(asset_server, card_consts),
-        Waterball::new(card_consts.waterball.radius),
+        Waterball::new(
+            card_consts.waterball.radius,
+            card_consts.waterball.explosion_delay,
+        ),
         Transform {
             translation: position.extend(0.0),
             ..default()
