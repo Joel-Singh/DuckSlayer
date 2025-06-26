@@ -226,22 +226,37 @@ mod attacker {
         range: f32,
         cooldown: Timer,
         prey: Vec<Card>,
-        current_victim: Option<Entity>,
-        current_victim_in_range: bool,
-        current_victim_in_range_fraction: Option<f32>, // from 0. to 1.
+        current_victim: Option<CurrentVictim>,
+    }
+
+    struct CurrentVictim {
+        entity: Entity,
+        in_range_fraction: Option<f32>, // 0.0 is closest, 1.0 is farthest
     }
 
     impl Attacker {
         pub fn current_victim(&self) -> Option<Entity> {
-            self.current_victim
+            match &self.current_victim {
+                None => None,
+                Some(current_victim) => Some(current_victim.entity),
+            }
         }
 
         pub fn current_victim_in_range(&self) -> bool {
-            self.current_victim_in_range
+            match &self.current_victim {
+                None => false,
+                Some(current_victim) => match current_victim.in_range_fraction {
+                    None => false,
+                    Some(_) => true,
+                },
+            }
         }
 
         pub fn current_victim_in_range_fraction(&self) -> Option<f32> {
-            self.current_victim_in_range_fraction
+            match &self.current_victim {
+                None => None,
+                Some(current_victim) => current_victim.in_range_fraction,
+            }
         }
 
         pub fn cooldown_fraction(&self) -> f32 {
@@ -260,8 +275,6 @@ mod attacker {
                 prey,
                 cooldown: Timer::new(attack_cooldown, TimerMode::Once),
                 current_victim: None,
-                current_victim_in_range: false,
-                current_victim_in_range_fraction: None, // 1.0 is farthest, 0.5 is closest
             }
         }
     }
@@ -289,32 +302,35 @@ mod attacker {
                     a_dist.partial_cmp(&b_dist).unwrap()
                 });
 
-            let Some(mut closest_target) = closest_target else {
-                attacker.current_victim = None;
-                attacker.current_victim_in_range = false;
-                attacker.current_victim_in_range_fraction = None;
-                attacker.cooldown.reset();
-                return;
-            };
-            attacker.current_victim = Some(closest_target.0);
+            if let Some(mut closest_target) = closest_target {
+                let mut current_victim = CurrentVictim {
+                    entity: closest_target.0,
+                    in_range_fraction: None,
+                };
 
-            let closest_target_translation = transform_q.get(closest_target.0).unwrap().translation;
-            let dist_to_target = attacker_translation.distance(closest_target_translation);
-            let in_attack_dist = dist_to_target < attacker.range;
+                let closest_target_translation =
+                    transform_q.get(closest_target.0).unwrap().translation;
+                let dist_to_target = attacker_translation.distance(closest_target_translation);
 
-            if in_attack_dist {
-                attacker.cooldown.tick(time.delta());
-                attacker.current_victim_in_range = true;
-                attacker.current_victim_in_range_fraction = Some(dist_to_target / attacker.range);
-                if attacker.cooldown.finished() {
-                    closest_target.1.current_health -= attacker.damage;
+                let in_attack_dist = dist_to_target < attacker.range;
+                if in_attack_dist {
+                    attacker.cooldown.tick(time.delta());
+
+                    current_victim.in_range_fraction = Some(dist_to_target / attacker.range);
+
+                    if attacker.cooldown.finished() {
+                        closest_target.1.current_health -= attacker.damage;
+                        attacker.cooldown.reset();
+                    }
+                } else {
                     attacker.cooldown.reset();
                 }
+
+                attacker.current_victim = Some(current_victim);
             } else {
                 attacker.cooldown.reset();
-                attacker.current_victim_in_range = false;
-                attacker.current_victim_in_range_fraction = None;
-            }
+                attacker.current_victim = None;
+            };
         }
     }
 
@@ -509,7 +525,7 @@ mod nest {
 
 mod quakka {
     use crate::{
-        card::{card_behaviors::attacker, Card, CardConsts},
+        card::{Card, CardConsts},
         global::GameState,
         manage_level::{IsPaused, LevelEntity},
     };
