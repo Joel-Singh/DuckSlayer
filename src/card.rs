@@ -54,6 +54,13 @@ impl Card {
             ..default()
         }
     }
+
+    pub fn is_placeable_over_water(&self) -> bool {
+        match self {
+            Card::Waterball => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Component, Clone, Copy, Serialize, Deserialize, Deref, DerefMut)]

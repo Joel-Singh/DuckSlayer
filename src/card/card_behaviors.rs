@@ -228,6 +228,7 @@ mod attacker {
         prey: Vec<Card>,
         current_victim: Option<Entity>,
         current_victim_in_range: bool,
+        current_victim_in_range_fraction: Option<f32>, // from 0. to 1.
     }
 
     impl Attacker {
@@ -237,6 +238,10 @@ mod attacker {
 
         pub fn current_victim_in_range(&self) -> bool {
             self.current_victim_in_range
+        }
+
+        pub fn current_victim_in_range_fraction(&self) -> Option<f32> {
+            self.current_victim_in_range_fraction
         }
 
         pub fn cooldown_fraction(&self) -> f32 {
@@ -256,6 +261,7 @@ mod attacker {
                 cooldown: Timer::new(attack_cooldown, TimerMode::Once),
                 current_victim: None,
                 current_victim_in_range: false,
+                current_victim_in_range_fraction: None, // 1.0 is farthest, 0.5 is closest
             }
         }
     }
@@ -286,6 +292,7 @@ mod attacker {
             let Some(mut closest_target) = closest_target else {
                 attacker.current_victim = None;
                 attacker.current_victim_in_range = false;
+                attacker.current_victim_in_range_fraction = None;
                 attacker.cooldown.reset();
                 return;
             };
@@ -298,6 +305,7 @@ mod attacker {
             if in_attack_dist {
                 attacker.cooldown.tick(time.delta());
                 attacker.current_victim_in_range = true;
+                attacker.current_victim_in_range_fraction = Some(dist_to_target / attacker.range);
                 if attacker.cooldown.finished() {
                     closest_target.1.current_health -= attacker.damage;
                     attacker.cooldown.reset();
@@ -305,6 +313,7 @@ mod attacker {
             } else {
                 attacker.cooldown.reset();
                 attacker.current_victim_in_range = false;
+                attacker.current_victim_in_range_fraction = None;
             }
         }
     }
@@ -500,7 +509,7 @@ mod nest {
 
 mod quakka {
     use crate::{
-        card::{Card, CardConsts},
+        card::{card_behaviors::attacker, Card, CardConsts},
         global::GameState,
         manage_level::{IsPaused, LevelEntity},
     };
@@ -533,6 +542,13 @@ mod quakka {
             if attacker.current_victim().is_none() {
                 commands.entity(quakka_e).try_remove::<FollowPath>();
                 continue;
+            }
+
+            if let Some(range_fraction) = attacker.current_victim_in_range_fraction() {
+                if range_fraction >= 0.5 {
+                    commands.entity(quakka_e).try_remove::<FollowPath>();
+                    continue;
+                }
             }
 
             if let Some(current_victim) = attacker.current_victim() {

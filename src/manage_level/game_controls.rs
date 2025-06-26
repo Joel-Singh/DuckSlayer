@@ -138,7 +138,10 @@ fn spawn_card_on_click(
     };
 
     for ev in mousebtn_evr.read() {
-        if ev.state != ButtonState::Pressed || **is_pointer_over_ui || !in_bounds(**mouse_coords) {
+        if ev.state != ButtonState::Pressed
+            || **is_pointer_over_ui
+            || (!selected_card.is_placeable_over_water() && !in_bounds(**mouse_coords))
+        {
             continue;
         }
 
