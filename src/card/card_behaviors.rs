@@ -561,7 +561,7 @@ mod quakka {
             }
 
             if let Some(range_fraction) = attacker.current_victim_in_range_fraction() {
-                if range_fraction >= 0.5 {
+                if range_fraction <= 0.8 {
                     commands.entity(quakka_e).try_remove::<FollowPath>();
                     continue;
                 }
