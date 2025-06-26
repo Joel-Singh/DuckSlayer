@@ -5,7 +5,7 @@ use bevy::{
 
 use crate::global::CursorWorldCoords;
 
-fn get_debug_env_var() -> bool {
+pub fn get_debug_env_var() -> bool {
     if let Ok(duckslayer_debug) = std::env::var("DUCKSLAYER_DEBUG") {
         duckslayer_debug == "true"
     } else {

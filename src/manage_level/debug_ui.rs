@@ -6,7 +6,7 @@ use bevy_egui::{
 use strum::IntoEnumIterator;
 
 use crate::{
-    card::{Card, IsSpawnedCardDebugOverlayEnabled},
+    card::Card,
     debug::in_debug,
     deckbar::PushToDeckbar,
     global::{
@@ -39,15 +39,6 @@ fn create_debug_window(
 ) {
     egui::Window::new("DEBUG UI").show(contexts.ctx_mut(), |ui| {
         create_push_to_deckbar_btns(ui, &mut commands);
-        if ui.button("Toggle Spawned Card Debug Overlay").clicked() {
-            commands.queue(move |world: &mut World| {
-                let mut is_overlay_enabled = world
-                    .get_resource_mut::<IsSpawnedCardDebugOverlayEnabled>()
-                    .unwrap();
-
-                is_overlay_enabled.0 = !is_overlay_enabled.0;
-            })
-        }
 
         ui.heading("Resources");
         ui.label("Gameover: ".to_string() + &format!("{level_progress:?}"));

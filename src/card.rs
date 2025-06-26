@@ -5,9 +5,7 @@ use bevy::prelude::*;
 
 use card_behaviors::{Attacker, Health};
 
-pub use card_behaviors::{
-    CardDeath, Farmer, IsSpawnedCardDebugOverlayEnabled, Nest, Quakka, SpawnedCard, Waterball,
-};
+pub use card_behaviors::{CardDeath, Farmer, Nest, Quakka, SpawnedCard, Waterball};
 pub use card_constants::CardConsts;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -120,7 +118,7 @@ fn quakka_bundle(
             card_consts.quakka.damage,
             card_consts.quakka.range,
             vec![Card::Nest, Card::Farmer],
-            Duration::from_secs(1),
+            Duration::from_secs_f32(card_consts.quakka.hit_cooldown),
         ),
     )
 }

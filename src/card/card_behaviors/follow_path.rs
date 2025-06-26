@@ -1,11 +1,17 @@
 use bevy::{
+    color::palettes::css::YELLOW,
     ecs::{component::HookContext, world::DeferredWorld},
     prelude::*,
 };
 use pathfinding::prelude::astar;
 
-use crate::global::{
-    get_entire_map_rect, get_left_river_rect, get_middle_river_rect, get_right_river_rect,
+use crate::{
+    debug::get_debug_env_var,
+    global::{
+        get_entire_map_rect, get_left_river_rect, get_middle_river_rect, get_right_river_rect,
+        GameState,
+    },
+    manage_level::IsPaused,
 };
 
 #[derive(Component)]
@@ -18,6 +24,17 @@ pub struct FollowPath {
     speed: f32,
 }
 
+pub fn follow_path_plugin(app: &mut App) {
+    app.add_systems(
+        FixedUpdate,
+        follow_paths.run_if(in_state(GameState::InGame).and(in_state(IsPaused::False))),
+    );
+
+    if get_debug_env_var() {
+        app.add_systems(FixedUpdate, display_paths);
+    }
+}
+
 impl FollowPath {
     pub fn new(goal: (i32, i32), speed: f32) -> Self {
         FollowPath {
@@ -27,6 +44,10 @@ impl FollowPath {
             current: usize::default(),
         }
     }
+
+    pub fn get_goal(&self) -> (i32, i32) {
+        self.goal
+    }
 }
 
 pub fn follow_paths(path_followers: Query<(&mut Transform, &mut FollowPath)>, time: Res<Time>) {
@@ -34,14 +55,14 @@ pub fn follow_paths(path_followers: Query<(&mut Transform, &mut FollowPath)>, ti
         const TOLERANCE: f32 = 1.0;
         let stop = follow_path.path[follow_path.current];
 
-        let mut to = stop - transform.translation.truncate();
-        to = to.normalize_or_zero();
-
-        transform.translation += (to * follow_path.speed * time.delta_secs()).extend(0.0);
         if stop.distance(transform.translation.truncate()) < TOLERANCE
             && follow_path.current < follow_path.path.len() - 1
         {
             follow_path.current += 1;
+        } else if stop.distance(transform.translation.truncate()) >= TOLERANCE {
+            let mut to = stop - transform.translation.truncate();
+            to = to.normalize_or_zero();
+            transform.translation += (to * follow_path.speed * time.delta_secs()).extend(0.0);
         }
     }
 }
@@ -49,7 +70,7 @@ pub fn follow_paths(path_followers: Query<(&mut Transform, &mut FollowPath)>, ti
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Pos(pub i32, pub i32);
 
-const ASTAR_RESOLUTION: i32 = 30;
+const ASTAR_RESOLUTION: i32 = 15;
 impl Pos {
     fn distance(&self, other: &Pos) -> u32 {
         let a = self.0 - other.0;
@@ -109,6 +130,14 @@ fn generate_path(mut world: DeferredWorld, context: HookContext) {
     debug_assert!(follow_path.path.is_empty());
     for pos in found_path {
         follow_path.path.push(pos.into());
+    }
+}
+
+fn display_paths(paths: Query<&FollowPath>, mut draw: Gizmos) {
+    for path in paths {
+        for point in path.path.clone() {
+            draw.circle_2d(Isometry2d::from_translation(point), 1.0, YELLOW);
+        }
     }
 }
 

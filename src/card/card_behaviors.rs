@@ -5,28 +5,25 @@ use std::time::Duration;
 use crate::global::GameState;
 use crate::global::HEALTHBAR_SIZE;
 use crate::manage_level::IsPaused;
-use crate::manage_level::LevelEntity;
+use crate::{card::Card, manage_level::LevelEntity};
 use attacker::attacker_plugin;
 pub use attacker::Attacker;
 use bevy::ecs::component::HookContext;
 use bevy::ecs::world::DeferredWorld;
 use bevy::prelude::*;
-use debug::debug;
-pub use debug::IsSpawnedCardDebugOverlayEnabled;
 use farmer::farmer_plugin;
 use farmer::kill_farmer_reaching_exit;
-pub use follow_path::follow_paths;
+use follow_path::follow_path_plugin;
 use nest::nest_plugin;
+use quakka::quakka_plugin;
+pub use quakka::Quakka;
 use walk_animation::walk_animation_plugin;
 use walk_animation::WalkAnim;
 
-use super::Card;
 use super::CardConsts;
 
-#[derive(Component)]
-#[require(LevelEntity, WaterballTarget)]
-#[require(SpawnedCard(Card::Quakka))]
-pub struct Quakka;
+#[derive(Component, DerefMut, Deref)]
+pub struct SpawnedCard(Card);
 
 #[derive(Component)]
 #[require(LevelEntity, WalkAnim)]
@@ -54,9 +51,6 @@ impl Waterball {
 #[require(SpawnedCard(Card::Nest))]
 pub struct Nest;
 
-#[derive(Component, DerefMut, Deref)]
-pub struct SpawnedCard(Card);
-
 #[derive(Component, Default)]
 pub struct WaterballTarget;
 
@@ -83,7 +77,6 @@ pub fn card_behaviors(app: &mut App) {
                 kill_farmer_reaching_exit,
                 explode_waterballs,
                 tick_waterball_timers,
-                follow_paths,
             )
                 .run_if(in_state(IsPaused::False)),
             delete_dead_entities,
@@ -95,8 +88,9 @@ pub fn card_behaviors(app: &mut App) {
     .add_plugins(nest_plugin)
     .add_plugins(farmer_plugin)
     .add_plugins(attacker_plugin)
+    .add_plugins(quakka_plugin)
     .add_plugins(walk_animation_plugin)
-    .add_plugins(debug);
+    .add_plugins(follow_path_plugin);
 }
 
 fn initialize_healthbar(mut world: DeferredWorld, context: HookContext) {
@@ -209,7 +203,7 @@ fn delete_dead_entities(
 mod attacker {
     use std::time::Duration;
 
-    use bevy::prelude::*;
+    use bevy::{color::palettes::css::RED, prelude::*};
 
     use crate::{card::Card, global::GameState, manage_level::IsPaused};
 
@@ -220,6 +214,10 @@ mod attacker {
             FixedUpdate,
             attackers_attack.run_if(in_state(GameState::InGame).and(in_state(IsPaused::False))),
         );
+
+        if crate::debug::get_debug_env_var() {
+            app.add_systems(FixedUpdate, display_range);
+        }
     }
 
     #[derive(Component)]
@@ -308,6 +306,16 @@ mod attacker {
                 attacker.cooldown.reset();
                 attacker.current_victim_in_range = false;
             }
+        }
+    }
+
+    fn display_range(attackers: Query<(&Transform, &mut Attacker)>, mut draw: Gizmos) {
+        for (transform, attacker) in attackers {
+            draw.circle_2d(
+                Isometry2d::from_translation(transform.translation.truncate()),
+                attacker.range,
+                RED,
+            );
         }
     }
 }
@@ -490,41 +498,76 @@ mod nest {
     }
 }
 
-mod debug {
-    use crate::{card::CardConsts, debug::in_debug};
+mod quakka {
+    use crate::{
+        card::{Card, CardConsts},
+        global::GameState,
+        manage_level::{IsPaused, LevelEntity},
+    };
+    use bevy::prelude::*;
 
-    use super::Nest;
-    use bevy::{color::palettes::tailwind::PINK_600, prelude::*};
+    use super::{follow_path::FollowPath, Attacker, SpawnedCard, WaterballTarget};
 
-    #[derive(Resource, PartialEq)]
-    pub struct IsSpawnedCardDebugOverlayEnabled(pub bool);
+    #[derive(Component)]
+    #[require(LevelEntity, WaterballTarget)]
+    #[require(SpawnedCard(Card::Quakka))]
+    pub struct Quakka;
 
-    impl Default for IsSpawnedCardDebugOverlayEnabled {
-        fn default() -> Self {
-            IsSpawnedCardDebugOverlayEnabled(false)
-        }
-    }
-
-    pub fn debug(app: &mut App) {
+    pub fn quakka_plugin(app: &mut App) {
         app.add_systems(
             FixedUpdate,
-            (show_nest_attack_radius)
-                .run_if(in_debug.and(resource_equals(IsSpawnedCardDebugOverlayEnabled(true)))),
-        )
-        .init_resource::<IsSpawnedCardDebugOverlayEnabled>();
+            chase_current_victim.run_if(in_state(GameState::InGame).and(in_state(IsPaused::False))),
+        );
     }
 
-    fn show_nest_attack_radius(
-        mut draw: Gizmos,
-        nests: Query<&Transform, With<Nest>>,
+    fn chase_current_victim(
+        quakkas: Query<(Entity, &Attacker, Option<&FollowPath>), With<Quakka>>,
+        transform_q: Query<&Transform>,
+        mut commands: Commands,
+
         card_consts: Res<CardConsts>,
     ) {
-        for nest in nests {
-            draw.circle_2d(
-                Isometry2d::from_translation(nest.translation.truncate()),
-                card_consts.nest.range,
-                PINK_600,
-            );
+        const REGENERATE_PATH_TOLERANCE: f32 = 30.0;
+
+        for (quakka_e, attacker, follow_path) in quakkas {
+            if attacker.current_victim().is_none() {
+                commands.entity(quakka_e).try_remove::<FollowPath>();
+                continue;
+            }
+
+            if let Some(current_victim) = attacker.current_victim() {
+                let Ok(current_victim_transform) = transform_q.get(current_victim) else {
+                    return;
+                };
+
+                let mut generate_new_path = || {
+                    commands.entity(quakka_e).insert(FollowPath::new(
+                        (
+                            current_victim_transform.translation.x as i32,
+                            current_victim_transform.translation.y as i32,
+                        ),
+                        card_consts.quakka.speed,
+                    ));
+                };
+
+                if let Some(follow_path) = follow_path {
+                    let goal_dist_to_victim = current_victim_transform
+                        .translation
+                        .truncate()
+                        .distance(Vec2::new(
+                            follow_path.get_goal().0 as f32,
+                            follow_path.get_goal().1 as f32,
+                        ));
+
+                    if goal_dist_to_victim > REGENERATE_PATH_TOLERANCE {
+                        generate_new_path()
+                    }
+                } else {
+                    generate_new_path()
+                }
+            } else {
+                commands.entity(quakka_e).try_remove::<FollowPath>();
+            }
         }
     }
 }
