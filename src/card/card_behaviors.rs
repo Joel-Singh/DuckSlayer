@@ -79,11 +79,11 @@ pub fn card_behaviors(app: &mut App) {
                 tick_waterball_timers,
             )
                 .run_if(in_state(IsPaused::False)),
-            delete_dead_entities,
             update_healthbars,
         )
             .run_if(in_state(GameState::InGame)),
     )
+    .add_systems(FixedPreUpdate, delete_dead_entities)
     .add_event::<CardDeath>()
     .add_plugins(nest_plugin)
     .add_plugins(farmer_plugin)
@@ -188,12 +188,21 @@ fn explode_waterballs(
 
 fn delete_dead_entities(
     healths: Query<(&Health, Entity)>,
-    mut commands: Commands,
+    mut attackers: Query<&mut Attacker>,
     spawned_card_q: Query<&SpawnedCard>,
     mut card_destroyed_ev: EventWriter<CardDeath>,
+    mut commands: Commands,
 ) {
     for (health, e) in healths.iter() {
         if health.current_health <= 0.0 {
+            let attacker_with_victim_e = attackers
+                .iter_mut()
+                .find(|att| att.current_victim().is_some_and(|v| v == e));
+
+            if let Some(mut attacker) = attacker_with_victim_e {
+                attacker.clear_current_victim();
+            }
+
             commands.entity(e).despawn();
             card_destroyed_ev.write(CardDeath(**spawned_card_q.get(e).unwrap()));
         }
@@ -240,6 +249,10 @@ mod attacker {
                 None => None,
                 Some(current_victim) => Some(current_victim.entity),
             }
+        }
+
+        pub fn clear_current_victim(&mut self) -> () {
+            self.current_victim = None;
         }
 
         pub fn current_victim_in_range(&self) -> bool {
@@ -531,7 +544,11 @@ mod quakka {
     };
     use bevy::prelude::*;
 
-    use super::{follow_path::FollowPath, Attacker, SpawnedCard, WaterballTarget};
+    use super::{
+        follow_path::FollowPath,
+        walk_animation::{CancelWalkAnim, WalkAnim},
+        Attacker, SpawnedCard, WaterballTarget,
+    };
 
     #[derive(Component)]
     #[require(LevelEntity, WaterballTarget)]
@@ -546,58 +563,67 @@ mod quakka {
     }
 
     fn chase_current_victim(
-        quakkas: Query<(Entity, &Attacker, Option<&FollowPath>), With<Quakka>>,
-        transform_q: Query<&Transform>,
+        quakkas: Query<(Entity, &Attacker, Option<&FollowPath>, &mut Transform), With<Quakka>>,
+        transform_q: Query<&Transform, Without<Quakka>>,
+        spawned_card_q: Query<&SpawnedCard>,
         mut commands: Commands,
 
         card_consts: Res<CardConsts>,
+        time: Res<Time>,
     ) {
         const REGENERATE_PATH_TOLERANCE: f32 = 30.0;
 
-        for (quakka_e, attacker, follow_path) in quakkas {
-            if attacker.current_victim().is_none() {
-                commands.entity(quakka_e).try_remove::<FollowPath>();
-                continue;
-            }
-
-            if let Some(range_fraction) = attacker.current_victim_in_range_fraction() {
-                if range_fraction <= 0.8 {
-                    commands.entity(quakka_e).try_remove::<FollowPath>();
-                    continue;
-                }
-            }
-
+        for (quakka_e, attacker, follow_path, mut quakka_transform) in quakkas {
             if let Some(current_victim) = attacker.current_victim() {
-                let Ok(current_victim_transform) = transform_q.get(current_victim) else {
-                    return;
-                };
+                let current_victim_translation =
+                    transform_q.get(current_victim).unwrap().translation;
 
-                let mut generate_new_path = || {
-                    commands.entity(quakka_e).insert(FollowPath::new(
-                        (
-                            current_victim_transform.translation.x as i32,
-                            current_victim_transform.translation.y as i32,
-                        ),
-                        card_consts.quakka.speed,
-                    ));
-                };
+                if let Some(range_fraction) = attacker.current_victim_in_range_fraction() {
+                    let victim_card = **spawned_card_q.get(current_victim).unwrap();
+                    commands.entity(quakka_e).try_remove::<FollowPath>();
 
-                if let Some(follow_path) = follow_path {
-                    let goal_dist_to_victim = current_victim_transform
-                        .translation
-                        .truncate()
-                        .distance(Vec2::new(
-                            follow_path.get_goal().0 as f32,
-                            follow_path.get_goal().1 as f32,
-                        ));
+                    if victim_card == Card::Farmer {
+                        commands.entity(quakka_e).insert_if_new(WalkAnim::default());
 
-                    if goal_dist_to_victim > REGENERATE_PATH_TOLERANCE {
-                        generate_new_path()
+                        let to = (current_victim_translation - quakka_transform.translation)
+                            .normalize_or_zero();
+
+                        quakka_transform.translation += to
+                            * (card_consts.farmer.speed * range_fraction + 0.2)
+                            * time.delta_secs();
+                    } else {
+                        commands.entity(quakka_e).insert(CancelWalkAnim);
                     }
                 } else {
-                    generate_new_path()
+                    let mut generate_new_path = || {
+                        commands.entity(quakka_e).insert_if_new(WalkAnim::default());
+                        commands.entity(quakka_e).insert(FollowPath::new(
+                            (
+                                current_victim_translation.x as i32,
+                                current_victim_translation.y as i32,
+                            ),
+                            card_consts.quakka.speed,
+                        ));
+                    };
+
+                    if follow_path.is_none() {
+                        generate_new_path();
+                    }
+
+                    if let Some(follow_path) = follow_path {
+                        let goal_dist_to_victim =
+                            current_victim_translation.truncate().distance(Vec2::new(
+                                follow_path.get_goal().0 as f32,
+                                follow_path.get_goal().1 as f32,
+                            ));
+
+                        if goal_dist_to_victim > REGENERATE_PATH_TOLERANCE {
+                            generate_new_path();
+                        }
+                    }
                 }
             } else {
+                commands.entity(quakka_e).insert_if_new(CancelWalkAnim);
                 commands.entity(quakka_e).try_remove::<FollowPath>();
             }
         }

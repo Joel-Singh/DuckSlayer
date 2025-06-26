@@ -75,7 +75,7 @@ impl Default for QuakkaConsts {
             damage: 60.0,
             hit_cooldown: 1.0,
             range: 60.0,
-            speed: 75.0,
+            speed: 80.0,
         }
     }
 }
