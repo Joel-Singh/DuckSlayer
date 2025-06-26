@@ -1,12 +1,11 @@
 mod follow_path;
 
-use std::time::Duration;
-
 use crate::global::GameState;
 use crate::global::HEALTHBAR_SIZE;
 use crate::manage_level::IsPaused;
 use crate::{card::Card, manage_level::LevelEntity};
 use attacker::attacker_plugin;
+pub use attacker::cleanup_attackers_victim;
 pub use attacker::Attacker;
 use bevy::ecs::component::HookContext;
 use bevy::ecs::world::DeferredWorld;
@@ -17,6 +16,7 @@ use follow_path::follow_path_plugin;
 use nest::nest_plugin;
 use quakka::quakka_plugin;
 pub use quakka::Quakka;
+use std::time::Duration;
 use walk_animation::walk_animation_plugin;
 use walk_animation::WalkAnim;
 
@@ -188,21 +188,12 @@ fn explode_waterballs(
 
 fn delete_dead_entities(
     healths: Query<(&Health, Entity)>,
-    mut attackers: Query<&mut Attacker>,
     spawned_card_q: Query<&SpawnedCard>,
     mut card_destroyed_ev: EventWriter<CardDeath>,
     mut commands: Commands,
 ) {
     for (health, e) in healths.iter() {
         if health.current_health <= 0.0 {
-            let attacker_with_victim_e = attackers
-                .iter_mut()
-                .find(|att| att.current_victim().is_some_and(|v| v == e));
-
-            if let Some(mut attacker) = attacker_with_victim_e {
-                attacker.clear_current_victim();
-            }
-
             commands.entity(e).despawn();
             card_destroyed_ev.write(CardDeath(**spawned_card_q.get(e).unwrap()));
         }
@@ -249,10 +240,6 @@ mod attacker {
                 None => None,
                 Some(current_victim) => Some(current_victim.entity),
             }
-        }
-
-        pub fn clear_current_victim(&mut self) -> () {
-            self.current_victim = None;
         }
 
         pub fn current_victim_in_range(&self) -> bool {
@@ -354,6 +341,20 @@ mod attacker {
                 attacker.range,
                 RED,
             );
+        }
+    }
+
+    pub fn cleanup_attackers_victim(
+        trigger: Trigger<OnRemove, SpawnedCard>,
+        mut attackers: Query<&mut Attacker>,
+    ) {
+        let e = trigger.target();
+        let attackers_for_e = attackers
+            .iter_mut()
+            .filter(|a| a.current_victim().is_some_and(|v| v == e));
+
+        for mut attacker in attackers_for_e {
+            attacker.current_victim = None;
         }
     }
 }

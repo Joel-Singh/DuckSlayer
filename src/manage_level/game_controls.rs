@@ -31,7 +31,7 @@ pub fn game_controls_plugin(app: &mut App) {
         ),
     )
     .add_systems(
-        FixedUpdate,
+        FixedPreUpdate,
         (
             (
                 unpause

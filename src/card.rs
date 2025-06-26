@@ -3,7 +3,7 @@ mod card_constants;
 
 use bevy::prelude::*;
 
-use card_behaviors::{Attacker, Health};
+use card_behaviors::{cleanup_attackers_victim, Attacker, Health};
 
 pub use card_behaviors::{CardDeath, Farmer, Nest, Quakka, SpawnedCard, Waterball};
 pub use card_constants::CardConsts;
@@ -87,20 +87,16 @@ impl Command for SpawnCard {
         let asset_server = world.resource::<AssetServer>();
         let card_consts = world.resource::<CardConsts>();
 
-        match self.card {
-            Card::Farmer => {
-                world.spawn(farmer_bundle(self.position, asset_server, card_consts));
-            }
-            Card::Quakka => {
-                world.spawn(quakka_bundle(self.position, asset_server, card_consts));
-            }
+        let mut spawned_card = match self.card {
+            Card::Farmer => world.spawn(farmer_bundle(self.position, asset_server, card_consts)),
+            Card::Quakka => world.spawn(quakka_bundle(self.position, asset_server, card_consts)),
             Card::Waterball => {
-                world.spawn(waterball_bundle(self.position, asset_server, card_consts));
+                world.spawn(waterball_bundle(self.position, asset_server, card_consts))
             }
-            Card::Nest => {
-                world.spawn(nest_bundle(self.position, asset_server, card_consts));
-            }
-        }
+            Card::Nest => world.spawn(nest_bundle(self.position, asset_server, card_consts)),
+        };
+
+        spawned_card.observe(cleanup_attackers_victim);
     }
 }
 
