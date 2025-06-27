@@ -49,6 +49,7 @@ pub fn game_controls_plugin(app: &mut App) {
             (
                 (
                     spawn_entities_from_level_memory,
+                    delete_level_entities_on_click,
                     pause,
                     reset_level_progress,
                     set_message(CONTROLS_EDITOR_MESSAGE),
@@ -57,7 +58,6 @@ pub fn game_controls_plugin(app: &mut App) {
                     .run_if(input_just_pressed(KeyCode::KeyZ)),
                 save_level_to_memory.run_if(input_just_pressed(KeyCode::KeyX)),
                 toggle_pause.run_if(input_just_pressed(KeyCode::Space)),
-                delete_level_entities_on_click,
             )
                 .run_if(in_editor),
             (
