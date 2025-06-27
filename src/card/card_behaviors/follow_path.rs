@@ -1,4 +1,3 @@
-
 use bevy::{
     color::palettes::css::YELLOW,
     ecs::{component::HookContext, world::DeferredWorld},
@@ -125,13 +124,16 @@ fn generate_path(mut world: DeferredWorld, context: HookContext) {
         |p| p.distance(&goal.into()) <= ASTAR_RESOLUTION.try_into().unwrap(),
     );
 
-    let Some((found_path, _)) = found_path else {
-        panic!("Tried to generate an impossible path to {:?}", goal);
-    };
-
-    debug_assert!(follow_path.path.is_empty());
-    for pos in found_path {
-        follow_path.path.push(pos.into());
+    if let Some((found_path, _)) = found_path {
+        debug_assert!(follow_path.path.is_empty());
+        for pos in found_path {
+            follow_path.path.push(pos.into());
+        }
+    } else {
+        // If it can't find a path, just go straight to the goal
+        follow_path
+            .path
+            .push(Vec2::new(goal.0 as f32, goal.1 as f32));
     }
 }
 
