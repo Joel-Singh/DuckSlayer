@@ -71,7 +71,7 @@ pub fn follow_paths(path_followers: Query<(&mut Transform, &mut FollowPath)>, ti
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Pos(pub i32, pub i32);
 
-const ASTAR_RESOLUTION: i32 = 15;
+const ASTAR_RESOLUTION: i32 = 30;
 impl Pos {
     fn distance(&self, other: &Pos) -> u32 {
         let a = self.0 - other.0;
@@ -81,7 +81,6 @@ impl Pos {
 
     fn successors(&self) -> Vec<(Pos, u32)> {
         let straight_cost: u32 = 100;
-        let diagonal_cost: u32 = 141; // sqrt(2)
 
         let &Pos(x, y) = self;
         vec![
@@ -89,22 +88,6 @@ impl Pos {
             (Pos(x - ASTAR_RESOLUTION, y), straight_cost),
             (Pos(x, y + ASTAR_RESOLUTION), straight_cost),
             (Pos(x, y - ASTAR_RESOLUTION), straight_cost),
-            (
-                Pos(x + ASTAR_RESOLUTION, y + ASTAR_RESOLUTION),
-                diagonal_cost,
-            ),
-            (
-                Pos(x + ASTAR_RESOLUTION, y - ASTAR_RESOLUTION),
-                diagonal_cost,
-            ),
-            (
-                Pos(x - ASTAR_RESOLUTION, y + ASTAR_RESOLUTION),
-                diagonal_cost,
-            ),
-            (
-                Pos(x - ASTAR_RESOLUTION, y - ASTAR_RESOLUTION),
-                diagonal_cost,
-            ),
         ]
         .into_iter()
         .filter(|(p, _)| reachable(p))
