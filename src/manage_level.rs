@@ -5,6 +5,7 @@ mod game_messages;
 mod level;
 
 use bevy::prelude::*;
+pub use debug_ui::DisplayInDebug;
 pub use game_messages::set_message;
 pub use level::Level;
 use strum::IntoEnumIterator;

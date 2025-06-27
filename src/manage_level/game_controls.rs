@@ -14,13 +14,16 @@ use bevy_egui::input::egui_wants_any_keyboard_input;
 use super::game_messages::SetMessage;
 use super::{
     pause, reset_level_progress, save_level_to_memory, set_message,
-    spawn_entities_from_level_memory, toggle_pause, IsPaused, LevelEntity, LevelMemory,
-    LevelProgress,
+    spawn_entities_from_level_memory, toggle_pause, DisplayInDebug, IsPaused, LevelEntity,
+    LevelMemory,
 };
 
 pub const CONTROLS_MESSAGE: &'static str = "[Space] to start level\n[Z] to restart level\n";
 pub const CONTROLS_EDITOR_MESSAGE: &'static str =
     "[Space] to toggle pausing \n[Click] on spawned cards to delete\n";
+
+#[derive(Resource, Deref, DerefMut, Default, PartialEq)]
+struct GameIsReset(bool);
 
 pub fn game_controls_plugin(app: &mut App) {
     app.add_systems(
@@ -28,22 +31,26 @@ pub fn game_controls_plugin(app: &mut App) {
         (
             set_starting_message.run_if(not_in_editor),
             set_message(CONTROLS_EDITOR_MESSAGE).run_if(in_editor),
+            game_is_reset::<true>,
         ),
     )
+    .add_systems(OnEnter(IsPaused::False), game_is_reset::<false>)
     .add_systems(
         FixedPreUpdate,
         (
             (
-                unpause
-                    .run_if(input_just_pressed(KeyCode::Space).and(in_state(LevelProgress::Null))),
+                unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(IsPaused::True))),
                 (
                     spawn_entities_from_level_memory,
                     pause,
                     reset_level_progress,
                     set_starting_message,
+                    game_is_reset::<true>,
                 )
                     .chain()
-                    .run_if(input_just_pressed(KeyCode::KeyZ)),
+                    .run_if(
+                        input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
+                    ),
             )
                 .run_if(not_in_editor),
             (
@@ -53,9 +60,12 @@ pub fn game_controls_plugin(app: &mut App) {
                     pause,
                     reset_level_progress,
                     set_message(CONTROLS_EDITOR_MESSAGE),
+                    game_is_reset::<true>,
                 )
                     .chain()
-                    .run_if(input_just_pressed(KeyCode::KeyZ)),
+                    .run_if(
+                        input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
+                    ),
                 save_level_to_memory.run_if(input_just_pressed(KeyCode::KeyX)),
                 toggle_pause.run_if(input_just_pressed(KeyCode::Space)),
             )
@@ -72,7 +82,12 @@ pub fn game_controls_plugin(app: &mut App) {
             spawn_card_on_click,
         )
             .run_if(in_state(GameState::InGame)),
-    );
+    )
+    .init_resource::<GameIsReset>();
+
+    if crate::debug::get_debug_env_var() {
+        app.add_systems(FixedUpdate, display_game_is_reset);
+    }
 }
 
 fn set_starting_message(mut commands: Commands, level: Res<LevelMemory>) {
@@ -154,4 +169,16 @@ fn spawn_card_on_click(
             && !get_middle_river_rect().contains(v)
             && !get_right_river_rect().contains(v)
     }
+}
+
+fn game_is_reset<const VAL: bool>(mut game_is_reset: ResMut<GameIsReset>) {
+    **game_is_reset = VAL;
+}
+
+fn display_game_is_reset(
+    mut display_in_debug: ResMut<DisplayInDebug>,
+    game_is_reset: Res<GameIsReset>,
+) {
+    let game_is_reset = if **game_is_reset { "true" } else { "false" };
+    display_in_debug.insert("GameIsReset".to_string(), game_is_reset.to_string());
 }

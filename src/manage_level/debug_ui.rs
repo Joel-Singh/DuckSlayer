@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::BLUE, prelude::*};
+use bevy::{color::palettes::css::BLUE, platform::collections::HashMap, prelude::*};
 use bevy_egui::{
     egui::{self, Ui},
     EguiContextPass, EguiContexts,
@@ -19,16 +19,22 @@ use super::{IsPaused, LevelMemory, LevelProgress, WinLoseDeathProgress};
 
 const DRAW_RIVER_BOUNDARIES: bool = true;
 
+#[derive(Resource, Default, Deref, DerefMut)]
+pub struct DisplayInDebug(HashMap<String, String>);
+
 pub fn debug_ui_plugin(app: &mut App) {
     app.add_systems(
         EguiContextPass,
         (create_debug_window, draw_river_boundaries).run_if(in_debug),
-    );
+    )
+    .init_resource::<DisplayInDebug>();
 }
 
 fn create_debug_window(
     mut contexts: EguiContexts,
     mut commands: Commands,
+
+    display_in_debug: Res<DisplayInDebug>,
 
     level_progress: Res<State<LevelProgress>>,
     is_paused: Res<State<IsPaused>>,
@@ -41,11 +47,14 @@ fn create_debug_window(
         create_push_to_deckbar_btns(ui, &mut commands);
 
         ui.heading("Resources");
-        ui.label("Gameover: ".to_string() + &format!("{level_progress:?}"));
-        ui.label("IsPaused: ".to_string() + &format!("{is_paused:?}"));
-        ui.label("LevelProgress: ".to_string() + &format!("{game_state:?}"));
-        ui.label("IsPointerOverUi: ".to_string() + &format!("{is_pointer_over_ui:?}"));
+        ui.label(&format!("LevelProgress: {level_progress:?}"));
+        ui.label(&format!("IsPaused: {is_paused:?}"));
+        ui.label(&format!("GameState: {game_state:?}"));
+        ui.label(&format!("IsPointerOverUi: {is_pointer_over_ui:?}"));
         ui.label(format!("WinLoseDeathProgress: {win_lose_death_progress:?}"));
+        for (k, v) in &**display_in_debug {
+            ui.label(&format!("{k}: {v}"));
+        }
 
         ui.collapsing("Level in memory", |ui| {
             ui.label(format!("{level_memory:?}"))
