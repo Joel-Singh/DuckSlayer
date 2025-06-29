@@ -5,6 +5,8 @@ use crate::global::{
     CursorWorldCoords, GameState, IsPointerOverUi,
 };
 use crate::manage_level::{unpause, Level};
+use bevy::ecs::schedule::ScheduleConfigs;
+use bevy::ecs::system::ScheduleSystem;
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::input::mouse::MouseButtonInput;
 use bevy::input::ButtonState;
@@ -40,31 +42,15 @@ pub fn game_controls_plugin(app: &mut App) {
         (
             (
                 unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(IsPaused::True))),
-                (
-                    spawn_entities_from_level_memory,
-                    pause,
-                    reset_level_progress,
-                    set_starting_message,
-                    game_is_reset::<true>,
-                )
-                    .chain()
-                    .run_if(
-                        input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
-                    ),
+                restart_level(set_starting_message.into_configs()).run_if(
+                    input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
+                ),
             )
                 .run_if(not_in_editor),
             (
-                (
-                    spawn_entities_from_level_memory,
-                    pause,
-                    reset_level_progress,
-                    set_message(CONTROLS_EDITOR_MESSAGE),
-                    game_is_reset::<true>,
-                )
-                    .chain()
-                    .run_if(
-                        input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
-                    ),
+                restart_level(set_message(CONTROLS_EDITOR_MESSAGE)).run_if(
+                    input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
+                ),
                 save_level_to_memory.run_if(input_just_pressed(KeyCode::KeyX)),
                 toggle_pause.run_if(input_just_pressed(KeyCode::Space)),
                 delete_level_entities_on_click,
@@ -88,6 +74,19 @@ pub fn game_controls_plugin(app: &mut App) {
     if crate::debug::get_debug_env_var() {
         app.add_systems(FixedUpdate, display_game_is_reset);
     }
+}
+
+fn restart_level(
+    set_message_system: ScheduleConfigs<ScheduleSystem>,
+) -> ScheduleConfigs<ScheduleSystem> {
+    (
+        spawn_entities_from_level_memory,
+        pause,
+        reset_level_progress,
+        set_message_system,
+        game_is_reset::<true>,
+    )
+        .chain()
 }
 
 fn set_starting_message(mut commands: Commands, level: Res<LevelMemory>) {
