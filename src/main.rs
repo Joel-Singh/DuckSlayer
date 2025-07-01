@@ -6,6 +6,8 @@ mod card;
 mod debug;
 mod deckbar;
 mod global;
+mod goal_board;
+mod ingame_ui_root;
 mod level_select;
 mod manage_level;
 mod titlescreen;
@@ -15,6 +17,7 @@ use std::env;
 
 fn main() {
     App::new()
+        .add_systems(Startup, setup_camera)
         .add_plugins(
             DefaultPlugins
                 .set(bevy::log::LogPlugin {
@@ -42,8 +45,9 @@ fn main() {
         .add_plugins(manage_level::manage_level)
         .add_plugins(back_btn::back_btn)
         .add_plugins(level_select::level_select)
+        .add_plugins(ingame_ui_root::ingame_ui_root_plugin)
         .add_plugins(debug::debug_plugin)
-        .add_systems(Startup, setup_camera)
+        .add_plugins(goal_board::goal_board_plugin)
         .run();
 }
 

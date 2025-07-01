@@ -1,4 +1,7 @@
-use crate::card::{Card, CardConsts, MaybeCard};
+use crate::{
+    card::{Card, CardConsts, MaybeCard},
+    ingame_ui_root::InGameUiRoot,
+};
 
 use bevy::{
     color::palettes::css::*,
@@ -14,6 +17,9 @@ pub struct SelectedCard;
 
 #[derive(Component)]
 pub struct DeckBarRoot;
+
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct InitializeDeckbar;
 
 #[derive(Component)]
 struct HoverSprite;
@@ -45,19 +51,17 @@ pub fn deckbar(app: &mut App) {
     .add_observer(add_selected_card_style);
 }
 
-fn initialize_deckbar(mut commands: Commands) {
-    commands
-        .spawn((
+fn initialize_deckbar(mut commands: Commands, ingame_ui_root: Res<InGameUiRoot>) {
+    commands.entity(**ingame_ui_root).with_children(|p| {
+        p.spawn((
             DeckBarRoot,
             Node {
-                display: Display::None,
                 row_gap: Val::Px(10.0),
                 column_gap: Val::Px(10.0),
                 width: Val::Px(DECK_WIDTH * 0.8),
                 height: Val::Vh(100.),
                 flex_direction: FlexDirection::Column,
                 border: UiRect::all(Val::Px(5.)),
-                margin: UiRect::left(Val::Auto),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::SpaceEvenly,
                 ..default()
@@ -66,7 +70,7 @@ fn initialize_deckbar(mut commands: Commands) {
             BackgroundColor(GREY.into()),
             Button, // So that it is taken into account for is_pointer_over_ui
         ))
-        .with_children(|parent| {
+        .with_children(|p| {
             fn get_empty_card_node_bundle() -> impl Bundle {
                 return (
                     Node {
@@ -80,19 +84,12 @@ fn initialize_deckbar(mut commands: Commands) {
                 );
             }
 
-            parent.spawn(get_empty_card_node_bundle());
-            parent.spawn(get_empty_card_node_bundle());
-            parent.spawn(get_empty_card_node_bundle());
-            parent.spawn(get_empty_card_node_bundle());
+            p.spawn(get_empty_card_node_bundle());
+            p.spawn(get_empty_card_node_bundle());
+            p.spawn(get_empty_card_node_bundle());
+            p.spawn(get_empty_card_node_bundle());
         });
-}
-
-pub fn show_deckbar(mut deck_bar: Single<&mut Node, With<DeckBarRoot>>) {
-    deck_bar.display = Display::Flex;
-}
-
-pub fn hide_deckbar(mut deck_bar: Single<&mut Node, With<DeckBarRoot>>) {
-    deck_bar.display = Display::None;
+    });
 }
 
 fn remove_selected_card_style(

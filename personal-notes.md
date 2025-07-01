@@ -1,3 +1,4 @@
+- Editing the win conditions in editor doesn't update WinLossProgress for somme reason
 - SOUUUUUUUUNDDDD
 - Have a diagram showing the win/loss condition instead of just text
 - Feedback on whether a level is "reset"

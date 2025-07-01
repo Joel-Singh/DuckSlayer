@@ -14,7 +14,7 @@ use DuckSlayer::{delete_all, remove_resource};
 use crate::{
     back_btn::{hide_back_btn, show_back_btn},
     card::{Card, CardDeath, SpawnCard},
-    deckbar::{clear_deckbar, hide_deckbar, show_deckbar, PushToDeckbar},
+    deckbar::{clear_deckbar, PushToDeckbar},
     global::{not_in_editor, GameState, ImageHandles, InEditorRes},
 };
 
@@ -24,10 +24,21 @@ pub enum IsPaused {
     False,
 }
 
-#[derive(Resource, Debug)]
-struct WinLoseDeathProgress {
+#[derive(Resource, Debug, PartialEq, Clone)]
+pub struct WinLoseDeathProgress {
+    // reaching 0 is win or loss
     win: u32,
     lose: u32,
+}
+
+impl WinLoseDeathProgress {
+    pub fn get_win(&self) -> u32 {
+        self.win
+    }
+
+    pub fn get_lose(&self) -> u32 {
+        self.lose
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States, Default)]
@@ -39,7 +50,17 @@ pub enum LevelProgress {
 }
 
 #[derive(Resource, Deref, DerefMut, Debug)]
-struct LevelMemory(pub Level);
+pub struct LevelMemory(Level);
+
+impl LevelMemory {
+    pub fn get_win_card(&self) -> &Card {
+        &(self.win_condition.card)
+    }
+
+    pub fn get_lose_card(&self) -> &Card {
+        &(self.lose_condition.card)
+    }
+}
 
 #[derive(Component, Default)]
 pub struct LevelEntity;
@@ -58,12 +79,7 @@ pub fn manage_level(app: &mut App) {
         .add_plugins(game_controls::game_controls_plugin)
         .add_systems(
             OnEnter(GameState::InGame),
-            (
-                spawn_arena_background,
-                load_card_sprites,
-                show_deckbar,
-                show_back_btn,
-            ),
+            (spawn_arena_background, load_card_sprites, show_back_btn),
         )
         .add_systems(
             FixedUpdate,
@@ -92,7 +108,6 @@ pub fn manage_level(app: &mut App) {
                 remove_resource::<WinLoseDeathProgress>,
                 set_in_editor_false,
                 reset_level_progress,
-                hide_deckbar,
                 hide_back_btn,
                 set_message(""),
                 pause,
