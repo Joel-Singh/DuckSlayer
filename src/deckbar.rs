@@ -167,7 +167,7 @@ fn update_card_image(
 fn highlight_card(
     mut interaction_query: Query<
         (&Interaction, &mut ImageNode, Has<SelectedCard>),
-        (Changed<Interaction>, (With<Button>, With<MaybeCard>)),
+        (Changed<Interaction>, With<Button>, With<MaybeCard>),
     >,
 ) {
     for (interaction, mut image_node, is_selected) in &mut interaction_query {
