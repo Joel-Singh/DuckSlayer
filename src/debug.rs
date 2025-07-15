@@ -3,6 +3,8 @@ use bevy::{
     prelude::*,
 };
 
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
+
 use crate::global::CursorWorldCoords;
 
 pub fn get_debug_env_var() -> bool {
@@ -34,12 +36,15 @@ pub fn debug_plugin(app: &mut App) {
     .init_resource::<IsDebug>();
 
     if get_debug_env_var() {
-        app.add_plugins(FpsOverlayPlugin {
-            config: FpsOverlayConfig {
-                enabled: true,
-                ..default()
+        app.add_plugins((
+            FpsOverlayPlugin {
+                config: FpsOverlayConfig {
+                    enabled: true,
+                    ..default()
+                },
             },
-        });
+            WorldInspectorPlugin::new()
+        ));
     };
 }
 

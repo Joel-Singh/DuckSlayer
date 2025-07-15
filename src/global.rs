@@ -24,8 +24,6 @@ pub fn not_in_editor(in_editor_res: Res<InEditorRes>) -> bool {
 
 #[derive(Resource, Default)]
 pub struct ImageHandles {
-    pub play_btn: Handle<Image>,
-    pub editor_btn: Handle<Image>,
     pub titlescreen_background: Handle<Image>,
     pub arena_background: Handle<Image>,
 }
@@ -106,8 +104,6 @@ fn update_is_pointer_over_ui(
 
 fn load_images(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(ImageHandles {
-        play_btn: asset_server.load("play-btn.png"),
-        editor_btn: asset_server.load("editor-btn.png"),
         titlescreen_background: asset_server.load("titlescreen.png"),
         arena_background: asset_server.load("arena-background.png"),
     })

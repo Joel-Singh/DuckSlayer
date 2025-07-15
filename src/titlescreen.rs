@@ -7,14 +7,15 @@ use crate::{
 };
 
 #[derive(Component)]
+#[require(Name::new("Titlescreen"))]
 struct TitleScreen;
 
 #[derive(Component)]
-#[require(Button)]
+#[require(Button, Name::new("Play Btn"))]
 struct PlayBtn;
 
 #[derive(Component)]
-#[require(Button)]
+#[require(Button, Name::new("Editor Btn"))]
 struct EditorBtn;
 
 pub fn titlescreen(app: &mut App) {
@@ -26,13 +27,7 @@ pub fn titlescreen(app: &mut App) {
         .add_systems(OnExit(GameState::TitleScreen), delete_all::<TitleScreen>);
 }
 
-fn spawn_titlescreen(mut commands: Commands, handles: Res<ImageHandles>) {
-    let button_style = Node {
-        width: Val::Px(BTN_SIZE.0),
-        height: Val::Px(BTN_SIZE.1),
-        ..default()
-    };
-
+fn spawn_titlescreen(mut commands: Commands, handles: Res<ImageHandles>, asset_server: Res<AssetServer>) {
     commands.spawn((
         Sprite {
             image: handles.titlescreen_background.clone(),
@@ -51,6 +46,7 @@ fn spawn_titlescreen(mut commands: Commands, handles: Res<ImageHandles>) {
             width: Val::Vw(100.0),
             height: Val::Vh(100.0),
             flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(15.),
             left: Val::Px(960.),
             top: Val::Px(470.),
             ..default()
@@ -59,13 +55,21 @@ fn spawn_titlescreen(mut commands: Commands, handles: Res<ImageHandles>) {
         children![
             (
                 PlayBtn,
-                ImageNode::new(handles.play_btn.clone()),
-                button_style.clone()
+                btn_bundle(),
+                btn_style(),
+                children![(
+                    Text::new("PLAY"),
+                    text_bundle(&asset_server),
+                )]
             ),
             (
                 EditorBtn,
-                ImageNode::new(handles.editor_btn.clone()),
-                button_style.clone()
+                btn_bundle(),
+                btn_style(),
+                children![(
+                    Text::new("EDITOR"),
+                    text_bundle(&asset_server),
+                )]
             )
         ],
     ));
@@ -94,4 +98,36 @@ fn start_editor_on_click(
             commands.queue(EnterLevel(Level::get_stub()));
         }
     }
+}
+
+fn btn_bundle() -> impl Bundle {
+    let background_color: Color = Srgba::hex("#ffd966ff").unwrap().into();
+    (
+        BackgroundColor(background_color),
+        BorderColor(Color::BLACK),
+        BorderRadius::all(Val::Px(25.)),
+    )
+}
+
+fn btn_style() -> Node {
+    Node {
+        border: UiRect::all(Val::Px(5.)),
+        width: Val::Px(BTN_SIZE.0),
+        height: Val::Px(BTN_SIZE.1),
+        ..default()
+    }
+}
+
+fn text_bundle(asset_server: &Res<AssetServer>) -> impl Bundle {
+    (
+        TextFont {
+            font: asset_server.load("DynaPuff-Regular.ttf"),
+            ..default()
+        },
+        TextColor(Color::BLACK),
+        Node {
+            margin: UiRect::all(Val::Auto),
+            ..default()
+        }
+    )
 }
