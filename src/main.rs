@@ -10,6 +10,7 @@ mod goal_board;
 mod ingame_ui_root;
 mod level_select;
 mod manage_level;
+mod settings_screen;
 mod titlescreen;
 mod volume_settings;
 
@@ -50,6 +51,7 @@ fn main() {
         .add_plugins(debug::debug_plugin)
         .add_plugins(goal_board::goal_board_plugin)
         .add_plugins(volume_settings::volume_settings_plugin)
+        .add_plugins(settings_screen::settings_screen_plugin)
         .run();
 }
 

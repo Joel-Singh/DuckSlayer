@@ -50,6 +50,9 @@ SFX toggle
 Music volume slider
 Music toggle
 
+An x button to close the menu
+A settings menu button the title screen that shows the settings screen
+
 ```rust
 mod Settings {
   // a show custom command that puts it on top of everything else
@@ -60,3 +63,5 @@ mod Settings {
 ```
 
 Audio systems will simply read from the VolumeSettings struct modifying their playback settings.
+
+## Implementing
