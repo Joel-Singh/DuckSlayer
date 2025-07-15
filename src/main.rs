@@ -11,6 +11,7 @@ mod ingame_ui_root;
 mod level_select;
 mod manage_level;
 mod titlescreen;
+mod volume_settings;
 
 use bevy_egui::EguiPlugin;
 use std::env;
@@ -48,6 +49,7 @@ fn main() {
         .add_plugins(ingame_ui_root::ingame_ui_root_plugin)
         .add_plugins(debug::debug_plugin)
         .add_plugins(goal_board::goal_board_plugin)
+        .add_plugins(volume_settings::volume_settings_plugin)
         .run();
 }
 

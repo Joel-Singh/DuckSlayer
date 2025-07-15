@@ -14,3 +14,49 @@
 # Potential changes to bevy
 - Implement the debug picker plugin to be able to be displayed in different spots
 - Have the debug picker plugin appear over ui nodes
+
+# Implementing Sound With Setting Menu For Options
+
+```rust
+mod VolumeSettings {
+  pub struct VolumeSettings {
+    SFX_vol: f32,
+    SFX_on: bool,
+    music_vol: f32,
+    music_on: bool,
+  };
+
+  impl VolumeSettings {
+    get_sfx() -> f32 {
+      if SFX_on {
+        SFX_vol;
+      } else {
+        0;
+      }
+    }
+    // Same thing for get_music
+    // add setters for each one
+  }
+
+  // plugin for inserting VolumeSettings as resource
+}
+```
+
+
+## Settings in options
+
+SFX volume slider
+SFX toggle
+Music volume slider
+Music toggle
+
+```rust
+mod Settings {
+  // a show custom command that puts it on top of everything else
+  // checkbox and sliders that change the values in VolumeSettings
+  // An x button that hides itself. Also activated with x.
+}
+
+```
+
+Audio systems will simply read from the VolumeSettings struct modifying their playback settings.
