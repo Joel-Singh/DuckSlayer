@@ -1,9 +1,11 @@
 use crate::{
     card::{Card, CardConsts, MaybeCard},
     ingame_ui_root::InGameUiRoot,
+    volume_settings::VolumeSettings,
 };
 
 use bevy::{
+    audio::PlaybackMode,
     color::palettes::css::*,
     ecs::{schedule::ScheduleConfigs, system::ScheduleSystem},
     prelude::*,
@@ -37,6 +39,7 @@ pub fn deckbar(app: &mut App) {
         FixedUpdate,
         (
             highlight_card,
+            play_sound_on_select,
             select_card_on_click,
             hover_sprite_when_card_selected,
             update_card_image,
@@ -175,6 +178,27 @@ fn highlight_card(
             image_node.color = Color::WHITE;
         } else if !is_selected {
             image_node.color = GREY.into();
+        }
+    }
+}
+
+fn play_sound_on_select(
+    mut interaction_query: Query<(&Interaction, &MaybeCard), (Changed<Interaction>, With<Button>)>,
+    volume_settings: Res<VolumeSettings>,
+
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    for (interaction, card) in &mut interaction_query {
+        if *interaction == Interaction::Hovered && card.is_some() {
+            commands.spawn((
+                AudioPlayer::new(asset_server.load("card-select.ogg")),
+                PlaybackSettings {
+                    volume: volume_settings.get_sfx(),
+                    mode: PlaybackMode::Despawn,
+                    ..default()
+                },
+            ));
         }
     }
 }
