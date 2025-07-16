@@ -1,3 +1,6 @@
+use crate::volume_settings::VolumeSettings;
+use crate::widgets::checkbox::create_checkbox;
+use crate::widgets::checkbox::Toggled;
 use bevy::color::palettes::tailwind::*;
 use bevy::prelude::*;
 
@@ -14,7 +17,7 @@ pub fn settings_screen_plugin(app: &mut App) {
 }
 
 fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands
+    let settings_screen = commands
         .spawn((
             SettingsScreen,
             Node {
@@ -46,7 +49,27 @@ fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>)
             .observe(|_: Trigger<Pointer<Click>>, mut commands: Commands| {
                 commands.queue(HideSettingsScreen);
             });
-        });
+        })
+        .id();
+
+    let mute_sfx_checkbox = create_checkbox(&mut commands);
+    commands.entity(mute_sfx_checkbox).observe(
+        |toggled: Trigger<Toggled>, mut volume: ResMut<VolumeSettings>| {
+            volume.set_sfx_mute(toggled.is_checked);
+        },
+    );
+
+    let mute_music_checkbox = create_checkbox(&mut commands);
+    commands.entity(mute_music_checkbox).observe(
+        |toggled: Trigger<Toggled>, mut volume: ResMut<VolumeSettings>| {
+            volume.set_music_mute(toggled.is_checked);
+        },
+    );
+
+    commands
+        .entity(settings_screen)
+        .add_child(mute_sfx_checkbox)
+        .add_child(mute_music_checkbox);
 }
 
 pub struct ShowSettingsScreen;

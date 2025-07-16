@@ -10,6 +10,7 @@
 - Waterballs placed during pausing should work, and not just sit there. Is also not cleaned up properly.
 - Can only go on to the next level after completing the current
 - A next level btn after completing the current
+- Rewrite the pathfinding to just do your own thing with rays, world is simple enough to do it yourself
 
 # Potential changes to bevy
 - Implement the debug picker plugin to be able to be displayed in different spots
@@ -64,4 +65,15 @@ mod Settings {
 
 Audio systems will simply read from the VolumeSettings struct modifying their playback settings.
 
-## Implementing
+## Implementing Widgets 
+
+### Checkbox
+CheckBox(is_checked: bool) component with checked bool
+
+have a toggled(is_checked: bool) event that is run after a click
+
+
+Checkbox is simply a square with a circle inside of it. Circle toggled on click.
+
+#### create_checkbox() -> EntityCommands for an observe call
+Will observe pointer click, toggling the state of the checkbox and triggering the Toggled event

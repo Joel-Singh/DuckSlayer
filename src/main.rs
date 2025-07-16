@@ -14,6 +14,7 @@ mod manage_level;
 mod settings_screen;
 mod titlescreen;
 mod volume_settings;
+mod widgets;
 
 use bevy_egui::EguiPlugin;
 use std::env;
@@ -55,6 +56,7 @@ fn main() {
             volume_settings::volume_settings_plugin,
             settings_screen::settings_screen_plugin,
             debug_ui::debug_ui_plugin,
+            widgets::widgets_plugin,
         ))
         .run();
 }

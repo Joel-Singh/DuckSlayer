@@ -1,3 +1,4 @@
+use crate::debug::in_debug;
 use bevy::{audio::Volume, prelude::*};
 
 #[derive(Resource)]
@@ -49,4 +50,25 @@ pub fn volume_settings_plugin(app: &mut App) {
         music_vol: Volume::default(),
         music_mute: false,
     });
+
+    if in_debug() {
+        app.add_systems(FixedUpdate, debug_display);
+    }
+}
+
+use crate::debug_ui::DisplayInDebug;
+
+pub fn debug_display(
+    volume_settings: Res<VolumeSettings>,
+    mut display_in_debug: ResMut<DisplayInDebug>,
+) {
+    display_in_debug.insert(
+        "Music Volume".to_string(),
+        volume_settings.get_music().to_linear().to_string(),
+    );
+
+    display_in_debug.insert(
+        "SFX Volume".to_string(),
+        volume_settings.get_sfx().to_linear().to_string(),
+    );
 }
