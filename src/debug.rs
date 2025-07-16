@@ -43,7 +43,7 @@ pub fn debug_plugin(app: &mut App) {
                     ..default()
                 },
             },
-            WorldInspectorPlugin::new()
+            WorldInspectorPlugin::new(),
         ));
     };
 }

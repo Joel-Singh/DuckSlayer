@@ -1,6 +1,6 @@
+use crate::settings_screen::ShowSettingsScreen;
 use bevy::prelude::*;
 use DuckSlayer::delete_all;
-use crate::settings_screen::ShowSettingsScreen;
 
 use crate::{
     global::*,
@@ -27,12 +27,21 @@ pub fn titlescreen(app: &mut App) {
     app.add_systems(OnEnter(GameState::TitleScreen), spawn_titlescreen)
         .add_systems(
             FixedUpdate,
-            (start_game_on_click, start_editor_on_click, show_settings_on_click).run_if(in_state(GameState::TitleScreen)),
+            (
+                start_game_on_click,
+                start_editor_on_click,
+                show_settings_on_click,
+            )
+                .run_if(in_state(GameState::TitleScreen)),
         )
         .add_systems(OnExit(GameState::TitleScreen), delete_all::<TitleScreen>);
 }
 
-fn spawn_titlescreen(mut commands: Commands, handles: Res<ImageHandles>, asset_server: Res<AssetServer>) {
+fn spawn_titlescreen(
+    mut commands: Commands,
+    handles: Res<ImageHandles>,
+    asset_server: Res<AssetServer>,
+) {
     commands.spawn((
         Sprite {
             image: handles.titlescreen_background.clone(),
@@ -62,28 +71,19 @@ fn spawn_titlescreen(mut commands: Commands, handles: Res<ImageHandles>, asset_s
                 PlayBtn,
                 btn_bundle(),
                 btn_style(),
-                children![(
-                    Text::new("PLAY"),
-                    text_bundle(&asset_server),
-                )]
+                children![(Text::new("PLAY"), text_bundle(&asset_server),)]
             ),
             (
                 EditorBtn,
                 btn_bundle(),
                 btn_style(),
-                children![(
-                    Text::new("EDITOR"),
-                    text_bundle(&asset_server),
-                )]
+                children![(Text::new("EDITOR"), text_bundle(&asset_server),)]
             ),
             (
                 SettingsBtn,
                 btn_bundle(),
                 btn_style(),
-                children![(
-                    Text::new("SETTINGS"),
-                    text_bundle(&asset_server),
-                )]
+                children![(Text::new("SETTINGS"), text_bundle(&asset_server),)]
             )
         ],
     ));
@@ -125,7 +125,6 @@ fn show_settings_on_click(
     }
 }
 
-
 fn btn_bundle() -> impl Bundle {
     let background_color: Color = Srgba::hex("#ffd966ff").unwrap().into();
     (
@@ -154,6 +153,6 @@ fn text_bundle(asset_server: &Res<AssetServer>) -> impl Bundle {
         Node {
             margin: UiRect::all(Val::Auto),
             ..default()
-        }
+        },
     )
 }
