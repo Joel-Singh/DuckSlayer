@@ -40,20 +40,22 @@ fn main() {
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
-        .add_plugins(asset_load_schedule::asset_load_schedule)
-        .add_plugins(titlescreen::titlescreen)
-        .add_plugins(global::global)
-        .add_plugins(card::card)
-        .add_plugins(deckbar::deckbar)
-        .add_plugins(manage_level::manage_level)
-        .add_plugins(back_btn::back_btn)
-        .add_plugins(level_select::level_select)
-        .add_plugins(ingame_ui_root::ingame_ui_root_plugin)
-        .add_plugins(debug::debug_plugin)
-        .add_plugins(goal_board::goal_board_plugin)
-        .add_plugins(volume_settings::volume_settings_plugin)
-        .add_plugins(settings_screen::settings_screen_plugin)
-        .add_plugins(debug_ui::debug_ui_plugin)
+        .add_plugins((
+            asset_load_schedule::asset_load_schedule,
+            titlescreen::titlescreen,
+            global::global,
+            card::card,
+            deckbar::deckbar,
+            manage_level::manage_level,
+            back_btn::back_btn,
+            level_select::level_select,
+            ingame_ui_root::ingame_ui_root_plugin,
+            debug::debug_plugin,
+            goal_board::goal_board_plugin,
+            volume_settings::volume_settings_plugin,
+            settings_screen::settings_screen_plugin,
+            debug_ui::debug_ui_plugin,
+        ))
         .run();
 }
 
