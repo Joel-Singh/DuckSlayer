@@ -1,11 +1,9 @@
-mod debug_ui;
 mod editor_ui;
 mod game_controls;
 mod game_messages;
 mod level;
 
 use bevy::prelude::*;
-pub use debug_ui::DisplayInDebug;
 pub use game_messages::set_message;
 pub use level::Level;
 use strum::IntoEnumIterator;
@@ -73,7 +71,6 @@ struct CardSpriteHandles(Vec<Handle<Image>>);
 
 pub fn manage_level(app: &mut App) {
     app.add_plugins(game_messages::game_messages)
-        .add_plugins(debug_ui::debug_ui_plugin)
         .add_plugins(editor_ui::editor_ui_plugin)
         .add_plugins(level::level_plugin)
         .add_plugins(game_controls::game_controls_plugin)

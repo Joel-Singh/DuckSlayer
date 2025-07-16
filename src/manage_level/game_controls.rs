@@ -1,4 +1,10 @@
+use super::game_messages::SetMessage;
+use super::{
+    pause, reset_level_progress, save_level_to_memory, set_message,
+    spawn_entities_from_level_memory, toggle_pause, IsPaused, LevelEntity, LevelMemory,
+};
 use crate::card::{MaybeCard, SpawnCard};
+use crate::debug_ui::DisplayInDebug;
 use crate::deckbar::{deselect_card, select_card, DeleteSelectedCard, SelectedCard};
 use crate::global::{
     get_left_river_rect, get_middle_river_rect, get_right_river_rect, in_editor, not_in_editor,
@@ -12,13 +18,6 @@ use bevy::input::mouse::MouseButtonInput;
 use bevy::input::ButtonState;
 use bevy::prelude::*;
 use bevy_egui::input::egui_wants_any_keyboard_input;
-
-use super::game_messages::SetMessage;
-use super::{
-    pause, reset_level_progress, save_level_to_memory, set_message,
-    spawn_entities_from_level_memory, toggle_pause, DisplayInDebug, IsPaused, LevelEntity,
-    LevelMemory,
-};
 
 pub const CONTROLS_MESSAGE: &'static str = "[Space] to start level\n[Z] to restart level\n";
 pub const CONTROLS_EDITOR_MESSAGE: &'static str =
@@ -71,7 +70,7 @@ pub fn game_controls_plugin(app: &mut App) {
     )
     .init_resource::<GameIsReset>();
 
-    if crate::debug::get_debug_env_var() {
+    if crate::debug::in_debug() {
         app.add_systems(FixedUpdate, display_game_is_reset);
     }
 }

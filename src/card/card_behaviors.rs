@@ -215,7 +215,7 @@ mod attacker {
             attackers_attack.run_if(in_state(GameState::InGame).and(in_state(IsPaused::False))),
         );
 
-        if crate::debug::get_debug_env_var() {
+        if crate::debug::in_debug() {
             app.add_systems(FixedUpdate, display_range);
         }
     }

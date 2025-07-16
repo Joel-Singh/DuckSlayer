@@ -4,6 +4,7 @@ mod asset_load_schedule;
 mod back_btn;
 mod card;
 mod debug;
+mod debug_ui;
 mod deckbar;
 mod global;
 mod goal_board;
@@ -52,6 +53,7 @@ fn main() {
         .add_plugins(goal_board::goal_board_plugin)
         .add_plugins(volume_settings::volume_settings_plugin)
         .add_plugins(settings_screen::settings_screen_plugin)
+        .add_plugins(debug_ui::debug_ui_plugin)
         .run();
 }
 

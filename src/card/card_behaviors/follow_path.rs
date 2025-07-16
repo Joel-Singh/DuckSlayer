@@ -6,7 +6,7 @@ use bevy::{
 use pathfinding::prelude::astar;
 
 use crate::{
-    debug::get_debug_env_var,
+    debug::in_debug,
     global::{
         get_entire_map_rect, get_left_river_rect, get_middle_river_rect, get_right_river_rect,
         GameState,
@@ -30,8 +30,8 @@ pub fn follow_path_plugin(app: &mut App) {
         follow_paths.run_if(in_state(GameState::InGame).and(in_state(IsPaused::False))),
     );
 
-    if get_debug_env_var() {
-        app.add_systems(FixedUpdate, display_paths);
+    if in_debug() {
+        app.add_systems(FixedUpdate, (display_paths, debug_draw_river_boundaries));
     }
 }
 
@@ -152,4 +152,18 @@ fn reachable(pos: &Pos) -> bool {
         && !get_left_river_rect().contains(pos)
         && !get_middle_river_rect().contains(pos)
         && !get_right_river_rect().contains(pos)
+}
+
+fn debug_draw_river_boundaries(mut draw: Gizmos) {
+    for rect in [
+        get_left_river_rect(),
+        get_right_river_rect(),
+        get_middle_river_rect(),
+    ] {
+        draw.rect_2d(
+            Isometry2d::from_translation(rect.center()),
+            rect.size(),
+            bevy::color::palettes::basic::BLUE,
+        );
+    }
 }
