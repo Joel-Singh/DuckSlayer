@@ -35,19 +35,27 @@ fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>)
             ZIndex(1),
         ))
         .with_children(|p| {
-            p.spawn((
-                CloseButton,
-                ImageNode::new(asset_server.load("cross-icon.png")),
-                Node {
-                    margin: UiRect::all(Val::Px(15.)).with_left(Val::Auto),
-                    // From the file
-                    width: Val::Px(30.),
-                    height: Val::Px(33.),
-                    ..default()
-                },
-            ))
-            .observe(|_: Trigger<Pointer<Click>>, mut commands: Commands| {
-                commands.queue(HideSettingsScreen);
+            // Bar holding the X, had to do some hackery to get the X in the top right
+            p.spawn(Node {
+                position_type: PositionType::Absolute,
+                width: Val::Percent(100.),
+                flex_direction: FlexDirection::RowReverse,
+                ..default()
+            })
+            .with_children(|p| {
+                p.spawn((
+                    CloseButton,
+                    ImageNode::new(asset_server.load("cross-icon.png")),
+                    Node {
+                        margin: UiRect::all(Val::Px(5.)),
+                        width: Val::Px(30.),
+                        height: Val::Px(33.),
+                        ..default()
+                    },
+                ))
+                .observe(|_: Trigger<Pointer<Click>>, mut commands: Commands| {
+                    commands.queue(HideSettingsScreen);
+                });
             });
         })
         .id();
