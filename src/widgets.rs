@@ -1,4 +1,5 @@
 pub mod checkbox;
+pub mod slider;
 
 use bevy::prelude::*;
 

@@ -1,6 +1,7 @@
 use crate::volume_settings::VolumeSettings;
 use crate::widgets::checkbox::create_checkbox;
 use crate::widgets::checkbox::Toggled;
+use crate::widgets::slider::create_slider;
 use bevy::color::palettes::tailwind::*;
 use bevy::prelude::*;
 
@@ -23,6 +24,7 @@ fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>)
             Node {
                 display: Display::None,
                 position_type: PositionType::Absolute,
+                flex_direction: FlexDirection::Column,
                 width: Val::Vw(50.),
                 height: Val::Vh(50.),
                 margin: UiRect::AUTO,
@@ -74,10 +76,13 @@ fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>)
         },
     );
 
+    let slider = create_slider(&mut commands);
+
     commands
         .entity(settings_screen)
         .add_child(mute_sfx_checkbox)
-        .add_child(mute_music_checkbox);
+        .add_child(mute_music_checkbox)
+        .add_child(slider);
 }
 
 pub struct ShowSettingsScreen;

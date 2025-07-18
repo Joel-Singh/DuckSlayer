@@ -15,6 +15,7 @@
 # Potential changes to bevy
 - Implement the debug picker plugin to be able to be displayed in different spots
 - Have the debug picker plugin appear over ui nodes
+- DragStart and Drag pointer events are a bit icky. DragStart reports in percentage but Drag is in pixels.
 
 # Implementing Sound With Setting Menu For Options
 
@@ -67,13 +68,12 @@ Audio systems will simply read from the VolumeSettings struct modifying their pl
 
 ## Implementing Widgets 
 
-### Checkbox
-CheckBox(is_checked: bool) component with checked bool
+### Slider
 
-have a toggled(is_checked: bool) event that is run after a click
+One long rectangle node with a circle on top
 
+Circle is absolutely positioned. Middle is volume 1.0. Left is volume 0.5. Right is volume 1.5. volume as in what's passed into PlayBackSettings.
 
-Checkbox is simply a square with a circle inside of it. Circle toggled on click.
+Expose a "Slid" event that contains the current value of the slider every time is slid.
 
-#### create_checkbox() -> EntityCommands for an observe call
-Will observe pointer click, toggling the state of the checkbox and triggering the Toggled event
+Look for a `Pointer<Hold>` event and update the left positioning of the circle appropriately while also triggering the Slid event.
