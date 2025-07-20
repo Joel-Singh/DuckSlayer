@@ -65,6 +65,23 @@ pub fn create_slider(commands: &mut Commands, starting_slid_percentage: f32) -> 
         })
         .add_child(stud)
         .observe(
+            |trigger: Trigger<Pointer<Pressed>>,
+             node_q: Query<&mut Node>,
+             slider_q: Query<&Slider>,
+             mut commands: Commands| {
+                // trigger.hit.position.unwrap().x is from 0 to 1
+                let slider = slider_q.get(trigger.target).unwrap();
+
+                slider_callback(
+                    trigger.hit.position.unwrap().x,
+                    &slider,
+                    trigger.target,
+                    node_q,
+                    &mut commands,
+                );
+            },
+        )
+        .observe(
             |trigger: Trigger<Pointer<DragStart>>, mut slider_q: Query<&mut Slider>| {
                 let mut slider = slider_q.get_mut(trigger.target).unwrap();
                 slider.drag_start = trigger.hit.position.unwrap().x;
@@ -72,23 +89,32 @@ pub fn create_slider(commands: &mut Commands, starting_slid_percentage: f32) -> 
         )
         .observe(
             |trigger: Trigger<Pointer<Drag>>,
-             mut node_q: Query<&mut Node>,
+             node_q: Query<&mut Node>,
              slider_q: Query<&Slider>,
              mut commands: Commands| {
                 let slider = slider_q.get(trigger.target).unwrap();
                 // trigger.distance.x is in pixels, not percentage like slider.drag_start
-                let mut current_percentage =
-                    slider.drag_start + (trigger.distance.x / SLIDER_WIDTH); // From 0 to 1
-                current_percentage = current_percentage.min(1.).max(0.);
+                let mut percentage: f32 = slider.drag_start + (trigger.distance.x / SLIDER_WIDTH); // From 0 to 1
+                percentage = percentage.min(1.).max(0.);
 
-                let mut stud = node_q.get_mut(slider.stud).unwrap();
-                stud.left = Val::Px(current_percentage * HIGHEST_LEFT - SLIDER_BORDER);
-
-                commands.entity(trigger.target).trigger(Slid {
-                    slid_percentage: current_percentage,
-                });
+                slider_callback(percentage, &slider, trigger.target, node_q, &mut commands);
             },
         );
 
     return slider;
+}
+
+fn slider_callback(
+    percentage: f32, // from 0 to 1
+    slider: &Slider,
+    slider_e: Entity,
+    mut node_q: Query<&mut Node>,
+    commands: &mut Commands,
+) -> () {
+    let mut stud = node_q.get_mut(slider.stud).unwrap();
+    stud.left = Val::Px(percentage * HIGHEST_LEFT - SLIDER_BORDER);
+
+    commands.entity(slider_e).trigger(Slid {
+        slid_percentage: percentage,
+    });
 }
