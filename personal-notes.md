@@ -18,6 +18,8 @@
 - DragStart and Drag pointer events are a bit icky. DragStart reports in percentage but Drag is in pixels.
 
 - not to bevy itself but creating a react like syntax macro for nodes with observe that function as event listeners
+- Can't use right and left together on absolutely positioned elements
+- left,right,bottom,top doesn't respect ContentBox
 
 # Implementing Sound With Setting Menu For Options
 

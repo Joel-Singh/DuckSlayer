@@ -1,10 +1,16 @@
+use bevy::color::palettes::basic::RED;
 use bevy::prelude::*;
 
 const SLIDER_WIDTH: f32 = 200.;
 const SLIDER_HEIGHT: f32 = 50.;
 const SLIDER_BORDER: f32 = 10.;
+const SLIDER_WIDTH_WITHOUT_BORDER: f32 = SLIDER_WIDTH - SLIDER_BORDER * 2.;
+
+const STUD_DIAMETER: f32 = SLIDER_HEIGHT;
+
+const HIGHEST_LEFT: f32 = SLIDER_WIDTH + SLIDER_BORDER;
+
 const DRAG_START_PLACEHOLDER: f32 = 0.; // Not actually important because it gets immediately overwritten
-const HIGHEST_LEFT: f32 = SLIDER_WIDTH - SLIDER_HEIGHT;
 
 #[derive(Component)]
 #[require(Name::new("Slider"))]
@@ -31,28 +37,46 @@ pub fn create_slider(commands: &mut Commands, starting_slid_percentage: f32) -> 
     let slider = commands
         .spawn((
             slider_node.clone(),
+            Outline::new(Val::Px(1.), Val::ZERO, RED.into()),
             BorderColor(Color::BLACK),
             BackgroundColor(Srgba::hex("#ffd966ff").unwrap().into()),
         ))
         .id();
 
+    // stud is nested to allow the positioning of the stud independent of its positioning in the
+    // slider. Would use left and right instead (or css calc if it was in bevy!), but the right
+    // property has no effect together with the left
     let stud = commands
         .spawn((
+            Outline::new(Val::Px(1.), Val::ZERO, RED.into()),
+            Name::new("Stud"),
             Node {
-                position_type: PositionType::Absolute,
-                width: Val::Px(SLIDER_HEIGHT),
-                height: Val::Px(SLIDER_HEIGHT),
-                border: UiRect::all(Val::Px(SLIDER_BORDER)),
-                left: Val::Px(starting_slid_percentage * HIGHEST_LEFT - SLIDER_BORDER),
+                position_type: PositionType::Relative,
+                left: Val::Percent(starting_slid_percentage),
                 ..default()
             },
-            BorderColor(Color::BLACK),
-            BackgroundColor(Srgba::hex("#ffd966ff").unwrap().into()),
             Pickable {
                 should_block_lower: false,
                 is_hoverable: false,
             },
-            BorderRadius::MAX,
+            children![(
+                Outline::new(Val::Px(1.), Val::ZERO, RED.into()),
+                Node {
+                    position_type: PositionType::Relative,
+                    width: Val::Px(STUD_DIAMETER),
+                    height: Val::Px(STUD_DIAMETER),
+                    border: UiRect::all(Val::Px(SLIDER_BORDER)),
+                    right: Val::Percent(50.),
+                    ..default()
+                },
+                BorderColor(Color::BLACK),
+                BackgroundColor(Srgba::hex("#ffd966ff").unwrap().into()),
+                BorderRadius::MAX,
+                Pickable {
+                    should_block_lower: false,
+                    is_hoverable: false,
+                },
+            )],
         ))
         .id();
 
@@ -104,16 +128,20 @@ pub fn create_slider(commands: &mut Commands, starting_slid_percentage: f32) -> 
 }
 
 fn slider_callback(
-    percentage: f32, // from 0 to 1
+    percentage: f32, // from 0 to 1 including border
     slider: &Slider,
     slider_e: Entity,
     mut node_q: Query<&mut Node>,
     commands: &mut Commands,
 ) -> () {
+    let mut left = percentage * SLIDER_WIDTH;
+    left -= SLIDER_BORDER; // I know, weird but left doesn't take into account the border
+    left = left.clamp(0., SLIDER_WIDTH_WITHOUT_BORDER);
+
     let mut stud = node_q.get_mut(slider.stud).unwrap();
-    stud.left = Val::Px(percentage * HIGHEST_LEFT - SLIDER_BORDER);
+    stud.left = Val::Px(left);
 
     commands.entity(slider_e).trigger(Slid {
-        slid_percentage: percentage,
+        slid_percentage: left / SLIDER_WIDTH_WITHOUT_BORDER,
     });
 }
