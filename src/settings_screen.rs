@@ -24,11 +24,17 @@ fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>)
             Node {
                 display: Display::None,
                 position_type: PositionType::Absolute,
-                flex_direction: FlexDirection::Column,
                 width: Val::Vw(50.),
                 height: Val::Vh(50.),
                 margin: UiRect::AUTO,
                 border: UiRect::all(Val::Px(30.)),
+
+                align_items: AlignItems::Center,
+                justify_items: JustifyItems::Center,
+
+                grid_template_rows: RepeatedGridTrack::auto(3),
+                grid_template_columns: RepeatedGridTrack::auto(3),
+
                 ..default()
             },
             BackgroundColor(CYAN_500.into()),
@@ -38,12 +44,16 @@ fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>)
         ))
         .with_children(|p| {
             // Bar holding the X, had to do some hackery to get the X in the top right
-            p.spawn(Node {
-                position_type: PositionType::Absolute,
-                width: Val::Percent(100.),
-                flex_direction: FlexDirection::RowReverse,
-                ..default()
-            })
+            p.spawn((
+                Node {
+                    position_type: PositionType::Absolute,
+                    width: Val::Percent(100.),
+                    flex_direction: FlexDirection::RowReverse,
+                    align_self: AlignSelf::Start,
+                    ..default()
+                },
+                Name::new("Close Button Container"),
+            ))
             .with_children(|p| {
                 p.spawn((
                     CloseButton,
@@ -63,26 +73,79 @@ fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>)
         .id();
 
     let mute_sfx_checkbox = create_checkbox(&mut commands);
-    commands.entity(mute_sfx_checkbox).observe(
-        |toggled: Trigger<Toggled>, mut volume: ResMut<VolumeSettings>| {
-            volume.set_sfx_mute(toggled.is_checked);
-        },
-    );
+    commands
+        .entity(mute_sfx_checkbox)
+        .observe(
+            |toggled: Trigger<Toggled>, mut volume: ResMut<VolumeSettings>| {
+                volume.set_sfx_mute(toggled.is_checked);
+            },
+        )
+        .entry::<Node>()
+        .and_modify(|mut node| {
+            node.grid_row = GridPlacement::start(2);
+            node.grid_column = GridPlacement::start(2);
+        });
 
     let mute_music_checkbox = create_checkbox(&mut commands);
-    commands.entity(mute_music_checkbox).observe(
-        |toggled: Trigger<Toggled>, mut volume: ResMut<VolumeSettings>| {
-            volume.set_music_mute(toggled.is_checked);
-        },
-    );
+    commands
+        .entity(mute_music_checkbox)
+        .observe(
+            |toggled: Trigger<Toggled>, mut volume: ResMut<VolumeSettings>| {
+                volume.set_music_mute(toggled.is_checked);
+            },
+        )
+        .entry::<Node>()
+        .and_modify(|mut node| {
+            node.grid_row = GridPlacement::start(3);
+            node.grid_column = GridPlacement::start(2);
+        });
 
-    let slider = create_slider(&mut commands);
+    let sfx_slider = create_slider(&mut commands);
+    commands
+        .entity(sfx_slider)
+        .entry::<Node>()
+        .and_modify(|mut node| {
+            node.grid_row = GridPlacement::start(2);
+            node.grid_column = GridPlacement::start(3);
+        });
+
+    let music_slider = create_slider(&mut commands);
+    commands
+        .entity(music_slider)
+        .entry::<Node>()
+        .and_modify(|mut node| {
+            node.grid_row = GridPlacement::start(3);
+            node.grid_column = GridPlacement::start(3);
+        });
 
     commands
         .entity(settings_screen)
         .add_child(mute_sfx_checkbox)
         .add_child(mute_music_checkbox)
-        .add_child(slider);
+        .add_child(sfx_slider)
+        .add_child(music_slider)
+        .with_children(|p| {
+            let create_text = |text: &'static str, grid_row: i16, grid_column: i16| {
+                (
+                    Text::new(text),
+                    TextFont {
+                        font: asset_server.load("DynaPuff-Regular.ttf"),
+                        ..default()
+                    },
+                    TextColor(Color::BLACK),
+                    Node {
+                        grid_row: GridPlacement::start(grid_row),
+                        grid_column: GridPlacement::start(grid_column),
+                        ..default()
+                    },
+                )
+            };
+
+            p.spawn(create_text("Mute", 1, 2));
+            p.spawn(create_text("Volume", 1, 3));
+            p.spawn(create_text("SFX", 2, 1));
+            p.spawn(create_text("Music", 3, 1));
+        });
 }
 
 pub struct ShowSettingsScreen;
@@ -94,7 +157,7 @@ impl Command for ShowSettingsScreen {
             .unwrap();
 
         let mut node = world.get_mut::<Node>(settings_screen).unwrap();
-        node.display = Display::Flex;
+        node.display = Display::Grid;
     }
 }
 

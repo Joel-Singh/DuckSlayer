@@ -17,6 +17,8 @@
 - Have the debug picker plugin appear over ui nodes
 - DragStart and Drag pointer events are a bit icky. DragStart reports in percentage but Drag is in pixels.
 
+- not to bevy itself but creating a react like syntax macro for nodes with observe that function as event listeners
+
 # Implementing Sound With Setting Menu For Options
 
 ```rust
