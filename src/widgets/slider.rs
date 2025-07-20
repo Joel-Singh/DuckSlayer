@@ -1,4 +1,3 @@
-use bevy::color::palettes::basic::RED;
 use bevy::prelude::*;
 
 const SLIDER_WIDTH: f32 = 200.;
@@ -37,7 +36,6 @@ pub fn create_slider(commands: &mut Commands, starting_slid_percentage: f32) -> 
     let slider = commands
         .spawn((
             slider_node.clone(),
-            Outline::new(Val::Px(1.), Val::ZERO, RED.into()),
             BorderColor(Color::BLACK),
             BackgroundColor(Srgba::hex("#ffd966ff").unwrap().into()),
         ))
@@ -48,7 +46,6 @@ pub fn create_slider(commands: &mut Commands, starting_slid_percentage: f32) -> 
     // property has no effect together with the left
     let stud = commands
         .spawn((
-            Outline::new(Val::Px(1.), Val::ZERO, RED.into()),
             Name::new("Stud"),
             Node {
                 position_type: PositionType::Relative,
@@ -60,7 +57,6 @@ pub fn create_slider(commands: &mut Commands, starting_slid_percentage: f32) -> 
                 is_hoverable: false,
             },
             children![(
-                Outline::new(Val::Px(1.), Val::ZERO, RED.into()),
                 Node {
                     position_type: PositionType::Relative,
                     width: Val::Px(STUD_DIAMETER),
