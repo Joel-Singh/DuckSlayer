@@ -33,7 +33,6 @@ pub fn create_slider(commands: &mut Commands, starting_slid_percentage: f32) -> 
             slider_node.clone(),
             BorderColor(Color::BLACK),
             BackgroundColor(Srgba::hex("#ffd966ff").unwrap().into()),
-            BorderRadius::MAX,
         ))
         .id();
 
