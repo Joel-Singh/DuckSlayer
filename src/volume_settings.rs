@@ -3,7 +3,7 @@ use bevy::{audio::Volume, prelude::*};
 
 #[derive(Resource)]
 pub struct VolumeSettings {
-    sfx_vol: Volume, // from 0.0 to 1.0
+    sfx_vol: Volume,
     sfx_mute: bool,
     music_vol: Volume,
     music_mute: bool,
@@ -39,15 +39,23 @@ impl VolumeSettings {
     }
 
     pub fn set_music_mute(&mut self, x: bool) {
-        self.sfx_mute = x;
+        self.music_mute = x;
+    }
+
+    pub fn get_sfx_mute(&self) -> bool {
+        self.sfx_mute
+    }
+
+    pub fn get_music_mute(&self) -> bool {
+        self.music_mute
     }
 }
 
 pub fn volume_settings_plugin(app: &mut App) {
     app.insert_resource(VolumeSettings {
-        sfx_vol: Volume::default(),
+        sfx_vol: Volume::Linear(0.5),
         sfx_mute: false,
-        music_vol: Volume::default(),
+        music_vol: Volume::Linear(0.5),
         music_mute: false,
     });
 

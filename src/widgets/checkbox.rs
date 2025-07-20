@@ -13,10 +13,12 @@ pub struct Toggled {
 
 pub fn checkbox_plugin(_app: &mut App) {}
 
-pub fn create_checkbox(commands: &mut Commands) -> Entity {
+pub fn create_checkbox(commands: &mut Commands, starting_is_checked: bool) -> Entity {
     commands
         .spawn((
-            Checkbox { is_checked: false },
+            Checkbox {
+                is_checked: starting_is_checked,
+            },
             Node {
                 width: Val::Px(50.),
                 height: Val::Px(50.),

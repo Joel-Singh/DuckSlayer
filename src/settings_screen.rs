@@ -2,6 +2,8 @@ use crate::volume_settings::VolumeSettings;
 use crate::widgets::checkbox::create_checkbox;
 use crate::widgets::checkbox::Toggled;
 use crate::widgets::slider::create_slider;
+use crate::widgets::slider::Slid;
+use bevy::audio::Volume;
 use bevy::color::palettes::tailwind::*;
 use bevy::prelude::*;
 
@@ -17,7 +19,11 @@ pub fn settings_screen_plugin(app: &mut App) {
     app.add_systems(Startup, spawn_settings_screen);
 }
 
-fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_settings_screen(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    volume: Res<VolumeSettings>,
+) {
     let settings_screen = commands
         .spawn((
             SettingsScreen,
@@ -72,7 +78,7 @@ fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>)
         })
         .id();
 
-    let mute_sfx_checkbox = create_checkbox(&mut commands);
+    let mute_sfx_checkbox = create_checkbox(&mut commands, volume.get_sfx_mute());
     commands
         .entity(mute_sfx_checkbox)
         .observe(
@@ -86,7 +92,7 @@ fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>)
             node.grid_column = GridPlacement::start(2);
         });
 
-    let mute_music_checkbox = create_checkbox(&mut commands);
+    let mute_music_checkbox = create_checkbox(&mut commands, volume.get_music_mute());
     commands
         .entity(mute_music_checkbox)
         .observe(
@@ -100,18 +106,28 @@ fn spawn_settings_screen(mut commands: Commands, asset_server: Res<AssetServer>)
             node.grid_column = GridPlacement::start(2);
         });
 
-    let sfx_slider = create_slider(&mut commands);
+    let sfx_slider = create_slider(&mut commands, volume.get_sfx().to_linear());
     commands
         .entity(sfx_slider)
+        .observe(
+            |trigger: Trigger<Slid>, mut volume: ResMut<VolumeSettings>| {
+                volume.set_sfx_vol(Volume::Linear(trigger.slid_percentage));
+            },
+        )
         .entry::<Node>()
         .and_modify(|mut node| {
             node.grid_row = GridPlacement::start(2);
             node.grid_column = GridPlacement::start(3);
         });
 
-    let music_slider = create_slider(&mut commands);
+    let music_slider = create_slider(&mut commands, volume.get_music().to_linear());
     commands
         .entity(music_slider)
+        .observe(
+            |trigger: Trigger<Slid>, mut volume: ResMut<VolumeSettings>| {
+                volume.set_music_vol(Volume::Linear(trigger.slid_percentage));
+            },
+        )
         .entry::<Node>()
         .and_modify(|mut node| {
             node.grid_row = GridPlacement::start(3);

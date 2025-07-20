@@ -4,6 +4,7 @@ const SLIDER_WIDTH: f32 = 200.;
 const SLIDER_HEIGHT: f32 = 50.;
 const SLIDER_BORDER: f32 = 10.;
 const DRAG_START_PLACEHOLDER: f32 = 0.; // Not actually important because it gets immediately overwritten
+const HIGHEST_LEFT: f32 = SLIDER_WIDTH - SLIDER_HEIGHT;
 
 #[derive(Component)]
 #[require(Name::new("Slider"))]
@@ -13,11 +14,12 @@ struct Slider {
 }
 
 #[derive(Event)]
-struct Slid {
-    val: f32, // From 0.0 to 1.0
+pub struct Slid {
+    pub slid_percentage: f32, // From 0.0 to 1.0
 }
 
-pub fn create_slider(commands: &mut Commands) -> Entity {
+// starting_slid_percentage should be from 0.0 to 1.0
+pub fn create_slider(commands: &mut Commands, starting_slid_percentage: f32) -> Entity {
     let slider_node = Node {
         align_items: AlignItems::Center,
         width: Val::Px(SLIDER_WIDTH),
@@ -42,7 +44,7 @@ pub fn create_slider(commands: &mut Commands) -> Entity {
                 width: Val::Px(SLIDER_HEIGHT),
                 height: Val::Px(SLIDER_HEIGHT),
                 border: UiRect::all(Val::Px(SLIDER_BORDER)),
-                left: Val::Px(-SLIDER_BORDER),
+                left: Val::Px(starting_slid_percentage * HIGHEST_LEFT - SLIDER_BORDER),
                 ..default()
             },
             BorderColor(Color::BLACK),
@@ -71,18 +73,20 @@ pub fn create_slider(commands: &mut Commands) -> Entity {
         .observe(
             |trigger: Trigger<Pointer<Drag>>,
              mut node_q: Query<&mut Node>,
-             slider_q: Query<&Slider>| {
+             slider_q: Query<&Slider>,
+             mut commands: Commands| {
                 let slider = slider_q.get(trigger.target).unwrap();
                 // trigger.distance.x is in pixels, not percentage like slider.drag_start
                 let mut current_percentage =
                     slider.drag_start + (trigger.distance.x / SLIDER_WIDTH); // From 0 to 1
                 current_percentage = current_percentage.min(1.).max(0.);
 
-                // The Val::Px(SLIDER_HEIGHT) is also the width of the stud
-                let highest_left = SLIDER_WIDTH - SLIDER_HEIGHT;
-
                 let mut stud = node_q.get_mut(slider.stud).unwrap();
-                stud.left = Val::Px(current_percentage * highest_left - SLIDER_BORDER);
+                stud.left = Val::Px(current_percentage * HIGHEST_LEFT - SLIDER_BORDER);
+
+                commands.entity(trigger.target).trigger(Slid {
+                    slid_percentage: current_percentage,
+                });
             },
         );
 
