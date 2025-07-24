@@ -7,8 +7,6 @@ const SLIDER_WIDTH_WITHOUT_BORDER: f32 = SLIDER_WIDTH - SLIDER_BORDER * 2.;
 
 const STUD_DIAMETER: f32 = SLIDER_HEIGHT;
 
-const HIGHEST_LEFT: f32 = SLIDER_WIDTH + SLIDER_BORDER;
-
 const DRAG_START_PLACEHOLDER: f32 = 0.; // Not actually important because it gets immediately overwritten
 
 #[derive(Component)]
