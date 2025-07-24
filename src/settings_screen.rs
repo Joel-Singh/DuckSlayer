@@ -106,7 +106,7 @@ fn spawn_settings_screen(
             node.grid_column = GridPlacement::start(2);
         });
 
-    let sfx_slider = create_slider(&mut commands, volume.get_sfx().to_linear());
+    let sfx_slider = create_slider(&mut commands, volume.get_sfx().to_linear() * 100.);
     commands
         .entity(sfx_slider)
         .observe(
@@ -120,7 +120,7 @@ fn spawn_settings_screen(
             node.grid_column = GridPlacement::start(3);
         });
 
-    let music_slider = create_slider(&mut commands, volume.get_music().to_linear());
+    let music_slider = create_slider(&mut commands, volume.get_music().to_linear() * 100.);
     commands
         .entity(music_slider)
         .observe(
