@@ -26,6 +26,7 @@ pub const CONTROLS_EDITOR_MESSAGE: &'static str =
 #[derive(Resource, Deref, DerefMut, Default, PartialEq)]
 struct GameIsReset(bool);
 
+/// Handles all controls for the game
 pub fn game_controls_plugin(app: &mut App) {
     app.add_systems(
         OnEnter(GameState::InGame),
