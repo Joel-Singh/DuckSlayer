@@ -30,7 +30,10 @@ pub fn deckbar(app: &mut App) {
     app.add_systems(
         Startup,
         (
-            (initialize_deckbar, spawn_hover_sprite),
+            (
+                initialize_deckbar.in_set(InitializeDeckbar),
+                spawn_hover_sprite,
+            ),
             remove_card_on_right_click_in_editor,
         )
             .chain(),
