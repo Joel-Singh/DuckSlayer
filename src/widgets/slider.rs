@@ -21,7 +21,9 @@ pub struct Slid {
     pub slid_percentage: f32, // From 0.0 to 1.0
 }
 
-// starting_slid_percentage should be from 0.0 to 1.0
+/// Creates a slider, returning an Entity for usage
+/// # Args
+/// starting_slide_percentage: from 0 to 100
 pub fn create_slider(commands: &mut Commands, starting_slid_percentage: f32) -> Entity {
     let slider_node = Node {
         align_items: AlignItems::Center,
