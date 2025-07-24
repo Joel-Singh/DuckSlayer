@@ -19,6 +19,8 @@ struct LoseInformationRoot;
 #[derive(Component)]
 struct GoalNode;
 
+/// Goal Board is the informational ui that tells the player what they need to keep alive, and what
+/// they need to kill
 pub fn goal_board_plugin(app: &mut App) {
     app.add_systems(Startup, spawn_root.before(InitializeDeckbar))
         .add_systems(
