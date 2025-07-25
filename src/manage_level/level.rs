@@ -29,6 +29,10 @@ impl Level {
 
         let mut cards = world.query::<(&Transform, &SpawnedCard)>();
         for (transform, spawned_card) in cards.iter(world) {
+            if **spawned_card == Card::Waterball {
+                // It doesn't make sense to save waterballs
+                continue;
+            }
             current_level
                 .cards
                 .push((**spawned_card, transform.translation.truncate()));
