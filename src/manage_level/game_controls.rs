@@ -33,10 +33,10 @@ pub fn game_controls_plugin(app: &mut App) {
         (
             set_starting_message.run_if(not_in_editor),
             set_message(CONTROLS_EDITOR_MESSAGE).run_if(in_editor),
-            game_is_reset::<true>,
+            disallow_game_reset,
         ),
     )
-    .add_systems(OnEnter(IsPaused::False), game_is_reset::<false>)
+    .add_systems(OnEnter(IsPaused::False), allow_game_reset)
     .add_systems(
         FixedPreUpdate,
         (
@@ -84,7 +84,7 @@ fn restart_level(
         pause,
         reset_level_progress,
         set_message_system,
-        game_is_reset::<true>,
+        disallow_game_reset,
     )
         .chain()
 }
@@ -170,8 +170,12 @@ fn spawn_card_on_click(
     }
 }
 
-fn game_is_reset<const VAL: bool>(mut game_is_reset: ResMut<GameIsReset>) {
-    **game_is_reset = VAL;
+fn allow_game_reset(mut game_is_reset: ResMut<GameIsReset>) {
+    **game_is_reset = false;
+}
+
+fn disallow_game_reset(mut game_is_reset: ResMut<GameIsReset>) {
+    **game_is_reset = true;
 }
 
 fn display_game_is_reset(
