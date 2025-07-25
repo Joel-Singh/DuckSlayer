@@ -31,7 +31,7 @@ pub struct SpawnedCard(Card);
 pub struct Farmer;
 
 #[derive(Component)]
-#[require(SpawnedCard(Card::Waterball))]
+#[require(LevelEntity, SpawnedCard(Card::Waterball))]
 pub struct Waterball {
     pub radius: f32,
     pub timer: Timer,
