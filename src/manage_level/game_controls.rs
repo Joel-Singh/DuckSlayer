@@ -1,3 +1,5 @@
+mod save_indicator;
+
 use super::game_messages::SetMessage;
 use super::{
     pause, reset_level_progress, save_level_to_memory, set_message,
@@ -28,58 +30,65 @@ struct GameIsReset(bool);
 
 /// Handles all controls for the game
 pub fn game_controls_plugin(app: &mut App) {
-    app.add_systems(
-        OnEnter(GameState::InGame),
-        (
-            set_starting_message.run_if(not_in_editor),
-            set_message(CONTROLS_EDITOR_MESSAGE).run_if(in_editor),
-            disallow_game_reset,
-        ),
-    )
-    .add_systems(
-        OnEnter(IsPaused::False),
-        (allow_game_reset, set_message("")),
-    )
-    .add_systems(
-        OnEnter(IsPaused::True),
-        (
-            set_starting_message.run_if(in_editor),
-            set_message(CONTROLS_EDITOR_MESSAGE).run_if(in_editor),
-        ),
-    )
-    .add_systems(
-        FixedPreUpdate,
-        (
+    app.add_plugins(save_indicator::save_indicator_plugin)
+        .add_systems(
+            OnEnter(GameState::InGame),
             (
-                unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(IsPaused::True))),
-                restart_level().run_if(
-                    input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
-                ),
-            )
-                .run_if(not_in_editor),
-            (
-                (restart_level()).run_if(
-                    input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
-                ),
-                save_level_to_memory.run_if(input_just_pressed(KeyCode::KeyX)),
-                (toggle_pause,).run_if(input_just_pressed(KeyCode::Space)),
-                delete_level_entities_on_click,
-            )
-                .run_if(in_editor),
-            (
-                select_card(0).run_if(input_just_pressed(KeyCode::Digit1)),
-                select_card(1).run_if(input_just_pressed(KeyCode::Digit2)),
-                select_card(2).run_if(input_just_pressed(KeyCode::Digit3)),
-                select_card(3).run_if(input_just_pressed(KeyCode::Digit4)),
-                deselect_card.run_if(input_just_pressed(KeyCode::Escape)),
-                deselect_card.run_if(input_just_pressed(KeyCode::CapsLock)),
-            )
-                .run_if(not(egui_wants_any_keyboard_input)),
-            spawn_card_on_click,
+                set_starting_message.run_if(not_in_editor),
+                set_message(CONTROLS_EDITOR_MESSAGE).run_if(in_editor),
+                disallow_game_reset,
+            ),
         )
-            .run_if(in_state(GameState::InGame)),
-    )
-    .init_resource::<GameIsReset>();
+        .add_systems(
+            OnEnter(IsPaused::False),
+            (
+                allow_game_reset,
+                save_indicator::set_not_saved,
+                set_message(""),
+            ),
+        )
+        .add_systems(
+            OnEnter(IsPaused::True),
+            (
+                set_starting_message.run_if(in_editor),
+                set_message(CONTROLS_EDITOR_MESSAGE).run_if(in_editor),
+            ),
+        )
+        .add_systems(
+            FixedPreUpdate,
+            (
+                (
+                    unpause
+                        .run_if(input_just_pressed(KeyCode::Space).and(in_state(IsPaused::True))),
+                    restart_level().run_if(
+                        input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
+                    ),
+                )
+                    .run_if(not_in_editor),
+                (
+                    (restart_level(), save_indicator::set_saved).run_if(
+                        input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
+                    ),
+                    (save_level_to_memory, save_indicator::set_saved)
+                        .run_if(input_just_pressed(KeyCode::KeyX)),
+                    (toggle_pause,).run_if(input_just_pressed(KeyCode::Space)),
+                    delete_level_entities_on_click,
+                )
+                    .run_if(in_editor),
+                (
+                    select_card(0).run_if(input_just_pressed(KeyCode::Digit1)),
+                    select_card(1).run_if(input_just_pressed(KeyCode::Digit2)),
+                    select_card(2).run_if(input_just_pressed(KeyCode::Digit3)),
+                    select_card(3).run_if(input_just_pressed(KeyCode::Digit4)),
+                    deselect_card.run_if(input_just_pressed(KeyCode::Escape)),
+                    deselect_card.run_if(input_just_pressed(KeyCode::CapsLock)),
+                )
+                    .run_if(not(egui_wants_any_keyboard_input)),
+                spawn_card_on_click,
+            )
+                .run_if(in_state(GameState::InGame)),
+        )
+        .init_resource::<GameIsReset>();
 
     if crate::debug::in_debug() {
         app.add_systems(FixedUpdate, display_game_is_reset);

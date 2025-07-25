@@ -70,14 +70,8 @@ mod Settings {
 
 Audio systems will simply read from the VolumeSettings struct modifying their playback settings.
 
-## Implementing Widgets 
+## Implementing save indicator
 
-### Slider
+Spawns itself, hides itself when leaving ingame, shows when entering ingame. Systems only run in game. follows the cursor.
 
-One long rectangle node with a circle on top
-
-Circle is absolutely positioned. Middle is volume 1.0. Left is volume 0.5. Right is volume 1.5. volume as in what's passed into PlayBackSettings.
-
-Expose a "Slid" event that contains the current value of the slider every time is slid.
-
-Look for a `Pointer<Hold>` event and update the left positioning of the circle appropriately while also triggering the Slid event.
+Exposes two things for game_controls: set_save_indicator_green, set_save_indicator_red as systems. You can guess what they do.
