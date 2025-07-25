@@ -67,11 +67,11 @@ impl Level {
             starting_deckbar: Vec::new(),
             win_condition: DeathGoal {
                 card: Card::Quakka,
-                count_dead: 99,
+                count_dead: 1,
             },
             lose_condition: DeathGoal {
                 card: Card::Quakka,
-                count_dead: 99,
+                count_dead: 1,
             },
         }
     }
