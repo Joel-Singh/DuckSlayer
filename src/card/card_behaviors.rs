@@ -73,12 +73,9 @@ pub fn card_behaviors(app: &mut App) {
     app.add_systems(
         FixedUpdate,
         (
-            (
-                kill_farmer_reaching_exit,
-                explode_waterballs,
-                tick_waterball_timers,
-            )
-                .run_if(in_state(IsPaused::False)),
+            (kill_farmer_reaching_exit,).run_if(in_state(IsPaused::False)),
+            explode_waterballs,
+            tick_waterball_timers,
             update_healthbars,
         )
             .run_if(in_state(GameState::InGame)),
