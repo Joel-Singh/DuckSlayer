@@ -124,6 +124,7 @@ fn delete_level_entities_on_click(
             |trigger: Trigger<Pointer<Click>>,
              is_paused: Res<State<IsPaused>>,
              mut commands: Commands| {
+                commands.run_system_cached(allow_game_reset);
                 match **is_paused {
                     IsPaused::True => {
                         commands.entity(trigger.target()).despawn();
@@ -161,6 +162,7 @@ fn spawn_card_on_click(
 
         commands.queue(SpawnCard::new(selected_card, mouse_coords.0));
         commands.queue(DeleteSelectedCard::default());
+        commands.run_system_cached(allow_game_reset);
     }
 
     fn in_bounds(v: Vec2) -> bool {
