@@ -36,23 +36,33 @@ pub fn game_controls_plugin(app: &mut App) {
             disallow_game_reset,
         ),
     )
-    .add_systems(OnEnter(IsPaused::False), allow_game_reset)
+    .add_systems(
+        OnEnter(IsPaused::False),
+        (allow_game_reset, set_message("")),
+    )
+    .add_systems(
+        OnEnter(IsPaused::True),
+        (
+            set_starting_message.run_if(in_editor),
+            set_message(CONTROLS_EDITOR_MESSAGE).run_if(in_editor),
+        ),
+    )
     .add_systems(
         FixedPreUpdate,
         (
             (
                 unpause.run_if(input_just_pressed(KeyCode::Space).and(in_state(IsPaused::True))),
-                restart_level(set_starting_message.into_configs()).run_if(
+                restart_level().run_if(
                     input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
                 ),
             )
                 .run_if(not_in_editor),
             (
-                restart_level(set_message(CONTROLS_EDITOR_MESSAGE)).run_if(
+                (restart_level()).run_if(
                     input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
                 ),
                 save_level_to_memory.run_if(input_just_pressed(KeyCode::KeyX)),
-                toggle_pause.run_if(input_just_pressed(KeyCode::Space)),
+                (toggle_pause,).run_if(input_just_pressed(KeyCode::Space)),
                 delete_level_entities_on_click,
             )
                 .run_if(in_editor),
@@ -76,14 +86,11 @@ pub fn game_controls_plugin(app: &mut App) {
     }
 }
 
-fn restart_level(
-    set_message_system: ScheduleConfigs<ScheduleSystem>,
-) -> ScheduleConfigs<ScheduleSystem> {
+fn restart_level() -> ScheduleConfigs<ScheduleSystem> {
     (
         spawn_entities_from_level_memory,
         pause,
         reset_level_progress,
-        set_message_system,
         disallow_game_reset,
     )
         .chain()

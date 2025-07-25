@@ -13,7 +13,7 @@ use crate::{
     back_btn::{hide_back_btn, show_back_btn},
     card::{Card, CardDeath, SpawnCard},
     deckbar::{clear_deckbar, PushToDeckbar},
-    global::{not_in_editor, GameState, ImageHandles, InEditorRes},
+    global::{GameState, ImageHandles, InEditorRes},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, States)]
@@ -82,10 +82,6 @@ pub fn manage_level(app: &mut App) {
             FixedUpdate,
             (win_or_lose_on_conditions)
                 .run_if(in_state(GameState::InGame).and(in_state(LevelProgress::Null))),
-        )
-        .add_systems(
-            OnEnter(IsPaused::False),
-            set_message("").run_if(not_in_editor),
         )
         .add_systems(
             OnEnter(LevelProgress::GameOver),
