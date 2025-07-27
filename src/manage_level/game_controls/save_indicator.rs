@@ -43,6 +43,10 @@ fn init(mut commands: Commands) {
             height: Val::Px(SIZE),
             ..default()
         },
+        Pickable {
+            should_block_lower: false,
+            is_hoverable: false,
+        },
         BackgroundColor(SAVED_COLOR.into()),
         BorderRadius::MAX,
     ));
