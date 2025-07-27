@@ -13,9 +13,9 @@ use strum::IntoEnumIterator;
 use DuckSlayer::delete_all;
 
 use crate::{
-    card::{Card, CardConsts, SpawnCard},
+    card::{Card, CardConsts},
     deckbar::{clear_deckbar, PushToDeckbar},
-    global::{in_editor, GameState, NEST_POSITIONS},
+    global::{in_editor, GameState},
 };
 
 use super::{
@@ -46,12 +46,6 @@ fn create_editor_window(
             ui.collapsing("Add cards", |ui| {
                 create_push_to_deckbar_btns(ui, &mut commands);
             });
-
-            if ui.button("Spawn nests in default positions").clicked() {
-                commands.queue(move |world: &mut World| {
-                    let _ = world.run_system_once(spawn_nests_in_default_positions);
-                })
-            }
 
             ui.heading("Quick Saving");
             if ui.button("Quicksave [X]").clicked() {
@@ -163,12 +157,6 @@ fn create_push_to_deckbar_btns(ui: &mut Ui, commands: &mut Commands) {
         if push_to_deck_btn.clicked() {
             commands.queue(PushToDeckbar(card));
         }
-    }
-}
-
-fn spawn_nests_in_default_positions(mut commands: Commands) {
-    for pos in [NEST_POSITIONS.0, NEST_POSITIONS.1] {
-        commands.queue(SpawnCard::new(Card::Nest, pos.into()));
     }
 }
 

@@ -38,8 +38,6 @@ pub const SCREEN_WIDTH: f32 = 1366.0;
 
 pub const DECK_WIDTH: f32 = 0.1 * SCREEN_WIDTH;
 
-pub const NEST_POSITIONS: ((f32, f32), (f32, f32)) = ((-388., -312.), (173., -312.));
-
 pub const FARMER_EXIT_LOCATION: (i32, i32) = (-83, 440);
 
 pub const HEALTHBAR_SIZE: (f32, f32) = (108., 12.);
