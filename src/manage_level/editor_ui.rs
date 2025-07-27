@@ -1,5 +1,7 @@
 mod saving_loading_levels;
 
+use crate::manage_level::game_controls;
+pub use crate::manage_level::game_controls::save_indicator;
 use bevy::{ecs::system::RunSystemOnce, prelude::*};
 use bevy_egui::{
     egui::{self, ComboBox, Slider, Ui},
@@ -156,6 +158,8 @@ fn create_push_to_deckbar_btns(ui: &mut Ui, commands: &mut Commands) {
             ui.button("Add ".to_string() + &card.to_string() + &" to the deck".to_string());
         if push_to_deck_btn.clicked() {
             commands.queue(PushToDeckbar(card));
+            commands.run_system_cached(save_indicator::set_not_saved);
+            commands.run_system_cached(game_controls::allow_game_reset);
         }
     }
 }

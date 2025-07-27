@@ -1,4 +1,4 @@
-mod save_indicator;
+pub mod save_indicator;
 
 use super::game_messages::SetMessage;
 use super::{
@@ -29,7 +29,7 @@ pub const CONTROLS_EDITOR_MESSAGE: &'static str =
     "[Space] to toggle pausing \n[Click] on spawned cards to delete\n";
 
 #[derive(Resource, Deref, DerefMut, Default, PartialEq)]
-struct GameIsReset(bool);
+pub(crate) struct GameIsReset(bool);
 
 /// Handles all controls for the game
 pub fn game_controls_plugin(app: &mut App) {
@@ -221,7 +221,7 @@ fn remove_card_on_right_click_in_editor(
     }
 }
 
-fn allow_game_reset(mut game_is_reset: ResMut<GameIsReset>) {
+pub(crate) fn allow_game_reset(mut game_is_reset: ResMut<GameIsReset>) {
     **game_is_reset = false;
 }
 

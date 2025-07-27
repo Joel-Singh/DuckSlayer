@@ -13,6 +13,8 @@ use crate::{
     manage_level::{spawn_entities_from_level_memory, Level, LevelEntity, LevelMemory},
 };
 
+use super::save_indicator;
+
 pub fn saving_loading_levels_plugin(app: &mut App) {
     app.add_systems(FixedUpdate, poll_filepicker_completion);
 }
@@ -91,6 +93,7 @@ impl Command for LoadLevelWithFileDialog {
                         let _ = world.run_system_once(delete_all::<LevelEntity>);
                         let _ = world.run_system_once(clear_deckbar);
                         let _ = world.run_system_once(spawn_entities_from_level_memory);
+                        let _ = world.run_system_once(save_indicator::set_saved);
                     } else {
                         warn!("Couldn't load level from file");
                     }
