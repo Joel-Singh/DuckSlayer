@@ -44,6 +44,7 @@ pub fn game_controls_plugin(app: &mut App) {
                 set_starting_message.run_if(not_in_editor),
                 set_message(CONTROLS_EDITOR_MESSAGE).run_if(in_editor),
                 disallow_game_reset,
+                save_indicator::set_saved,
             ),
         )
         .add_systems(
@@ -148,13 +149,15 @@ fn delete_level_entities_on_click(
             |trigger: Trigger<Pointer<Click>>,
              is_paused: Res<State<IsPaused>>,
              mut commands: Commands| {
-                commands.run_system_cached(allow_game_reset);
                 match **is_paused {
                     IsPaused::True => {
                         commands.entity(trigger.target()).despawn();
                     }
                     IsPaused::False => {}
                 }
+
+                commands.run_system_cached(allow_game_reset);
+                commands.run_system_cached(save_indicator::set_not_saved);
             },
         );
     }
@@ -187,6 +190,7 @@ fn spawn_card_on_click(
         commands.queue(SpawnCard::new(selected_card, mouse_coords.0));
         commands.queue(DeleteSelectedCard::default());
         commands.run_system_cached(allow_game_reset);
+        commands.run_system_cached(save_indicator::set_not_saved);
     }
 
     fn in_bounds(v: Vec2) -> bool {
