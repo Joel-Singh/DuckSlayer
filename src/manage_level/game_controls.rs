@@ -7,11 +7,14 @@ use super::{
 };
 use crate::card::{MaybeCard, SpawnCard};
 use crate::debug_ui::DisplayInDebug;
-use crate::deckbar::{deselect_card, select_card, DeleteSelectedCard, SelectedCard};
+use crate::deckbar::{
+    deselect_card, select_card, DeleteSelectedCard, InitializeDeckbar, SelectedCard,
+};
 use crate::global::{
     get_left_river_rect, get_middle_river_rect, get_right_river_rect, in_editor, not_in_editor,
     CursorWorldCoords, GameState, IsPointerOverUi,
 };
+use crate::manage_level::InEditorRes;
 use crate::manage_level::{unpause, Level};
 use bevy::ecs::schedule::ScheduleConfigs;
 use bevy::ecs::system::ScheduleSystem;
@@ -31,6 +34,10 @@ struct GameIsReset(bool);
 /// Handles all controls for the game
 pub fn game_controls_plugin(app: &mut App) {
     app.add_plugins(save_indicator::save_indicator_plugin)
+        .add_systems(
+            Startup,
+            remove_card_on_right_click_in_editor.after(InitializeDeckbar),
+        )
         .add_systems(
             OnEnter(GameState::InGame),
             (
@@ -185,6 +192,26 @@ fn spawn_card_on_click(
         !get_left_river_rect().contains(v)
             && !get_middle_river_rect().contains(v)
             && !get_right_river_rect().contains(v)
+    }
+}
+
+fn remove_card_on_right_click_in_editor(
+    cards_q: Query<Entity, With<MaybeCard>>,
+    mut commands: Commands,
+) {
+    for card in cards_q {
+        commands.entity(card).insert(Pickable::default());
+        commands.entity(card).observe(
+            |trigger: Trigger<Pointer<Click>>,
+             in_editor: Res<InEditorRes>,
+             mut commands: Commands| {
+                let right_click = trigger.button == PointerButton::Secondary;
+                if right_click && **in_editor {
+                    commands.entity(trigger.target).insert(MaybeCard(None));
+                    commands.entity(trigger.target).remove::<SelectedCard>();
+                }
+            },
+        );
     }
 }
 

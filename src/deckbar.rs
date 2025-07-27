@@ -30,11 +30,8 @@ pub fn deckbar(app: &mut App) {
     app.add_systems(
         Startup,
         (
-            (
-                initialize_deckbar.in_set(InitializeDeckbar),
-                spawn_hover_sprite,
-            ),
-            remove_card_on_right_click_in_editor,
+            initialize_deckbar.in_set(InitializeDeckbar),
+            spawn_hover_sprite,
         )
             .chain(),
     )
@@ -299,26 +296,6 @@ fn select_card_on_click(
                 commands.entity(card_clicked_e).insert(SelectedCard);
             }
         }
-    }
-}
-
-fn remove_card_on_right_click_in_editor(
-    cards_q: Query<Entity, With<MaybeCard>>,
-    mut commands: Commands,
-) {
-    for card in cards_q {
-        commands.entity(card).insert(Pickable::default());
-        commands.entity(card).observe(
-            |trigger: Trigger<Pointer<Click>>,
-             in_editor: Res<InEditorRes>,
-             mut commands: Commands| {
-                let right_click = trigger.button == PointerButton::Secondary;
-                if right_click && **in_editor {
-                    commands.entity(trigger.target).insert(MaybeCard(None));
-                    commands.entity(trigger.target).remove::<SelectedCard>();
-                }
-            },
-        );
     }
 }
 
