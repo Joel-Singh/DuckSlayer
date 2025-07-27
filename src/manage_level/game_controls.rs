@@ -209,6 +209,7 @@ fn remove_card_on_right_click_in_editor(
                 if right_click && **in_editor {
                     commands.entity(trigger.target).insert(MaybeCard(None));
                     commands.entity(trigger.target).remove::<SelectedCard>();
+                    commands.run_system_cached(save_indicator::set_not_saved);
                 }
             },
         );
