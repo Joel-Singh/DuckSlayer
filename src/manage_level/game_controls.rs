@@ -73,7 +73,7 @@ pub fn game_controls_plugin(app: &mut App) {
                 )
                     .run_if(not_in_editor),
                 (
-                    (restart_level(), save_indicator::set_saved).run_if(
+                    restart_level().run_if(
                         input_just_pressed(KeyCode::KeyZ).and(resource_equals(GameIsReset(false))),
                     ),
                     (save_level_to_memory, save_indicator::set_saved)
@@ -108,6 +108,7 @@ fn restart_level() -> ScheduleConfigs<ScheduleSystem> {
         pause,
         reset_level_progress,
         disallow_game_reset,
+        save_indicator::set_saved,
     )
         .chain()
 }
